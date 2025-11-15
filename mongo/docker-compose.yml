@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: homestead-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - homestead-network
+
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: homestead-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8001:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${ME_CONFIG_MONGODB_ADMINUSERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${ME_CONFIG_MONGODB_ADMINPASSWORD}
+      ME_CONFIG_MONGODB_URL: ${ME_CONFIG_MONGODB_URL}
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
+    depends_on:
+      - mongodb
+    networks:
+      - homestead-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  homestead-network:
+    driver: bridge
