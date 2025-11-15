@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Animated, PanResponder, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Animated, PanResponder, Platform, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
+import { Typography } from '../constants/typography';
+import StitchedBorder from './StitchedBorder';
+
+const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
 const { height: screenHeight } = Dimensions.get('window');
 const ITEM_HEIGHT = 50;
@@ -229,41 +233,57 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
     <View style={styles.container}>
       <Text style={styles.title} id={`${title}-label`}>{title}</Text>
       
-      <View 
-        ref={containerRef}
-        style={styles.slotContainer}
-        {...(!isMobileOrMobileWeb ? panResponder.panHandlers : {})}
-        {...(Platform.OS === 'web' ? {
-          role: "listbox",
-          "aria-labelledby": `${title}-label`,
-          "aria-activedescendant": `${title}-item-${currentIndex}`,
-          tabIndex: isSpinning ? -1 : 0,
-          onKeyDown: handleKeyPress
-        } : {
-          accessibilityRole: "adjustable",
-          accessibilityLabel: `${title} selector. Current selection: ${items[currentIndex]}. Use arrow keys to change selection.`,
-          accessibilityValue: {
-            now: currentIndex,
-            min: 0,
-            max: items.length - 1,
-            text: items[currentIndex]
-          }
-        })}
-      >
-        {/* Gradient overlays for fade effect */}
-        <LinearGradient
-          colors={[Colors.background.card, 'transparent']}
-          style={styles.topGradient}
-          pointerEvents="none"
-        />
-        <LinearGradient
-          colors={['transparent', Colors.background.card]}
-          style={styles.bottomGradient}
-          pointerEvents="none"
-        />
-        
-        
-        <ScrollView
+      <View style={styles.slotContainer}>
+        <View style={styles.backgroundImageWrapper}>
+          {Platform.OS === 'web' && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundImage: `url(${typeof slotBgImage === 'string' ? slotBgImage : slotBgImage.default || slotBgImage.uri || slotBgImage})`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '40%',
+                borderRadius: 8,
+                pointerEvents: 'none',
+                opacity: 0.8,
+              }}
+            />
+          )}
+          {Platform.OS !== 'web' && (
+            <ImageBackground
+              source={slotBgImage}
+              style={styles.backgroundImageNative}
+              imageStyle={styles.imageStyle}
+              resizeMode="repeat"
+            />
+          )}
+          <View style={styles.overlay}>
+            <StitchedBorder style={{ overflow: 'hidden' }}>
+              <View
+                ref={containerRef}
+                style={styles.slotInner}
+                {...(!isMobileOrMobileWeb ? panResponder.panHandlers : {})}
+                {...(Platform.OS === 'web' ? {
+                  role: "listbox",
+                  "aria-labelledby": `${title}-label`,
+                  "aria-activedescendant": `${title}-item-${currentIndex}`,
+                  tabIndex: isSpinning ? -1 : 0,
+                  onKeyDown: handleKeyPress
+                } : {
+                  accessibilityRole: "adjustable",
+                  accessibilityLabel: `${title} selector. Current selection: ${items[currentIndex]}. Use arrow keys to change selection.`,
+                  accessibilityValue: {
+                    now: currentIndex,
+                    min: 0,
+                    max: items.length - 1,
+                    text: items[currentIndex]
+                  }
+                })}
+              >
+              <ScrollView
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
           snapToInterval={ITEM_HEIGHT}
@@ -302,7 +322,10 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
                 <Text style={[
                   styles.itemText,
                   !isSpinning && currentIndex === index && styles.selectedItemText,
-                  { opacity }
+                  { opacity },
+                  Platform.OS === 'web' && !isSpinning && currentIndex === index && {
+                    textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                  }
                 ]}>
                   {item}
                 </Text>
@@ -316,6 +339,10 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
           {!isSpinning && <View style={styles.paddingItem} />}
           {!isSpinning && <View style={styles.paddingItem} />}
         </ScrollView>
+              </View>
+            </StitchedBorder>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -338,11 +365,39 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT * VISIBLE_ITEMS,
     width: '100%',
     position: 'relative',
-    backgroundColor: Colors.background.card,
-    borderRadius: 15,
-    borderWidth: 2,
-    borderColor: Colors.vaporwave.cyan,
+    borderRadius: 8,
     overflow: 'hidden',
+  },
+  backgroundImageWrapper: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  backgroundImageNative: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.8,
+  },
+  imageStyle: {
+    borderRadius: 8,
+  },
+  overlay: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(222, 134, 223, 0.25)',
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slotInner: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
     cursor: 'default',
     outline: 'none',
   },
@@ -391,21 +446,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   itemText: {
-    color: Colors.text.secondary,
-    fontSize: 16,
-    fontWeight: '500',
+    fontFamily: Typography.fonts.header,
+    color: Colors.cottagecore.greyDarker,
+    fontSize: 18,
+    fontWeight: 'bold',
     textAlign: 'center',
     userSelect: 'none',
     cursor: 'default',
+    letterSpacing: 0.5,
   },
   selectedItemText: {
-    color: Colors.text.primary,
-    fontWeight: '700',
-    textShadowColor: Colors.vaporwave.pink,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    fontFamily: Typography.fonts.header,
+    color: Colors.cottagecore.greyDarker,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
     userSelect: 'none',
     cursor: 'default',
+    letterSpacing: 0.5,
   },
 });
 

@@ -1,4 +1,5 @@
 import { makeAutoObservable } from 'mobx';
+import ProfileStore from './ProfileStore';
 
 class AuthStore {
   user = null;
@@ -14,6 +15,14 @@ class AuthStore {
     this.user = user;
     this.token = token;
     this.isAuthenticated = true;
+
+    // Update ProfileStore with user data
+    if (user) {
+      ProfileStore.setProfile({
+        avatarUrl: user.avatar,
+        username: user.username,
+      });
+    }
   }
 
   logout() {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, Linking, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, Linking, ScrollView, Image, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import GradientBackground from '../components/GradientBackground';
 import VaporwaveButton from '../components/VaporwaveButton';
 import { Colors } from '../constants/colors';
+import { Typography } from '../constants/typography';
 import AuthStore from '../stores/AuthStore';
 import WebSocketService from '../services/websocket';
 import domain from '../utils/domain';
@@ -32,7 +32,7 @@ const OnboardingScreen = observer(() => {
           const user = JSON.parse(decodeURIComponent(userStr));
           AuthStore.setUser(user, token);
           WebSocketService.connect();
-          router.push('/username');
+          router.push('/homestead/onboarding/username');
         } catch (e) {
           Alert.alert('Error', 'Failed to process authentication');
         }
@@ -75,37 +75,47 @@ const OnboardingScreen = observer(() => {
 
   const handleSkipForNow = () => {
     // For development purposes
-    router.push('/username');
+    router.push('/homestead/onboarding/username');
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollTestWindow}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.content} accessibilityRole="main">
-        <View style={styles.headerContainer}>
+          <View style={styles.headerContainer}>
           <Text
-            style={styles.title}
+            style={[
+              styles.title,
+              Platform.OS === 'web' && {
+                textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+              }
+            ]}
             accessibilityRole="header"
             accessibilityLevel={1}
           >
-            Your digital Homestead
+            homestead{' '}
+            <Text style={styles.byHeartsbox}>by heartsbox</Text>
           </Text>
-          <Text style={styles.subtitle}>
-            Sign in with Google to save your progress!
+          <Text
+            style={[
+              styles.subtitle,
+              Platform.OS === 'web' && {
+                textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+              }
+            ]}
+          >
+            sign in to save your progress
           </Text>
         </View>
 
-        <View 
-          style={styles.glowOrb}
-          accessibilityRole="image"
-          accessibilityLabel="Digital globe icon representing connection to the virtual world"
-        >
-          <Text style={styles.orbText} accessible={false}>🌐</Text>
-        </View>
+        <Image
+          source={require('../assets/images/middle-graphic.png')}
+          style={styles.middleGraphic}
+          resizeMode="contain"
+        />
 
         <View style={styles.buttonContainer}>
           <VaporwaveButton
-            title={isLoading ? '◉ Connecting...' : '🚀 Sign In with Google'}
+            title={isLoading ? 'Connecting...' : 'Sign In with Google'}
             onPress={handleGoogleSignIn}
             disabled={isLoading}
             variant="primary"
@@ -115,104 +125,88 @@ const OnboardingScreen = observer(() => {
           />
 
           <VaporwaveButton
-            title="↗ Skip & Explore"
+            title="Skip & Explore"
             onPress={handleSkipForNow}
-            variant="accent"
+            variant="blue"
             style={styles.skipButton}
             accessibilityLabel="Skip authentication"
             accessibilityHint="Continue without signing in"
           />
         </View>
 
-        <Text style={styles.footerText}>
-          ✨ Your journey to the digital homestead begins here
-        </Text>
+        <Text style={styles.footerText}></Text>
         </View>
       </ScrollView>
-    </View>
   );
 });
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: 'transparent',
   },
-  scrollTestWindow: {
-    height: 200,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 10,
+  scrollContent: {
+    flexGrow: 1,
+    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
+    minHeight: '100%',
+    backgroundColor: 'transparent',
   },
   headerContainer: {
     alignItems: 'center',
-    marginTop: 40,
+    marginBottom: 40,
+  },
+  middleGraphic: {
+    width: 200,
+    height: 200,
+    marginBottom: 40,
   },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
-    marginBottom: 20,
+    fontFamily: Typography.fonts.header,
+    fontSize: 42,
+    marginBottom: 24,
     textAlign: 'center',
-    color: Colors.text.primary,
-    textShadowColor: Colors.vaporwave.cyan,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 15,
+    color: Colors.cottagecore.greyDark,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
+    letterSpacing: 1,
+    textTransform: 'lowercase',
+  },
+  byHeartsbox: {
+    fontSize: 28,
+    position: 'relative',
+    top: -8,
   },
   subtitle: {
-    fontSize: 16,
+    fontFamily: Typography.fonts.subheader,
+    fontSize: 18,
+    fontWeight: 'bold',
     textAlign: 'center',
-    color: Colors.light.primary,
-    lineHeight: 24,
+    color: Colors.cottagecore.greyDark,
+    lineHeight: 26,
     paddingHorizontal: 10,
-  },
-  glowOrb: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.background.card,
-    borderWidth: 3,
-    borderColor: Colors.vaporwave.pink,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Colors.vaporwave.pink,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 20,
-    marginVertical: 40,
-    alignSelf: 'center',
-  },
-  orbText: {
-    fontSize: 50,
-    textShadowColor: Colors.vaporwave.cyan,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   buttonContainer: {
     width: '100%',
-    alignItems: 'center',
-    gap: 20,
+    maxWidth: 400,
+    alignItems: 'stretch',
+    gap: 16,
   },
   googleButton: {
-    minWidth: 250,
+    width: '100%',
   },
   skipButton: {
-    minWidth: 200,
+    width: '100%',
   },
   footerText: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    paddingHorizontal: 20,
     marginTop: 40,
   },
 });

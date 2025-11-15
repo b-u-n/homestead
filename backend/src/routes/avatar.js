@@ -61,21 +61,22 @@ router.post('/generate', async (req, res) => {
 // Generate multiple avatar options (4 different styles)
 router.post('/generate-options', async (req, res) => {
   try {
-    const { userId, adjective, adverb, noun, color, styles } = req.body;
-    
+    const { userId, adjective, adverb, noun, color, colorText, styles } = req.body;
+
     if (!userId || !adjective || !adverb || !noun) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields: userId, adjective, adverb, noun'
       });
     }
-    
+
     const results = await avatarService.generateMultipleOptions(
-      userId, 
-      adjective, 
-      adverb, 
+      userId,
+      adjective,
+      adverb,
       noun,
       color,
+      colorText,
       styles
     );
     

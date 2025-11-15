@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, ImageBackground } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import GradientBackground from '../components/GradientBackground';
 import VaporwaveButton from '../components/VaporwaveButton';
 import SlotMachine from '../components/SlotMachine';
+import StitchedBorder from '../components/StitchedBorder';
 import { Colors } from '../constants/colors';
+import { Typography } from '../constants/typography';
 import { getWordArrays, createCustomUsername } from '../utils/username';
 import AuthStore from '../stores/AuthStore';
+
+const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
 const UsernameCreationScreen = observer(() => {
   const router = useRouter();
@@ -69,7 +72,7 @@ const UsernameCreationScreen = observer(() => {
     }
 
     // Navigate to avatar generation
-    router.push({ pathname: '/avatar', params: { username: selectedUsername } });
+    router.push({ pathname: '/homestead/onboarding/avatar', params: { username: selectedUsername } });
   };
 
   const handleRandomize = async () => {
@@ -96,14 +99,72 @@ const UsernameCreationScreen = observer(() => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollTestWindow}>
-        <Text style={styles.headerTitle}>What would you like to be?</Text>
-        <Text style={styles.headerSubtitle}>
-          Choose a unique username to help keep you anonymous.
-        </Text>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.content}>
+          <View style={styles.headerContainer}>
+            <Text
+              style={[
+                styles.headerTitle,
+                Platform.OS === 'web' && {
+                  textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                }
+              ]}
+            >
+              What would you like to be?
+            </Text>
+            <Text
+              style={[
+                styles.headerSubtitle,
+                Platform.OS === 'web' && {
+                  textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                }
+              ]}
+            >
+              choose an anonymous username
+            </Text>
+          </View>
 
         <View style={styles.previewContainer}>
-          <Text style={styles.preview}>{isSpinning || !showUsername ? "???" : selectedUsername}</Text>
+          {/* Background texture */}
+          {Platform.OS === 'web' && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundImage: `url(${typeof slotBgImage === 'string' ? slotBgImage : slotBgImage.default || slotBgImage.uri || slotBgImage})`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '40%',
+                borderRadius: 8,
+                pointerEvents: 'none',
+                opacity: 0.8,
+              }}
+            />
+          )}
+          {Platform.OS !== 'web' && (
+            <ImageBackground
+              source={slotBgImage}
+              style={styles.previewBgImage}
+              imageStyle={styles.previewBgImageStyle}
+              resizeMode="repeat"
+            />
+          )}
+          <View style={styles.previewOverlay}>
+            <StitchedBorder borderRadius={8} style={styles.previewBorder}>
+              <Text
+                style={[
+                  styles.preview,
+                  Platform.OS === 'web' && {
+                    textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                  }
+                ]}
+              >
+                {isSpinning || !showUsername ? "???" : selectedUsername}
+              </Text>
+            </StitchedBorder>
+          </View>
         </View>
 
         <View style={styles.slotMachinesContainer}>
@@ -133,21 +194,22 @@ const UsernameCreationScreen = observer(() => {
           />
         </View>
 
-        <View style={styles.buttonContainer}>
-          <VaporwaveButton
-            title={isSpinning ? "🎰 Spinning..." : "Random"}
-            onPress={handleRandomize}
-            variant="accent"
-            style={styles.randomButton}
-            disabled={isSpinning}
-          />
-          
-          <VaporwaveButton
-            title="Continue to Avatar"
-            onPress={handleContinue}
-            variant="primary"
-            style={styles.continueButton}
-          />
+          <View style={styles.buttonContainer}>
+            <VaporwaveButton
+              title={isSpinning ? "Spinning..." : "Randomize"}
+              onPress={handleRandomize}
+              variant="accent"
+              style={styles.randomButton}
+              disabled={isSpinning}
+            />
+
+            <VaporwaveButton
+              title="Continue to Avatar"
+              onPress={handleContinue}
+              variant="primary"
+              style={styles.continueButton}
+            />
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -157,74 +219,115 @@ const UsernameCreationScreen = observer(() => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: 'transparent',
   },
-  scrollTestWindow: {
-    height: 200,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 10,
+  scrollView: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
-  contentContainer: {
-    paddingBottom: 40,
-    paddingTop: 20,
+  scrollContent: {
+    flexGrow: 1,
+    backgroundColor: 'transparent',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    minHeight: '100%',
+    backgroundColor: 'transparent',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
   },
   headerTitle: {
-    fontSize: 32,
+    fontFamily: Typography.fonts.header,
+    fontSize: 42,
     fontWeight: '800',
     textAlign: 'center',
-    marginBottom: 8,
-    color: Colors.text.primary,
-    textShadowColor: Colors.vaporwave.purple,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    marginBottom: 24,
+    color: Colors.cottagecore.greyDark,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
+    letterSpacing: 1,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: Colors.light.primary,
+    fontFamily: Typography.fonts.subheader,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.cottagecore.greyDark,
     textAlign: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 20,
-    lineHeight: 22,
+    paddingHorizontal: 10,
+    lineHeight: 26,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
   },
   previewContainer: {
-    backgroundColor: Colors.background.card,
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 15,
+    position: 'relative',
+    borderRadius: 8,
     marginBottom: 30,
-    borderWidth: 2,
-    borderColor: Colors.vaporwave.pink,
-    shadowColor: Colors.vaporwave.pink,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    maxWidth: 640,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  previewBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.8,
+  },
+  previewBgImageStyle: {
+    borderRadius: 8,
+    opacity: 0.8,
+  },
+  previewOverlay: {
+    width: '100%',
+    backgroundColor: 'rgba(222, 134, 223, 0.25)',
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewBorder: {
+    width: '100%',
+    padding: 20,
   },
   preview: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text.primary,
+    fontFamily: Typography.fonts.header,
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.cottagecore.greyDarker,
     textAlign: 'center',
-    textShadowColor: Colors.vaporwave.cyan,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
+    letterSpacing: 1,
   },
   slotMachinesContainer: {
     flexDirection: 'row',
     paddingHorizontal: 10,
     marginBottom: 40,
     height: 450,
+    maxWidth: 1000,
+    gap: 10,
   },
   buttonContainer: {
-    paddingHorizontal: 20,
-    gap: 15,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'stretch',
+    gap: 16,
   },
   randomButton: {
-    alignSelf: 'center',
+    width: '100%',
   },
   continueButton: {
-    alignSelf: 'center',
+    width: '100%',
   },
 });
 

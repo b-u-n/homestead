@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import RoomStore from '../stores/RoomStore';
 import AuthStore from '../stores/AuthStore';
 import KnapsackIcon from '../components/KnapsackIcon';
 
-const RoomScreen = observer(({ route, navigation }) => {
-  const { roomId, roomName } = route.params;
+const RoomScreen = observer(() => {
+  const router = useRouter();
+  const { roomId, roomName } = useLocalSearchParams();
   const [items, setItems] = useState([
     { id: '1', name: 'Welcome Sign', x: 50, y: 100 },
     { id: '2', name: 'Chat Board', x: 200, y: 150 },
   ]);
 
   useEffect(() => {
-    navigation.setOptions({ title: roomName });
     // TODO: Load room data and join room
     // WebSocketService.joinRoom(roomId);
   }, [roomId, roomName]);
@@ -28,7 +29,7 @@ const RoomScreen = observer(({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <KnapsackIcon navigation={navigation} />
+      <KnapsackIcon />
       
       <View style={styles.header}>
         <Text style={styles.roomTitle}>{roomName}</Text>

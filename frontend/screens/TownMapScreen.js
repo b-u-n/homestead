@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { useRouter } from 'expo-router';
 import RoomStore from '../stores/RoomStore';
 import WebSocketService from '../services/websocket';
 import KnapsackIcon from '../components/KnapsackIcon';
 import VaporwaveButton from '../components/VaporwaveButton';
 
-const TownMapScreen = observer(({ navigation }) => {
+const TownMapScreen = observer(() => {
+  const router = useRouter();
   const [rooms] = useState([
     { id: '1', name: 'Community Center', type: 'community' },
     { id: '2', name: 'Town Square', type: 'community' },
@@ -21,16 +23,17 @@ const TownMapScreen = observer(({ navigation }) => {
   }, []);
 
   const handleRoomPress = (room) => {
-    navigation.navigate('Room', { roomId: room.id, roomName: room.name });
+    router.push({ pathname: `/homestead/explore/rooms/${room.name.toLowerCase().replace(/\s+/g, '-')}`, params: { roomId: room.id, roomName: room.name } });
   };
 
   const handleCreateRoom = () => {
-    navigation.navigate('CreateRoom');
+    // TODO: Implement create room screen
+    console.log('Create room not implemented yet');
   };
 
   return (
     <View style={styles.container}>
-      <KnapsackIcon navigation={navigation} />
+      <KnapsackIcon />
       
       <Text style={styles.title}>Town Map</Text>
       <Text style={styles.subtitle}>Choose a room to explore</Text>

@@ -7,57 +7,76 @@ class InventoryStore {
 
   constructor() {
     makeAutoObservable(this);
-    
+
     // Initialize with some sample items
     this.items = [
-      { id: '1', name: 'Magic Wand', type: 'tool', icon: '🪄', quantity: 1, rarity: 'rare' },
-      { id: '2', name: 'Health Potion', type: 'consumable', icon: '🧪', quantity: 3, rarity: 'common' },
-      { id: '3', name: 'Golden Key', type: 'key', icon: '🗝️', quantity: 1, rarity: 'legendary' },
-      { id: '4', name: 'Apple', type: 'food', icon: '🍎', quantity: 5, rarity: 'common' },
+      { itemId: 'magic-wand', uniqueId: 'wand-001', name: 'Magic Wand', type: 'tool', icon: '🪄', quantity: 1, rarity: 'rare', stackable: false },
+      { itemId: 'health-potion', name: 'Health Potion', type: 'consumable', icon: '🧪', quantity: 3, rarity: 'common', stackable: true },
+      { itemId: 'golden-key', uniqueId: 'key-123', name: 'Golden Key', type: 'key', icon: '🗝️', quantity: 1, rarity: 'legendary', stackable: false },
+      { itemId: 'apple', name: 'Apple', type: 'food', icon: '🍎', quantity: 5, rarity: 'common', stackable: true },
     ];
   }
 
   addItem(item) {
-    const existingItem = this.items.find(i => i.id === item.id);
-    
-    if (existingItem && item.type === 'consumable') {
-      existingItem.quantity += item.quantity || 1;
-    } else if (this.items.length < this.maxSlots) {
+    // Stackable items can be combined
+    if (item.stackable) {
+      const existingItem = this.items.find(i => i.itemId === item.itemId);
+
+      if (existingItem) {
+        existingItem.quantity += item.quantity || 1;
+        return;
+      }
+    }
+
+    // Non-stackable or new stackable items get their own slot
+    if (this.items.length < this.maxSlots) {
       this.items.push({
         ...item,
-        quantity: item.quantity || 1
+        quantity: item.quantity || 1,
+        // Generate unique ID if not provided and item is not stackable
+        uniqueId: item.uniqueId || (!item.stackable ? `${item.itemId}-${Date.now()}` : undefined)
       });
     } else {
       throw new Error('Inventory is full!');
     }
   }
 
-  removeItem(itemId, quantity = 1) {
-    const itemIndex = this.items.findIndex(item => item.id === itemId);
-    
+  removeItem(itemId, quantity = 1, uniqueId = null) {
+    let itemIndex;
+
+    // If uniqueId provided, find that specific item
+    if (uniqueId) {
+      itemIndex = this.items.findIndex(item => item.uniqueId === uniqueId);
+    } else {
+      // Otherwise find by itemId
+      itemIndex = this.items.findIndex(item => item.itemId === itemId);
+    }
+
     if (itemIndex === -1) return false;
-    
+
     const item = this.items[itemIndex];
-    
+
     if (item.quantity > quantity) {
       item.quantity -= quantity;
     } else {
       this.items.splice(itemIndex, 1);
     }
-    
+
     return true;
   }
 
-  useItem(itemId) {
-    const item = this.items.find(item => item.id === itemId);
-    
+  useItem(itemId, uniqueId = null) {
+    const item = uniqueId
+      ? this.items.find(item => item.uniqueId === uniqueId)
+      : this.items.find(item => item.itemId === itemId);
+
     if (!item) return false;
-    
+
     if (item.type === 'consumable') {
-      this.removeItem(itemId, 1);
+      this.removeItem(item.itemId, 1, item.uniqueId);
       return true;
     }
-    
+
     return false;
   }
 

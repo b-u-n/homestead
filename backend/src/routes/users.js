@@ -1,3 +1,5 @@
+const Account = require('../models/Account');
+
 module.exports = (socket, io) => {
   // Create user
   socket.on('user:create', async (data, callback) => {
@@ -10,13 +12,38 @@ module.exports = (socket, io) => {
     }
   });
 
-  // Get user
+  // Get user by session ID
   socket.on('user:get', async (data, callback) => {
     try {
-      // TODO: Implement user fetch logic
-      console.log('Getting user:', data);
-      callback({ success: true, data: { id: data.id, name: 'Test User' } });
+      const { sessionId } = data;
+
+      if (!sessionId) {
+        return callback({ success: false, error: 'Session ID is required' });
+      }
+
+      const account = await Account.findOne({ sessionId });
+
+      if (!account) {
+        return callback({ success: false, error: 'User not found' });
+      }
+
+      // Return user profile data
+      const userProfile = {
+        id: account._id,
+        sessionId: account.sessionId,
+        username: account.userData?.username,
+        avatar: account.userData?.avatar,
+        avatarData: account.userData?.avatarData,
+        energy: 100, // TODO: Get from account or default
+        maxEnergy: 100,
+        hearts: 9,
+        maxHearts: 9,
+        currentStatus: account.currentStatus || ''
+      };
+
+      callback({ success: true, data: userProfile });
     } catch (error) {
+      console.error('Error getting user:', error);
       callback({ success: false, error: error.message });
     }
   });

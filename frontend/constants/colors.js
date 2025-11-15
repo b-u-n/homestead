@@ -28,6 +28,16 @@ export const Colors = {
     secondary: '#8be9fd',
     accent: '#ff79c6',
   },
+
+  // Cottagecore palette
+  cottagecore: {
+    grey: '#B8B5B0',
+    greyDark: '#5C5A58',
+    greyDarker: '#403F3E',
+    brown: '#4A4035',
+    cream: '#E8E3D8',
+    creamDark: '#C8BEA8',
+  },
   
   // Text colors
   text: {

@@ -1,6 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const Account = require('../models/Account');
+const fs = require('fs').promises;
+const path = require('path');
+const crypto = require('crypto');
+
+// Helper to get backend base URL
+// TODO: Move to S3, then this will be replaced with S3 URL
+const getBackendUrl = (req) => {
+  const protocol = req.protocol;
+  const host = req.get('host');
+  return `${protocol}://${host}`;
+};
 
 // Create new account with session ID
 router.post('/create', async (req, res) => {
@@ -138,17 +149,13 @@ router.post('/save-user-avatar', async (req, res) => {
     }
 
     // Download and save the avatar image
-    const fetch = require('node-fetch');
-    const fs = require('fs').promises;
-    const path = require('path');
-    const crypto = require('crypto');
-
     const response = await fetch(avatarUrl);
     if (!response.ok) {
       throw new Error('Failed to download avatar image');
     }
 
-    const imageBuffer = await response.buffer();
+    const arrayBuffer = await response.arrayBuffer();
+    const imageBuffer = Buffer.from(arrayBuffer);
     
     // Generate unique filename
     const filename = `avatar_${sessionId}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.png`;
@@ -161,10 +168,14 @@ router.post('/save-user-avatar', async (req, res) => {
     // Save image to file system
     await fs.writeFile(avatarPath, imageBuffer);
 
+    // Construct full avatar URL (TODO: Replace with S3 URL when migrating)
+    const backendUrl = getBackendUrl(req);
+    const avatarUrl = `${backendUrl}/api/avatars/${filename}`;
+
     // Update account with user data and avatar
     account.userData = {
       username,
-      avatar: `/api/avatars/${filename}`,
+      avatar: avatarUrl,
       avatarData
     };
     account.updatedAt = new Date();
@@ -175,7 +186,7 @@ router.post('/save-user-avatar', async (req, res) => {
       id: account._id,
       sessionId: account.sessionId,
       username: username,
-      avatar: `/api/avatars/${filename}`,
+      avatar: avatarUrl,
       avatarData: avatarData
     };
 
@@ -190,7 +201,7 @@ router.post('/save-user-avatar', async (req, res) => {
     console.error('Error saving user avatar:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to save user data and avatar'
+      error: error.message || 'Failed to save user data and avatar'
     });
   }
 });

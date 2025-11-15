@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TouchableOpacity, Dimensions, Platform, ImageBackground } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import GradientBackground from '../components/GradientBackground';
 import VaporwaveButton from '../components/VaporwaveButton';
+import StitchedBorder from '../components/StitchedBorder';
 import { Colors } from '../constants/colors';
+import { Typography } from '../constants/typography';
 import domain from '../utils/domain';
 import ErrorStore from '../stores/ErrorStore';
 import AuthStore from '../stores/AuthStore';
+import SessionStore from '../stores/SessionStore';
+import WebSocketService from '../services/websocket';
+
+const buttonBgImage = require('../assets/images/button-bg.png');
+const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
 const AvatarGenerationScreen = observer(() => {
   const router = useRouter();
@@ -50,6 +56,58 @@ const AvatarGenerationScreen = observer(() => {
     return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
   };
 
+  // Get border color for color selectors - lighter for dark colors
+  const getBorderColor = (color) => {
+    // For dark colors (plum, charcoal), use a lighter border
+    if (color === '#7044C7' || color === '#666666') {
+      return lightenColor(color, 80); // Halfway to white
+    }
+    // Default border color for other colors
+    return 'rgba(92, 90, 88, 0.55)';
+  };
+
+  // Get glow color for selected color - darken light colors so they show up
+  const getGlowColor = (color) => {
+    // For very light colors, darken them so the glow is visible
+    if (color === '#FFFFFF' || color === '#FFF8E1' || color === '#B3B3B3') {
+      return darkenColor(color, 60);
+    }
+    // For most colors, just use the color itself
+    return color;
+  };
+
+  // Get descriptive color text for AI prompt
+  const getColorText = (colorName) => {
+    const colorMap = {
+      'rose': 'rose pink',
+      'coral': 'coral orange',
+      'sunshine': 'sunshine yellow',
+      'mint': 'mint green',
+      'sky': 'sky blue',
+      'lavender': 'lavender purple',
+      'plum': 'plum purple',
+      'caramel': 'caramel brown',
+      'crimson': 'crimson red',
+      'bubblegum': 'bubblegum pink',
+      'forest': 'forest green',
+      'ocean': 'ocean blue',
+      'vanilla': 'vanilla cream',
+      'cloud': 'cloud white',
+      'silver': 'silver grey',
+      'charcoal': 'charcoal grey'
+    };
+    return colorMap[colorName] || colorName;
+  };
+
+  // Get display text for color (capitalized)
+  const getColorDisplayText = (colorName) => {
+    const colorText = getColorText(colorName);
+    // Capitalize each word
+    return colorText.split(' ').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
   const generateAvatars = async () => {
     if (!username) {
       ErrorStore.addError('Username is required');
@@ -63,6 +121,9 @@ const AvatarGenerationScreen = observer(() => {
     try {
       const { adjective, adverb, noun } = parseUsername(username);
       const userId = AuthStore.user?.id || 'anonymous';
+      const colorText = getColorText(selectedColorName);
+
+      console.log('Generating avatars with:', { userId, adjective, adverb, noun, color: selectedColor, colorText });
 
       const response = await fetch(`${domain()}/api/avatar/generate-options`, {
         method: 'POST',
@@ -74,7 +135,8 @@ const AvatarGenerationScreen = observer(() => {
           adjective,
           adverb,
           noun,
-          color: selectedColor
+          color: selectedColor,
+          colorText
         }),
       });
 
@@ -89,12 +151,16 @@ const AvatarGenerationScreen = observer(() => {
         throw new Error(data.error || 'Failed to generate avatars');
       }
 
+      console.log('Avatar generation response:', data);
+
       if (data.success && data.options) {
         const successfulOptions = data.options.filter(option => option.success);
+        console.log(`Got ${successfulOptions.length} successful avatars`);
+
         // Add new avatars to existing ones instead of replacing
         setAvatarOptions(prev => [...prev, ...successfulOptions]);
         setRefreshesRemaining(prev => Math.max(0, prev - 1));
-        
+
         if (successfulOptions.length === 0) {
           ErrorStore.addError('No avatars were generated successfully. Please try again.');
         }
@@ -110,23 +176,41 @@ const AvatarGenerationScreen = observer(() => {
 
   const handleAvatarSelect = (avatar) => {
     console.log('Avatar selected:', avatar);
-    setSelectedAvatar(avatar);
+    // Toggle selection - if clicking the same avatar, unselect it
+    if (selectedAvatar === avatar) {
+      setSelectedAvatar(null);
+    } else {
+      setSelectedAvatar(avatar);
+    }
   };
 
   const handleContinue = async () => {
-    console.log('Continue button clicked');
-    console.log('SessionStore.sessionId:', SessionStore.sessionId);
-    console.log('username:', username);
-    console.log('selectedAvatar:', selectedAvatar);
-    
-    if (!selectedAvatar || !username || !SessionStore.sessionId) {
-      console.log('Missing required data, cannot continue');
-      return;
-    }
-
     try {
+      console.log('=== Continue button clicked ===');
+      console.log('SessionStore:', SessionStore);
+      console.log('SessionStore.sessionId:', SessionStore?.sessionId);
+      console.log('username:', username);
+      console.log('selectedAvatar:', selectedAvatar);
+
+      if (!selectedAvatar || !username) {
+        console.error('Missing avatar or username');
+        ErrorStore.addError('Please select an avatar before continuing');
+        return;
+      }
+
+      if (!SessionStore || !SessionStore.sessionId) {
+        console.error('SessionStore or sessionId is missing', SessionStore);
+        ErrorStore.addError('No session found. Please refresh the page and try again.');
+        return;
+      }
+
       console.log('Creating user and saving avatar...');
-      
+      console.log('Request body:', {
+        sessionId: SessionStore.sessionId,
+        username: username,
+        avatarUrl: selectedAvatar.imageUrl
+      });
+
       // Create or update user with session and avatar
       const response = await fetch(`${domain()}/api/accounts/save-user-avatar`, {
         method: 'POST',
@@ -141,37 +225,101 @@ const AvatarGenerationScreen = observer(() => {
         })
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
-      
+      console.log('Response data:', data);
+
       if (response.ok) {
         // Update AuthStore with the created user
         AuthStore.setUser(data.user, data.token || 'session_token');
-        console.log('User created and avatar saved, navigating to canvas...');
-        navigation.navigate('Canvas');
+        console.log('User created and avatar saved, connecting to websocket...');
+
+        // Connect to websocket to load user profile
+        WebSocketService.connect();
+
+        console.log('Navigating to explore...');
+        router.push('/homestead/explore/map/town-square');
       } else {
+        console.error('Server error:', data.error);
         ErrorStore.addError(data.error || 'Failed to save avatar');
       }
     } catch (error) {
-      console.error('Error creating user and saving avatar:', error);
-      ErrorStore.addError('Failed to save avatar. Please try again.');
+      console.error('Error in handleContinue:', error);
+      console.error('Error stack:', error.stack);
+      ErrorStore.addError(`Failed to save avatar: ${error.message}`);
     }
   };
 
   const handleSkip = () => {
-    navigation.navigate('TownMap');
+    router.push('/homestead/explore/map');
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollTestWindow}>
-        <Text style={styles.title}>You can be anything here!</Text>
-        <Text style={styles.subtitle}>
-          Pick your favourite colour and we'll generate an avvie for you!
-        </Text>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.content}>
+          <View style={styles.headerContainer}>
+          <Text
+            style={[
+              styles.title,
+              Platform.OS === 'web' && {
+                textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+              }
+            ]}
+          >
+            You can be anything!
+          </Text>
+          <Text
+            style={[
+              styles.subtitle,
+              Platform.OS === 'web' && {
+                textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+              }
+            ]}
+          >
+            Pick your favourite colour and we'll generate an avvie for you!
+          </Text>
+        </View>
 
         <View style={styles.colorWheelContainer}>
-          <Text style={styles.usernameInBox}>{username}</Text>
-          <View style={styles.separator} />
+          {/* Background texture */}
+          {Platform.OS === 'web' && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundImage: `url(${typeof slotBgImage === 'string' ? slotBgImage : slotBgImage.default || slotBgImage.uri || slotBgImage})`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '40%',
+                borderRadius: 20,
+                pointerEvents: 'none',
+                opacity: 0.8,
+              }}
+            />
+          )}
+          {Platform.OS !== 'web' && (
+            <ImageBackground
+              source={slotBgImage}
+              style={styles.slotBgImage}
+              imageStyle={styles.slotBgImageStyle}
+              resizeMode="repeat"
+            />
+          )}
+          <View style={styles.colorWheelOverlay}>
+            <StitchedBorder borderRadius={20} style={styles.colorWheelBorder}>
+              <Text
+                style={[
+                  styles.usernameInBox,
+                  Platform.OS === 'web' && {
+                    textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                  }
+                ]}
+              >
+                {username}
+              </Text>
           
           <View style={styles.colorWheel}>
             {[
@@ -206,14 +354,9 @@ const AvatarGenerationScreen = observer(() => {
                     key={colorObj.name}
                     style={[
                       styles.colorOption,
-                      { 
-                        backgroundColor: colorObj.color,
-                        borderColor: darkenColor(colorObj.color, 35),
-                        borderWidth: 1.5,
-                      },
                       selectedColor === colorObj.color && [
                         styles.selectedColorOption,
-                        { shadowColor: Colors.vaporwave.cyan }
+                        { shadowColor: getGlowColor(colorObj.color) }
                       ]
                     ]}
                     onPress={() => {
@@ -221,23 +364,60 @@ const AvatarGenerationScreen = observer(() => {
                       setSelectedColorName(colorObj.name);
                     }}
                   >
-                    <View style={[styles.colorGlow, { backgroundColor: colorObj.color }]} />
-                    {selectedColor === colorObj.color && (
-                      <Text style={styles.colorCheckmark}>✓</Text>
+                    {/* Background texture */}
+                    {Platform.OS === 'web' && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
+                          backgroundRepeat: 'repeat',
+                          backgroundSize: '15%',
+                          borderRadius: 17,
+                          pointerEvents: 'none',
+                          opacity: 0.8,
+                        }}
+                      />
                     )}
+                    {Platform.OS !== 'web' && (
+                      <ImageBackground
+                        source={buttonBgImage}
+                        style={styles.colorBgImage}
+                        imageStyle={{ opacity: 0.8 }}
+                        resizeMode="repeat"
+                      />
+                    )}
+
+                    {/* Color overlay */}
+                    <View style={[styles.colorOverlay, { backgroundColor: colorObj.color }]}>
+                      <StitchedBorder borderRadius={15} borderWidth={1.5} borderColor={getBorderColor(colorObj.color)}>
+                        {selectedColor === colorObj.color && (
+                          <Text style={styles.colorCheckmark}>✓</Text>
+                        )}
+                      </StitchedBorder>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
             ))}
           </View>
-          
-          <View style={styles.separator} />
-          
-          <Text style={[styles.selectedColorText, { color: `${selectedColor}DE` }]}>{selectedColorName}</Text>
+
+          <Text
+            style={[
+              styles.selectedColorText,
+              Platform.OS === 'web' && {
+                textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+              }
+            ]}
+          >
+            {getColorDisplayText(selectedColorName)}
+          </Text>
 
           {avatarOptions.length > 0 && (
             <>
-              <View style={styles.separator} />
               <View style={styles.avatarGrid}>
               {avatarOptions.map((option, index) => (
                 <TouchableOpacity
@@ -248,22 +428,62 @@ const AvatarGenerationScreen = observer(() => {
                   ]}
                   onPress={() => handleAvatarSelect(option)}
                 >
-                  <View style={[
-                    styles.avatarContainer,
-                    selectedAvatar === option && styles.selectedAvatarContainer
-                  ]}>
-                    {option.imageUrl ? (
-                      <Image source={{ uri: option.imageUrl }} style={styles.avatarImage} />
-                    ) : (
-                      <View style={styles.placeholderContainer}>
-                        <Text style={styles.placeholderText}>?</Text>
-                      </View>
+                  <View style={styles.avatarButtonWrapper}>
+                    {/* Background texture */}
+                    {Platform.OS === 'web' && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
+                          backgroundRepeat: 'repeat',
+                          backgroundSize: '40%',
+                          borderRadius: 15,
+                          pointerEvents: 'none',
+                          opacity: 0.8,
+                        }}
+                      />
                     )}
-                    {selectedAvatar === option && (
-                      <View style={styles.selectedIndicator}>
-                        <Text style={styles.selectedText}>✓</Text>
-                      </View>
+                    {Platform.OS !== 'web' && (
+                      <ImageBackground
+                        source={buttonBgImage}
+                        style={styles.avatarBgImage}
+                        imageStyle={{ borderRadius: 15, opacity: 0.8 }}
+                        resizeMode="repeat"
+                      />
                     )}
+
+                    <View style={[styles.avatarOverlay, { backgroundColor: selectedColor }]}>
+                      <View style={[
+                        styles.avatarContainer,
+                        selectedAvatar === option && {
+                          borderColor: selectedColor,
+                          borderWidth: 3,
+                          borderStyle: 'dashed',
+                          shadowColor: selectedColor,
+                          shadowOffset: { width: 0, height: 0 },
+                          shadowOpacity: 0.8,
+                          shadowRadius: 15,
+                          elevation: 15,
+                        }
+                      ]}>
+                        {option.imageUrl ? (
+                          <Image source={{ uri: option.imageUrl }} style={styles.avatarImage} />
+                        ) : (
+                          <View style={styles.avatarPlaceholder}>
+                            <Text style={styles.avatarPlaceholderText}>?</Text>
+                          </View>
+                        )}
+                        {selectedAvatar === option && (
+                          <View style={[styles.selectedIndicator, { backgroundColor: selectedColor }]}>
+                            <Text style={styles.selectedText}>✓</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -271,13 +491,11 @@ const AvatarGenerationScreen = observer(() => {
             </>
           )}
 
-          <View style={styles.separator} />
-
-          <View style={styles.buttonContainer}>
+              <View style={styles.buttonContainer}>
             <VaporwaveButton
-              title={isGenerating ? 'Generating...' : (avatarOptions.length > 0 ? '🎨 Generate New Options' : '✨ Generate Avatars')}
+              title={isGenerating ? 'Generating...' : (avatarOptions.length > 0 ? 'Generate New Options' : 'Generate Avatars')}
               onPress={generateAvatars}
-              variant="primary"
+              variant="secondary"
               disabled={isGenerating || refreshesRemaining === 0}
               style={styles.generateButton}
             />
@@ -293,8 +511,6 @@ const AvatarGenerationScreen = observer(() => {
               {refreshesRemaining > 0 ? `${refreshesRemaining} refreshes remaining` : 'No refreshes remaining'}
             </Text>
 
-            <View style={styles.separator} />
-
             <View style={styles.navigationButtons}>
               {selectedAvatar ? (
                 <VaporwaveButton
@@ -304,19 +520,23 @@ const AvatarGenerationScreen = observer(() => {
                   style={styles.continueButton}
                 />
               ) : (
-                <Text style={styles.debugText}>
-                  {avatarOptions.length === 0 ? 'Generate avatars first' : 'Select an avatar to continue'}
-                </Text>
+                <>
+                  <Text style={styles.placeholderText}>
+                    {avatarOptions.length === 0 ? 'Generate an avatar to continue...' : 'Select an avatar to continue...'}
+                  </Text>
+                  <VaporwaveButton
+                    title="Skip for now"
+                    onPress={handleSkip}
+                    variant="blue"
+                    style={styles.skipButton}
+                  />
+                </>
               )}
-              
-              <VaporwaveButton
-                title="Skip for now"
-                onPress={handleSkip}
-                variant="accent"
-                style={styles.skipButton}
-              />
+              </View>
             </View>
+            </StitchedBorder>
           </View>
+        </View>
         </View>
       </ScrollView>
     </View>
@@ -326,30 +546,50 @@ const AvatarGenerationScreen = observer(() => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: 'transparent',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
-    padding: 20,
-    paddingTop: 68,
-    paddingBottom: 40,
+    flexGrow: 1,
+    backgroundColor: 'transparent',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+    minHeight: '100%',
+    backgroundColor: 'transparent',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
   },
   title: {
-    fontSize: 32,
+    fontFamily: Typography.fonts.header,
+    fontSize: 42,
     fontWeight: '800',
-    marginBottom: 8,
-    color: Colors.text.primary,
     textAlign: 'center',
-    textShadowColor: Colors.vaporwave.pink,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
+    marginBottom: 24,
+    color: Colors.cottagecore.greyDark,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
+    letterSpacing: 1,
   },
   subtitle: {
-    fontSize: 16,
-    color: Colors.light.primary,
-    marginBottom: 30,
+    fontFamily: Typography.fonts.subheader,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.cottagecore.greyDark,
     textAlign: 'center',
-    lineHeight: 22,
+    paddingHorizontal: 10,
+    lineHeight: 26,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   avatarGrid: {
     flexDirection: 'row',
@@ -365,19 +605,38 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     alignItems: 'center',
   },
+  avatarButtonWrapper: {
+    position: 'relative',
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  avatarBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
+  avatarOverlay: {
+    padding: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatarContainer: {
     width: 128,
     height: 128,
     borderRadius: 15,
     backgroundColor: Colors.background.card,
     borderWidth: 2,
-    borderColor: Colors.vaporwave.purple,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(92, 90, 88, 0.55)',
     overflow: 'hidden',
     position: 'relative',
   },
   selectedAvatarContainer: {
     borderColor: Colors.vaporwave.cyan,
     borderWidth: 3,
+    borderStyle: 'dashed',
     shadowColor: Colors.vaporwave.cyan,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
@@ -389,14 +648,14 @@ const styles = StyleSheet.create({
     height: 128,
     resizeMode: 'cover',
   },
-  placeholderContainer: {
+  avatarPlaceholder: {
     width: 128,
     height: 128,
     backgroundColor: Colors.background.card,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  placeholderText: {
+  avatarPlaceholderText: {
     fontSize: 64,
     color: Colors.text.secondary,
     fontWeight: '800',
@@ -424,10 +683,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-  placeholderContainer: {
+  oldPlaceholderContainer: {
     marginBottom: 40,
   },
-  placeholderAvatar: {
+  oldPlaceholderAvatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
@@ -438,11 +697,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placeholderText: {
+  oldPlaceholderText: {
     fontSize: 32,
     marginBottom: 8,
   },
-  placeholderSubtext: {
+  oldPlaceholderSubtext: {
     color: Colors.text.secondary,
     fontSize: 14,
     textAlign: 'center',
@@ -450,6 +709,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'center',
     width: '100%',
+    paddingHorizontal: 0,
   },
   generateButton: {
     marginBottom: 20,
@@ -465,8 +725,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rateLimit: {
+    fontFamily: Typography.fonts.body,
     fontSize: 12,
-    color: Colors.text.secondary,
+    color: Colors.cottagecore.greyDark,
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -481,17 +742,42 @@ const styles = StyleSheet.create({
     minWidth: 150,
   },
   colorWheelContainer: {
+    position: 'relative',
     alignItems: 'center',
     marginVertical: 30,
-    padding: 20,
-    paddingTop: 25,
     marginHorizontal: 34,
     borderRadius: 20,
+    overflow: 'hidden',
     shadowColor: 'rgba(255, 255, 255, 0.3)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 15,
     elevation: 8,
+  },
+  slotBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.8,
+  },
+  slotBgImageStyle: {
+    borderRadius: 20,
+    opacity: 0.8,
+  },
+  colorWheelOverlay: {
+    width: '100%',
+    backgroundColor: 'rgba(222, 134, 223, 0.25)',
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  colorWheelBorder: {
+    width: '100%',
+    padding: 20,
+    paddingTop: 25,
+    overflow: 'visible',
   },
   colorWheel: {
     flexDirection: 'column',
@@ -508,8 +794,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 48,
     borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginHorizontal: 6,
     marginVertical: 4,
     shadowColor: '#000',
@@ -518,15 +802,29 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     position: 'relative',
+  },
+  colorBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
+  colorOverlay: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.85,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 17,
     overflow: 'hidden',
   },
   selectedColorOption: {
-    borderColor: Colors.vaporwave.cyan,
-    borderWidth: 3,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 30,
-    elevation: 25,
+    elevation: 30,
     transform: [{ scale: 1.1 }],
   },
   colorCheckmark: {
@@ -538,24 +836,14 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   selectedColorText: {
-    fontSize: 26,
+    fontFamily: Typography.fonts.header,
+    fontSize: 28,
     fontWeight: '700',
     textTransform: 'capitalize',
     marginBottom: 28,
     textAlign: 'center',
-    textShadowColor: '#060606',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-    letterSpacing: 3,
-  },
-  colorGlow: {
-    position: 'absolute',
-    top: 4,
-    left: 4,
-    right: 4,
-    bottom: 4,
-    borderRadius: 16,
-    opacity: 0.3,
+    color: Colors.cottagecore.greyDark,
+    letterSpacing: 0.8,
   },
   username: {
     fontSize: 27,
@@ -582,26 +870,20 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   usernameInBox: {
-    fontSize: 24,
+    fontFamily: Typography.fonts.header,
+    fontSize: 28,
     fontWeight: '700',
-    color: Colors.text.primary,
+    color: Colors.cottagecore.greyDark,
     textAlign: 'center',
     marginBottom: 15,
-    textShadowColor: Colors.vaporwave.pink,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    letterSpacing: 0.8,
   },
-  debugText: {
-    color: Colors.text.secondary,
-    fontSize: 14,
+  placeholderText: {
+    fontFamily: Typography.fonts.body,
+    fontSize: 12,
+    color: Colors.cottagecore.greyDark,
     textAlign: 'center',
     marginBottom: 10,
-  },
-  scrollTestWindow: {
-    height: 200,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 10,
   },
 });
 

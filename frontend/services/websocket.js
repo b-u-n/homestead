@@ -1,19 +1,30 @@
 import { io } from 'socket.io-client';
 import { Platform } from 'react-native';
 import AuthStore from '../stores/AuthStore';
+import ProfileStore from '../stores/ProfileStore';
 import RoomStore from '../stores/RoomStore';
+import SessionStore from '../stores/SessionStore';
 import domain from '../utils/domain';
 
 class WebSocketService {
   socket = null;
-  
+
   connect() {
     this.socket = io(domain(), {
       transports: ['websocket']
     });
 
-    this.socket.on('connect', () => {
+    this.socket.on('connect', async () => {
       console.log('Connected to server');
+
+      // Load user profile if we have a session ID
+      if (SessionStore.sessionId) {
+        try {
+          await this.loadUserProfile(SessionStore.sessionId);
+        } catch (error) {
+          console.error('Failed to load user profile on connect:', error);
+        }
+      }
     });
 
     this.socket.on('disconnect', () => {
@@ -45,6 +56,29 @@ class WebSocketService {
         }
       });
     });
+  }
+
+  // User methods
+  async loadUserProfile(sessionId) {
+    try {
+      const userProfile = await this.emit('user:get', { sessionId });
+
+      // Update ProfileStore with the loaded data
+      ProfileStore.setProfile({
+        avatarUrl: userProfile.avatar,
+        username: userProfile.username,
+        energy: userProfile.energy,
+        maxEnergy: userProfile.maxEnergy,
+        hearts: userProfile.hearts,
+        maxHearts: userProfile.maxHearts,
+        currentStatus: userProfile.currentStatus
+      });
+
+      return userProfile;
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      throw error;
+    }
   }
 
   // Auth methods

@@ -94,15 +94,20 @@ class AvatarService {
     this.generationCounts.set(userId, filteredGenerations);
   }
 
-  async generateMultipleOptions(userId, adjective, adverb, noun, color = 'blue') {
+  async generateMultipleOptions(userId, adjective, adverb, noun, color = 'blue', colorText = 'blue') {
     try {
       // Check rate limits
       this.checkRateLimit(userId);
 
       // Build prompt using the new kawaii pixel art format with color
-      const prompt = `on a charcoal background, draw bright kawaii pixel art of a ${adjective} and ${adverb} ${noun} animal in the style of super nintendo 16-bit pixel art. kawaii chibi pixel art big cute. focus on the visuals. draw exclusively pixel art of a single ${noun}. color the animal with hex color ${color}.`;
+      // Use colorText (e.g., "rose pink") for better AI understanding, and hex color as backup
+      const prompt = `on a charcoal background, bright kawaii pixel art of a ${adjective} and ${adverb} ${noun} animal in the style of super nintendo 16-bit pixel art. kawaii chibi pixel art big cute. focus on the visuals. exclusively pixel art of a single ${noun}. color the animal ${colorText} (hex color ${color}).`;
 
-      console.log(`Generating 4 avatars with prompt: ${prompt}`);
+      console.log('='.repeat(80));
+      console.log(`[Avatar Generation] Starting for user: ${userId}`);
+      console.log(`[Avatar Generation] Parameters:`, { adjective, adverb, noun, color, colorText });
+      console.log(`[Avatar Generation] Full prompt: ${prompt}`);
+      console.log('='.repeat(80));
 
       // DALL-E 3 only supports n=1, so we need to make 4 separate calls
       // Make them simultaneously for faster generation
@@ -113,15 +118,18 @@ class AvatarService {
           size: "1024x1024",
           n: 1,
         })
-        .then(response => ({
-          success: true,
-          imageUrl: response.data[0].url,
-          prompt: prompt,
-          style: `kawaii-pixel-art-${i + 1}`,
-          variables: { adjective, adverb, noun, color }
-        }))
+        .then(response => {
+          console.log(`[Avatar Generation] Avatar ${i + 1}/4 - SUCCESS`);
+          return {
+            success: true,
+            imageUrl: response.data[0].url,
+            prompt: prompt,
+            style: `kawaii-pixel-art-${i + 1}`,
+            variables: { adjective, adverb, noun, color }
+          };
+        })
         .catch(error => {
-          console.error(`Failed to generate avatar ${i + 1}:`, error.message);
+          console.error(`[Avatar Generation] Avatar ${i + 1}/4 - FAILED: ${error.message}`);
           return {
             success: false,
             imageUrl: null,
@@ -136,6 +144,12 @@ class AvatarService {
 
       // Record generation for rate limiting
       this.recordGeneration(userId);
+
+      const successCount = results.filter(r => r.success).length;
+      console.log('='.repeat(80));
+      console.log(`[Avatar Generation] Completed for user: ${userId}`);
+      console.log(`[Avatar Generation] Success: ${successCount}/4 avatars generated`);
+      console.log('='.repeat(80));
 
       return results;
 
