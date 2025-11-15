@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { useRouter } from 'expo-router';
 import GradientBackground from '../components/GradientBackground';
 import VaporwaveButton from '../components/VaporwaveButton';
 import SlotMachine from '../components/SlotMachine';
@@ -8,7 +9,8 @@ import { Colors } from '../constants/colors';
 import { getWordArrays, createCustomUsername } from '../utils/username';
 import AuthStore from '../stores/AuthStore';
 
-const UsernameCreationScreen = observer(({ navigation }) => {
+const UsernameCreationScreen = observer(() => {
+  const router = useRouter();
   const wordArrays = getWordArrays();
   
   // Start with random selection
@@ -65,9 +67,9 @@ const UsernameCreationScreen = observer(({ navigation }) => {
       };
       AuthStore.setUser(updatedUser, AuthStore.token);
     }
-    
+
     // Navigate to avatar generation
-    navigation.navigate('AvatarGeneration', { username: selectedUsername });
+    router.push({ pathname: '/avatar', params: { username: selectedUsername } });
   };
 
   const handleRandomize = async () => {

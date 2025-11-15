@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, Linking, ScrollView } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import GradientBackground from '../components/GradientBackground';
 import VaporwaveButton from '../components/VaporwaveButton';
@@ -9,7 +10,8 @@ import AuthStore from '../stores/AuthStore';
 import WebSocketService from '../services/websocket';
 import domain from '../utils/domain';
 
-const OnboardingScreen = observer(({ navigation }) => {
+const OnboardingScreen = observer(() => {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ const OnboardingScreen = observer(({ navigation }) => {
           const user = JSON.parse(decodeURIComponent(userStr));
           AuthStore.setUser(user, token);
           WebSocketService.connect();
-          navigation.navigate('UsernameCreation');
+          router.push('/username');
         } catch (e) {
           Alert.alert('Error', 'Failed to process authentication');
         }
@@ -48,7 +50,7 @@ const OnboardingScreen = observer(({ navigation }) => {
     });
 
     return () => subscription?.remove();
-  }, [navigation]);
+  }, [router]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -73,7 +75,7 @@ const OnboardingScreen = observer(({ navigation }) => {
 
   const handleSkipForNow = () => {
     // For development purposes
-    navigation.navigate('UsernameCreation');
+    router.push('/username');
   };
 
   return (
@@ -81,15 +83,15 @@ const OnboardingScreen = observer(({ navigation }) => {
       <ScrollView style={styles.scrollTestWindow}>
         <View style={styles.content} accessibilityRole="main">
         <View style={styles.headerContainer}>
-          <Text 
+          <Text
             style={styles.title}
             accessibilityRole="header"
             accessibilityLevel={1}
           >
-            Welcome to the Future
+            Your digital Homestead
           </Text>
           <Text style={styles.subtitle}>
-            Connect with Google to save your progress and unlock the digital realm
+            Sign in with Google to save your progress!
           </Text>
         </View>
 
@@ -113,7 +115,7 @@ const OnboardingScreen = observer(({ navigation }) => {
           />
 
           <VaporwaveButton
-            title="↗ Skip to the Grid"
+            title="↗ Skip & Explore"
             onPress={handleSkipForNow}
             variant="accent"
             style={styles.skipButton}
@@ -185,6 +187,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 20,
     elevation: 20,
+    marginVertical: 40,
+    alignSelf: 'center',
   },
   orbText: {
     fontSize: 50,
@@ -209,6 +213,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     paddingHorizontal: 20,
+    marginTop: 40,
   },
 });
 

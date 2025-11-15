@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import GradientBackground from '../components/GradientBackground';
 import VaporwaveButton from '../components/VaporwaveButton';
 import { Colors } from '../constants/colors';
@@ -8,8 +9,9 @@ import domain from '../utils/domain';
 import ErrorStore from '../stores/ErrorStore';
 import AuthStore from '../stores/AuthStore';
 
-const AvatarGenerationScreen = observer(({ route, navigation }) => {
-  const { username } = route.params;
+const AvatarGenerationScreen = observer(() => {
+  const router = useRouter();
+  const { username } = useLocalSearchParams();
   const screenHeight = Dimensions.get('window').height;
   const [isGenerating, setIsGenerating] = useState(false);
   const [avatarOptions, setAvatarOptions] = useState([]);
@@ -162,7 +164,7 @@ const AvatarGenerationScreen = observer(({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollTestWindow}>
-        <Text style={styles.title}>What looks like you?</Text>
+        <Text style={styles.title}>You can be anything here!</Text>
         <Text style={styles.subtitle}>
           Pick your favourite colour and we'll generate an avvie for you!
         </Text>
@@ -250,7 +252,13 @@ const AvatarGenerationScreen = observer(({ route, navigation }) => {
                     styles.avatarContainer,
                     selectedAvatar === option && styles.selectedAvatarContainer
                   ]}>
-                    <Image source={{ uri: option.imageUrl }} style={styles.avatarImage} />
+                    {option.imageUrl ? (
+                      <Image source={{ uri: option.imageUrl }} style={styles.avatarImage} />
+                    ) : (
+                      <View style={styles.placeholderContainer}>
+                        <Text style={styles.placeholderText}>?</Text>
+                      </View>
+                    )}
                     {selectedAvatar === option && (
                       <View style={styles.selectedIndicator}>
                         <Text style={styles.selectedText}>✓</Text>
@@ -380,6 +388,18 @@ const styles = StyleSheet.create({
     width: 128,
     height: 128,
     resizeMode: 'cover',
+  },
+  placeholderContainer: {
+    width: 128,
+    height: 128,
+    backgroundColor: Colors.background.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 64,
+    color: Colors.text.secondary,
+    fontWeight: '800',
   },
   usernameLabel: {
     color: Colors.text.primary,

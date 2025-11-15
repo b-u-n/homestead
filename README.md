@@ -7,8 +7,8 @@
 Before committing ANY changes, you MUST:
 
 1. **Verify .env files are NOT staged**: Run `git status` and ensure no .env files are in "Changes to be committed"
-2. **Check .env.example files are sanitized**: Ensure all example files contain placeholder values only, never real credentials
-3. **Sync .env and .env.example**: Ensure every .env file has a corresponding .env.example with the same structure but safe placeholder values
+2. **Sync .env and .env.example**: Ensure every .env file has a corresponding .env.example with the same structure but safe placeholder values
+3. **Check .env.example files are sanitized**: Ensure all example files contain placeholder values only, never real credentials
 4. **Scan for exposed secrets**: Search codebase for hardcoded credentials, API keys, or connection strings
 5. **If credentials are exposed**: HALT ALL WORK. Raise security alert and refuse to continue until operator confirms credentials have been regenerated and situation cleared
 

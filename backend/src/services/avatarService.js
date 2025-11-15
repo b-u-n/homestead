@@ -98,41 +98,54 @@ class AvatarService {
     try {
       // Check rate limits
       this.checkRateLimit(userId);
-      
-      // Use the single SNES pixel art prompt with color
-      const prompt = `SNES video game pixel art 16 bit Color ${color} ${adjective} ${adverb} ${noun}`;
-      
+
+      // Build prompt using the new kawaii pixel art format with color
+      const prompt = `on a charcoal background, draw bright kawaii pixel art of a ${adjective} and ${adverb} ${noun} animal in the style of super nintendo 16-bit pixel art. kawaii chibi pixel art big cute. focus on the visuals. draw exclusively pixel art of a single ${noun}. color the animal with hex color ${color}.`;
+
       console.log(`Generating 4 avatars with prompt: ${prompt}`);
-      
-      // Generate 4 images in one API call using DALL-E 2
-      const response = await openai.images.generate({
-        model: "dall-e-2",
-        prompt: prompt,
-        size: "1024x1024",
-        n: 4,
-      });
-      
+
+      // DALL-E 3 only supports n=1, so we need to make 4 separate calls
+      // Make them simultaneously for faster generation
+      const promises = Array.from({ length: 4 }, (_, i) =>
+        openai.images.generate({
+          model: "dall-e-3",
+          prompt: prompt,
+          size: "1024x1024",
+          n: 1,
+        })
+        .then(response => ({
+          success: true,
+          imageUrl: response.data[0].url,
+          prompt: prompt,
+          style: `kawaii-pixel-art-${i + 1}`,
+          variables: { adjective, adverb, noun, color }
+        }))
+        .catch(error => {
+          console.error(`Failed to generate avatar ${i + 1}:`, error.message);
+          return {
+            success: false,
+            imageUrl: null,
+            prompt: prompt,
+            style: `kawaii-pixel-art-${i + 1}`,
+            variables: { adjective, adverb, noun, color }
+          };
+        })
+      );
+
+      const results = await Promise.all(promises);
+
       // Record generation for rate limiting
       this.recordGeneration(userId);
-      
-      // Format results
-      const results = response.data.map((image, index) => ({
-        success: true,
-        imageUrl: image.url,
-        prompt: prompt,
-        style: `snes-pixel-art-${index + 1}`,
-        variables: { adjective, adverb, noun, color }
-      }));
-      
+
       return results;
-      
+
     } catch (error) {
       console.error('Avatar generation error:', error);
-      
+
       if (error.message.includes('Rate limit exceeded')) {
         throw error;
       }
-      
+
       throw new Error(`Failed to generate avatars: ${error.message}`);
     }
   }

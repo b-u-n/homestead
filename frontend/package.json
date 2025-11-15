@@ -1,6 +1,6 @@
 {
   "name": "homestead",
-  "main": "index.js",
+  "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start --lan --port 9001",

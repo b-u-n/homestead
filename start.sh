@@ -42,17 +42,17 @@ else
     echo ""
 fi
 
-# Start Backend (run as original user if using sudo)
-echo "⚙️  Starting Backend..."
+# Start Backend with nodemon for auto-restart (run as original user if using sudo)
+echo "⚙️  Starting Backend (with auto-restart)..."
 cd backend
 if [ -n "$SUDO_USER" ]; then
-    sudo -u $ORIGINAL_USER bash -c "source $NVM_DIR/nvm.sh && nohup npm start > ../logs/backend.log 2>&1 & echo \$! > ../logs/backend.pid"
+    sudo -u $ORIGINAL_USER bash -c "source $NVM_DIR/nvm.sh && nohup npm run dev > ../logs/backend.log 2>&1 & echo \$! > ../logs/backend.pid"
 else
-    nohup npm start > ../logs/backend.log 2>&1 &
+    nohup npm run dev > ../logs/backend.log 2>&1 &
     echo $! > ../logs/backend.pid
 fi
 BACKEND_PID=$(cat ../logs/backend.pid)
-echo "   Backend PID: $BACKEND_PID"
+echo "   Backend PID: $BACKEND_PID (auto-restart enabled)"
 echo "   Logs: logs/backend.log"
 cd ..
 echo ""
