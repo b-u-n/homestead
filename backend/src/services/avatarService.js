@@ -99,9 +99,9 @@ class AvatarService {
       // Check rate limits
       this.checkRateLimit(userId);
 
-      // Build prompt using the new kawaii pixel art format with color
+      // Build prompt using knitted cottagecore style with color
       // Use colorText (e.g., "rose pink") for better AI understanding, and hex color as backup
-      const prompt = `on a charcoal background, bright kawaii pixel art of a ${adjective} and ${adverb} ${noun} animal in the style of super nintendo 16-bit pixel art. kawaii chibi pixel art big cute. focus on the visuals. exclusively pixel art of a single ${noun}. color the animal ${colorText} (hex color ${color}).`;
+      const prompt = `illustration of a knitted ${adjective} and ${adverb} ${noun} animal knitted in the style of super nintendo 16-bit pixel art. kawaii chibi pixel art big cute. focus on the visuals. exclusively pixel art of a single ${noun}. color the animal ${colorText}.`;
 
       console.log('='.repeat(80));
       console.log(`[Avatar Generation] Starting for user: ${userId}`);

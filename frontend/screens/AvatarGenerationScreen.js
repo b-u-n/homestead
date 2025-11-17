@@ -11,6 +11,7 @@ import ErrorStore from '../stores/ErrorStore';
 import AuthStore from '../stores/AuthStore';
 import SessionStore from '../stores/SessionStore';
 import WebSocketService from '../services/websocket';
+import FormStore from '../stores/FormStore';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
@@ -20,11 +21,22 @@ const AvatarGenerationScreen = observer(() => {
   const { username } = useLocalSearchParams();
   const screenHeight = Dimensions.get('window').height;
   const [isGenerating, setIsGenerating] = useState(false);
-  const [avatarOptions, setAvatarOptions] = useState([]);
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
-  const [selectedColor, setSelectedColor] = useState('#B3E6FF');
-  const [selectedColorName, setSelectedColorName] = useState('sky');
   const [refreshesRemaining, setRefreshesRemaining] = useState(3);
+
+  // Get persisted form state
+  const avatarOptions = FormStore.getField('avatarGeneration', 'avatarOptions') || [];
+  const selectedAvatar = FormStore.getField('avatarGeneration', 'selectedAvatar');
+  const selectedColor = FormStore.getField('avatarGeneration', 'selectedColor') || '#B3E6FF';
+  const selectedColorName = FormStore.getField('avatarGeneration', 'selectedColorName') || 'sky';
+
+  // Setters that update FormStore
+  const setAvatarOptions = (value) => {
+    const newValue = typeof value === 'function' ? value(avatarOptions) : value;
+    FormStore.setField('avatarGeneration', 'avatarOptions', newValue);
+  };
+  const setSelectedAvatar = (value) => FormStore.setField('avatarGeneration', 'selectedAvatar', value);
+  const setSelectedColor = (value) => FormStore.setField('avatarGeneration', 'selectedColor', value);
+  const setSelectedColorName = (value) => FormStore.setField('avatarGeneration', 'selectedColorName', value);
 
   // Parse username into components
   const parseUsername = (username) => {
@@ -267,7 +279,7 @@ const AvatarGenerationScreen = observer(() => {
               }
             ]}
           >
-            You can be anything!
+            You can be anything
           </Text>
           <Text
             style={[

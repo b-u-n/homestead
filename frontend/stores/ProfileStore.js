@@ -1,4 +1,6 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, reaction } from 'mobx';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import domain from '../utils/domain';
 
 class ProfileStore {
@@ -9,10 +11,17 @@ class ProfileStore {
   maxEnergy = 100;
   hearts = 9;
   maxHearts = 9;
+  heartBank = 0;
   currentStatus = '';
 
   constructor() {
     makeAutoObservable(this);
+
+    // Rehydrate from storage on init
+    this.rehydrate();
+
+    // Setup auto-save reaction
+    this.setupAutoSave();
   }
 
   setProfile(profile) {
@@ -22,7 +31,16 @@ class ProfileStore {
     if (profile.maxEnergy !== undefined) this.maxEnergy = profile.maxEnergy;
     if (profile.hearts !== undefined) this.hearts = profile.hearts;
     if (profile.maxHearts !== undefined) this.maxHearts = profile.maxHearts;
+    if (profile.heartBank !== undefined) this.heartBank = profile.heartBank;
     if (profile.currentStatus !== undefined) this.currentStatus = profile.currentStatus;
+  }
+
+  setHearts(hearts) {
+    this.hearts = Math.max(0, Math.min(this.maxHearts, hearts));
+  }
+
+  setHeartBank(heartBank) {
+    this.heartBank = Math.max(0, heartBank);
   }
 
   async updateCurrentStatus(status, sessionId) {
@@ -60,6 +78,81 @@ class ProfileStore {
 
   get heartsArray() {
     return Array.from({ length: this.maxHearts }, (_, i) => i < this.hearts);
+  }
+
+  /**
+   * Persist profile data to storage
+   */
+  async persist() {
+    try {
+      const data = {
+        avatarUrl: this.avatarUrl,
+        username: this.username,
+        energy: this.energy,
+        maxEnergy: this.maxEnergy,
+        hearts: this.hearts,
+        maxHearts: this.maxHearts,
+        heartBank: this.heartBank,
+        currentStatus: this.currentStatus,
+      };
+
+      const jsonData = JSON.stringify(data);
+      const key = '@homestead:profile';
+
+      if (Platform.OS === 'web') {
+        localStorage.setItem(key, jsonData);
+      } else {
+        await AsyncStorage.setItem(key, jsonData);
+      }
+    } catch (error) {
+      console.error('Error persisting profile:', error);
+    }
+  }
+
+  /**
+   * Rehydrate profile data from storage
+   */
+  async rehydrate() {
+    try {
+      const key = '@homestead:profile';
+      let data;
+
+      if (Platform.OS === 'web') {
+        data = localStorage.getItem(key);
+      } else {
+        data = await AsyncStorage.getItem(key);
+      }
+
+      if (data) {
+        const parsed = JSON.parse(data);
+        this.setProfile(parsed);
+      }
+    } catch (error) {
+      console.error('Error rehydrating profile:', error);
+    }
+  }
+
+  /**
+   * Setup auto-save reaction
+   * Automatically persists when profile data changes
+   */
+  setupAutoSave() {
+    reaction(
+      () => ({
+        avatarUrl: this.avatarUrl,
+        username: this.username,
+        energy: this.energy,
+        maxEnergy: this.maxEnergy,
+        hearts: this.hearts,
+        maxHearts: this.maxHearts,
+        heartBank: this.heartBank,
+        currentStatus: this.currentStatus,
+      }),
+      () => {
+        this.persist();
+      },
+      { delay: 500 } // Debounce by 500ms
+    );
   }
 }
 

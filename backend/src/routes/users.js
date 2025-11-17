@@ -1,4 +1,5 @@
 const Account = require('../models/Account');
+const PlayerLogger = require('../services/PlayerLogger');
 
 module.exports = (socket, io) => {
   // Create user
@@ -6,6 +7,15 @@ module.exports = (socket, io) => {
     try {
       // TODO: Implement user creation logic
       console.log('Creating user:', data);
+
+      // Log the action
+      await PlayerLogger.logUserAction(
+        socket.id,
+        'create',
+        data,
+        data.username
+      );
+
       callback({ success: true, data: { id: 'temp_id', ...data } });
     } catch (error) {
       callback({ success: false, error: error.message });
@@ -41,6 +51,15 @@ module.exports = (socket, io) => {
         currentStatus: account.currentStatus || ''
       };
 
+      // Log the action
+      await PlayerLogger.logUserAction(
+        socket.id,
+        'get',
+        { sessionId },
+        account.userData?.username,
+        account._id
+      );
+
       callback({ success: true, data: userProfile });
     } catch (error) {
       console.error('Error getting user:', error);
@@ -53,6 +72,16 @@ module.exports = (socket, io) => {
     try {
       // TODO: Implement user update logic
       console.log('Updating user:', data);
+
+      // Log the action
+      await PlayerLogger.logUserAction(
+        socket.id,
+        'update',
+        data,
+        socket.user?.username,
+        socket.userId
+      );
+
       callback({ success: true, data });
     } catch (error) {
       callback({ success: false, error: error.message });
@@ -64,6 +93,16 @@ module.exports = (socket, io) => {
     try {
       // TODO: Implement user deletion logic
       console.log('Deleting user:', data);
+
+      // Log the action
+      await PlayerLogger.logUserAction(
+        socket.id,
+        'delete',
+        data,
+        socket.user?.username,
+        socket.userId
+      );
+
       callback({ success: true });
     } catch (error) {
       callback({ success: false, error: error.message });

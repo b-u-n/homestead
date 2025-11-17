@@ -130,9 +130,9 @@ router.post('/update-screen', async (req, res) => {
 // Save user data and avatar to session account
 router.post('/save-user-avatar', async (req, res) => {
   try {
-    const { sessionId, username, avatarUrl, avatarData } = req.body;
+    const { sessionId, username, avatarUrl: sourceAvatarUrl, avatarData } = req.body;
 
-    if (!sessionId || !username || !avatarUrl) {
+    if (!sessionId || !username || !sourceAvatarUrl) {
       return res.status(400).json({
         success: false,
         error: 'Session ID, username, and avatar URL are required'
@@ -149,7 +149,7 @@ router.post('/save-user-avatar', async (req, res) => {
     }
 
     // Download and save the avatar image
-    const response = await fetch(avatarUrl);
+    const response = await fetch(sourceAvatarUrl);
     if (!response.ok) {
       throw new Error('Failed to download avatar image');
     }

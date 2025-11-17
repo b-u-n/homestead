@@ -1,11 +1,20 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, StyleSheet, Platform, Text, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { observer } from 'mobx-react-lite';
+import { observer, useLocalObservable } from 'mobx-react-lite';
+import { reaction } from 'mobx';
 import inventoryStore from '../stores/InventoryStore';
 import profileStore from '../stores/ProfileStore';
+import characterStore from '../stores/CharacterStore';
 import UserStatus from './UserStatus';
 import VaporwaveButton from './VaporwaveButton';
+import WishingWell from './WishingWell';
+import WeepingWillow from './WeepingWillow';
+import FlowEngine from './FlowEngine';
+import heartsFlow from '../flows/heartsFlow';
+import CharacterIcon, { isPointInCharacter } from './CharacterIcon';
+import EmoteMenu, { getClickedEmote } from './EmoteMenu';
+import WebSocketService from '../services/websocket';
 // Import sections
 import townSquare from '../locations/sections/town-square';
 import marketplace from '../locations/sections/marketplace';
@@ -14,11 +23,14 @@ import forest from '../locations/sections/forest';
 import garden from '../locations/sections/garden';
 
 // Import rooms
-import library from '../locations/rooms/library';
+import weepingWillow from '../locations/rooms/weeping-willow';
 import coffeeShop from '../locations/rooms/coffee-shop';
+import bank from '../locations/rooms/bank';
 
 // Import images
 const knapsackImage = require('../assets/images/knapsack.png');
+const wishingWellImage = require('../assets/images/wishing-well.png');
+const weepingWillowImage = require('../assets/images/weeping-willow.png');
 
 // Location lookup object (includes both sections and rooms)
 const LOCATIONS = {
@@ -29,8 +41,9 @@ const LOCATIONS = {
   'forest': forest,
   'garden': garden,
   // Rooms
-  'library': library,
+  'weeping-willow': weepingWillow,
   'coffee-shop': coffeeShop,
+  'bank': bank,
 };
 
 const MapCanvas = ({ location }) => {
@@ -38,6 +51,57 @@ const MapCanvas = ({ location }) => {
   const router = useRouter();
   const [roomData, setRoomData] = useState(null);
   const [hoveredObject, setHoveredObject] = useState(null);
+  const [loadedImages, setLoadedImages] = useState({});
+  const [isWishingWellOpen, setIsWishingWellOpen] = useState(false);
+  const [isWeepingWillowOpen, setIsWeepingWillowOpen] = useState(false);
+  const [isBankFlowOpen, setIsBankFlowOpen] = useState(false);
+  const [isEmoteMenuOpen, setIsEmoteMenuOpen] = useState(false);
+  const [characterPosition, setCharacterPosition] = useState(null);
+  const [avatarImages, setAvatarImages] = useState({});
+  const [canvasWidth, setCanvasWidth] = useState(1200);
+  const [canvasHeight, setCanvasHeight] = useState(800);
+  const [touchStart, setTouchStart] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [playersRefresh, setPlayersRefresh] = useState(0);
+
+  // Watch for changes to other players and force re-render
+  useEffect(() => {
+    const dispose = reaction(
+      () => {
+        // Create a serializable representation of all player data
+        // This triggers when players are added/removed OR when their properties change
+        return characterStore.otherPlayersArray.map(p => ({
+          id: p.socketId,
+          x: p.position?.x,
+          y: p.position?.y,
+          emote: p.emote,
+          emoteOpacity: p.emoteOpacity
+        }));
+      },
+      () => {
+        setPlayersRefresh(prev => prev + 1);
+      },
+      { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) }
+    );
+    return () => dispose();
+  }, []);
+
+  // Update canvas dimensions and detect mobile
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const updateDimensions = () => {
+      setCanvasWidth(window.innerWidth);
+      setCanvasHeight(window.innerHeight);
+      // Detect mobile based on window width
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
   // Load location data (section or room)
   useEffect(() => {
@@ -45,12 +109,50 @@ const MapCanvas = ({ location }) => {
       const locationFn = LOCATIONS[location];
 
       if (locationFn) {
-        // Call location function with canvas dimensions
-        const width = Platform.OS === 'web' ? window.innerWidth : 800;
-        const height = Platform.OS === 'web' ? window.innerHeight : 600;
-        const locationData = typeof locationFn === 'function' ? locationFn(width, height) : locationFn;
+        // Call location function with current canvas dimensions
+        const locationData = typeof locationFn === 'function' ? locationFn(canvasWidth, canvasHeight) : locationFn;
 
         setRoomData(locationData);
+
+        // Initialize character position from store or center
+        const position = characterStore.getPosition(location, canvasWidth, canvasHeight);
+        setCharacterPosition(position);
+
+        // Notify backend that we entered this room and get existing players
+        if (WebSocketService.socket && profileStore.avatarUrl) {
+          WebSocketService.emit('map:enter', {
+            roomId: location,
+            x: position.x / canvasWidth,
+            y: position.y / canvasHeight,
+            avatarUrl: profileStore.avatarUrl,
+            username: profileStore.username
+          }).then(result => {
+            if (result && result.existingPlayers) {
+              // Add all existing players to the store
+              result.existingPlayers.forEach(player => {
+                const playerData = {
+                  position: { x: player.x * canvasWidth, y: player.y * canvasHeight },
+                  avatarUrl: player.avatarUrl,
+                  username: player.username
+                };
+                // Include emote if it exists
+                if (player.emote) {
+                  playerData.emote = player.emote;
+                }
+                characterStore.updateOtherPlayer(player.socketId, playerData);
+
+                // Load avatar images
+                if (player.avatarUrl && !avatarImages[player.avatarUrl]) {
+                  const img = new window.Image();
+                  img.onload = () => {
+                    setAvatarImages(prev => ({ ...prev, [player.avatarUrl]: img }));
+                  };
+                  img.src = player.avatarUrl;
+                }
+              });
+            }
+          });
+        }
 
         // Save to localStorage - ensure location is a string
         if (Platform.OS === 'web' && typeof localStorage !== 'undefined' && typeof location === 'string') {
@@ -66,14 +168,166 @@ const MapCanvas = ({ location }) => {
     };
 
     loadLocation();
-  }, [location]);
+
+    // Clear other players when changing rooms and notify backend
+    return () => {
+      // Notify backend that we're leaving this room
+      if (WebSocketService.socket) {
+        WebSocketService.socket.emit('map:leave', {
+          roomId: location
+        });
+      }
+      characterStore.clearOtherPlayers();
+    };
+  }, [location, canvasWidth, canvasHeight]);
+
+  // Load images for entities
+  useEffect(() => {
+    if (!roomData || Platform.OS !== 'web') return;
+
+    const imageMap = {
+      'wishing-well.png': wishingWellImage,
+      'weeping-willow.png': weepingWillowImage,
+    };
+
+    const imagesToLoad = {};
+
+    // Find all entities with images
+    const allEntities = [...(roomData.entities || [])];
+
+    allEntities.forEach(entity => {
+      if (entity.image && imageMap[entity.image]) {
+        const img = new window.Image();
+        const imageSrc = typeof imageMap[entity.image] === 'string'
+          ? imageMap[entity.image]
+          : imageMap[entity.image].default || imageMap[entity.image].uri || imageMap[entity.image];
+
+        img.onload = () => {
+          setLoadedImages(prev => ({
+            ...prev,
+            [entity.image]: img
+          }));
+        };
+        img.src = imageSrc;
+      }
+    });
+  }, [roomData]);
+
+  // Set up websocket listeners for map events
+  useEffect(() => {
+    if (!WebSocketService.socket || Platform.OS !== 'web') return;
+
+    const socket = WebSocketService.socket;
+
+    // Listen for other players moving
+    const handleMove = (data) => {
+      // Don't update for our own socket
+      if (data.socketId === socket.id) return;
+
+      // Only update if in same room
+      if (data.roomId === location) {
+        characterStore.updateOtherPlayer(data.socketId, {
+          position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
+          avatarUrl: data.avatarUrl,
+          username: data.username
+        });
+
+        // Load avatar image if not already loaded
+        if (data.avatarUrl && !avatarImages[data.avatarUrl]) {
+          const img = new window.Image();
+          img.onload = () => {
+            setAvatarImages(prev => ({ ...prev, [data.avatarUrl]: img }));
+          };
+          img.src = data.avatarUrl;
+        }
+      }
+    };
+
+    // Listen for other players emoting
+    const handleEmote = (data) => {
+      // Don't update for our own socket (we handle that locally)
+      if (data.socketId === socket.id) return;
+
+      // Only update if in same room
+      if (data.roomId === location) {
+        characterStore.updateOtherPlayer(data.socketId, {
+          emote: data.emote,
+          position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
+          avatarUrl: data.avatarUrl,
+          username: data.username
+        });
+
+        // Load avatar image if not already loaded
+        if (data.avatarUrl && !avatarImages[data.avatarUrl]) {
+          const img = new window.Image();
+          img.onload = () => {
+            setAvatarImages(prev => ({ ...prev, [data.avatarUrl]: img }));
+          };
+          img.src = data.avatarUrl;
+        }
+      }
+    };
+
+    // Listen for players entering
+    const handleEnter = (data) => {
+      // Don't update for our own socket
+      if (data.socketId === socket.id) return;
+
+      // Only update if in same room
+      if (data.roomId === location) {
+        characterStore.updateOtherPlayer(data.socketId, {
+          position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
+          avatarUrl: data.avatarUrl,
+          username: data.username
+        });
+
+        // Load avatar image if not already loaded
+        if (data.avatarUrl && !avatarImages[data.avatarUrl]) {
+          const img = new window.Image();
+          img.onload = () => {
+            setAvatarImages(prev => ({ ...prev, [data.avatarUrl]: img }));
+          };
+          img.src = data.avatarUrl;
+        }
+      }
+    };
+
+    // Listen for players leaving
+    const handleLeave = (data) => {
+      // Only remove if they left the current room (or if roomId is not specified, meaning disconnect)
+      if (!data.roomId || data.roomId === location) {
+        characterStore.removeOtherPlayer(data.socketId);
+      }
+    };
+
+    socket.on('map:move', handleMove);
+    socket.on('map:emote', handleEmote);
+    socket.on('map:enter', handleEnter);
+    socket.on('map:leave', handleLeave);
+
+    // Load current user's avatar image
+    if (profileStore.avatarUrl && !avatarImages[profileStore.avatarUrl]) {
+      const img = new window.Image();
+      img.onload = () => {
+        setAvatarImages(prev => ({ ...prev, [profileStore.avatarUrl]: img }));
+      };
+      img.src = profileStore.avatarUrl;
+    }
+
+    return () => {
+      socket.off('map:move', handleMove);
+      socket.off('map:emote', handleEmote);
+      socket.off('map:enter', handleEnter);
+      socket.off('map:leave', handleLeave);
+    };
+  }, [location, avatarImages, canvasWidth, canvasHeight]);
 
   // Draw canvas
   useEffect(() => {
     if (roomData && Platform.OS === 'web') {
       drawCanvas();
     }
-  }, [roomData, hoveredObject]);
+  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -92,22 +346,64 @@ const MapCanvas = ({ location }) => {
     const drawButton = (obj) => {
       const isHovered = hoveredObject === obj.id;
 
-      // Draw button background
-      ctx.fillStyle = isHovered ? 'rgba(179, 230, 255, 0.4)' : 'rgba(255, 255, 255, 0.3)';
-      ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+      // Check if this entity has an image
+      if (obj.image && loadedImages[obj.image]) {
+        const img = loadedImages[obj.image];
 
-      // Draw dashed border
-      ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-      ctx.setLineDash([]);
+        // Calculate scale based on hover
+        const scale = isHovered ? 1.06 : 1;
+        const scaledWidth = obj.width * scale;
+        const offsetX = (scaledWidth - obj.width) / 2;
+        const offsetY = (scaledWidth - obj.width) / 2;
 
-      // Draw label
-      ctx.fillStyle = '#403F3E';
-      ctx.font = 'bold 14px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(obj.label, obj.x + obj.width / 2, obj.y + obj.height / 2 + 5);
+        // Draw the image with scaling
+        ctx.drawImage(img, obj.x - offsetX, obj.y - offsetY, scaledWidth, scaledWidth);
+
+        // Draw label below the image with shadow (no box)
+        ctx.save();
+        ctx.font = '18px ChubbyTrail';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        const labelText = obj.label.toUpperCase();
+
+        const textY = obj.y + obj.width + 24; // Position text below image
+
+        // Draw black shadow (offset)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillText(labelText, obj.x + obj.width / 2 + 1, textY + 1);
+
+        // Draw main text
+        ctx.fillStyle = '#403F3E';
+        ctx.fillText(labelText, obj.x + obj.width / 2, textY);
+        ctx.restore();
+      } else {
+        // Draw button background
+        ctx.fillStyle = isHovered ? 'rgba(179, 230, 255, 0.4)' : 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+
+        // Draw dashed border
+        ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+        ctx.setLineDash([]);
+
+        // Draw label with shadow
+        ctx.save();
+        ctx.font = '20px ChubbyTrail';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        const labelText = obj.label.toUpperCase();
+
+        // Draw black shadow (offset)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillText(labelText, obj.x + obj.width / 2 + 0.5, obj.y + obj.height / 2 + 5.5);
+
+        // Draw main text
+        ctx.fillStyle = '#403F3E';
+        ctx.fillText(labelText, obj.x + obj.width / 2, obj.y + obj.height / 2 + 5);
+        ctx.restore();
+      }
     };
 
     // Draw back button (for rooms)
@@ -115,8 +411,8 @@ const MapCanvas = ({ location }) => {
       drawButton(roomData.backButton);
     }
 
-    // Draw navigation buttons (section-to-section)
-    if (roomData.navigation) {
+    // Draw navigation buttons (section-to-section) - only on desktop
+    if (roomData.navigation && !isMobile) {
       roomData.navigation.forEach(drawButton);
     }
 
@@ -129,6 +425,394 @@ const MapCanvas = ({ location }) => {
     if (roomData.entities) {
       roomData.entities.forEach(drawButton);
     }
+
+    // Helper function to draw rounded rectangle
+    const drawRoundedRect = (x, y, width, height, radius) => {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    };
+
+    // Draw other players
+    characterStore.otherPlayersArray.forEach(player => {
+      if (player.position) {
+        const size = 64;
+        const drawX = player.position.x - size / 2;
+        const drawY = player.position.y - size / 2;
+        const borderRadius = 8;
+
+        // Draw outer background (white)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
+        ctx.fill();
+
+        // Draw outer dashed border
+        ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw avatar image if loaded, otherwise placeholder
+        if (player.avatarUrl && avatarImages[player.avatarUrl]) {
+          const img = avatarImages[player.avatarUrl];
+
+          // Draw avatar (clipped to rounded rectangle)
+          ctx.save();
+          drawRoundedRect(drawX, drawY, size, size, borderRadius);
+          ctx.clip();
+          ctx.drawImage(img, drawX, drawY, size, size);
+          ctx.restore();
+        } else {
+          // Draw placeholder background
+          ctx.save();
+          drawRoundedRect(drawX, drawY, size, size, borderRadius);
+          ctx.clip();
+          ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+          ctx.fill();
+          ctx.restore();
+
+          // Draw placeholder "?"
+          ctx.save();
+          ctx.font = 'bold 32px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = 'rgba(92, 90, 88, 0.4)';
+          ctx.fillText('?', player.position.x, player.position.y);
+          ctx.restore();
+        }
+
+        // Draw inner dashed border
+        ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        drawRoundedRect(drawX + 2, drawY + 2, size - 4, size - 4, borderRadius - 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw emote if present
+        if (player.emote) {
+          const size = 64;
+          const opacity = player.emoteOpacity !== undefined ? player.emoteOpacity : 1;
+          ctx.save();
+          ctx.globalAlpha = opacity;
+
+          // Measure emote text
+          ctx.font = '20px Arial';
+          const metrics = ctx.measureText(player.emote);
+          const textWidth = metrics.width;
+
+          // Expression bubble dimensions (offset 16px to the right)
+          const bubbleWidth = textWidth + 12;
+          const bubbleHeight = 28;
+          const bubbleX = player.position.x - bubbleWidth / 2 + 16;
+          const bubbleY = player.position.y - size / 2 - 40;
+          const borderRadius = 6;
+          const tailTipY = player.position.y - size / 2 - 6; // 6px gap above avatar
+          const tailBaseY = bubbleY + bubbleHeight;
+
+          // Draw outer background for bubble
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+          ctx.fill();
+
+          // Draw outer dashed border for bubble
+          ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Draw inner bubble with clipping
+          ctx.save();
+          drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, borderRadius);
+          ctx.clip();
+          ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+          ctx.fill();
+          ctx.restore();
+
+          // Draw inner dashed border for bubble
+          ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, borderRadius - 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Draw triangle tail (sticking out from lower left corner of bubble)
+          const tailWidth = 4;
+          const tailLeftX = bubbleX + 12; // 12px from left edge of bubble
+
+          // Draw tail background (triangle pointing down to 2px above avatar)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.beginPath();
+          ctx.moveTo(tailLeftX, tailBaseY); // Top left at bubble bottom
+          ctx.lineTo(tailLeftX + tailWidth, tailBaseY); // Top right at bubble bottom
+          ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY); // Point at 2px above avatar
+          ctx.closePath();
+          ctx.fill();
+
+          // Draw tail dashed border
+          ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(tailLeftX, tailBaseY);
+          ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+          ctx.moveTo(tailLeftX + tailWidth, tailBaseY);
+          ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Draw emote text (centered in the bubble)
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#000';
+          ctx.fillText(player.emote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2);
+          ctx.restore();
+        }
+
+        // Draw username below character
+        ctx.save();
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        // Add glow effect
+        ctx.shadowColor = 'rgba(92, 90, 88, 0.55)';
+        ctx.shadowBlur = 0.5;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText(player.username || 'Player', player.position.x, player.position.y + 64 / 2 + 9);
+        ctx.restore();
+      }
+    });
+
+    // Draw current player
+    if (characterPosition) {
+      const size = 64;
+      const drawX = characterPosition.x - size / 2;
+      const drawY = characterPosition.y - size / 2;
+      const borderRadius = 8;
+
+      // Draw shadow/glow for current user
+      ctx.shadowColor = 'rgba(179, 230, 255, 0.6)';
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      // Draw outer background (white)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
+      ctx.fill();
+
+      // Reset shadow
+      ctx.shadowBlur = 0;
+
+      // Draw outer dashed border (thicker for current user with cyan color)
+      ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]);
+      drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw avatar image if loaded, otherwise placeholder
+      if (profileStore.avatarUrl && avatarImages[profileStore.avatarUrl]) {
+        const img = avatarImages[profileStore.avatarUrl];
+
+        ctx.save();
+        drawRoundedRect(drawX, drawY, size, size, borderRadius);
+        ctx.clip();
+        ctx.drawImage(img, drawX, drawY, size, size);
+        ctx.restore();
+      } else {
+        // Draw placeholder background
+        ctx.save();
+        drawRoundedRect(drawX, drawY, size, size, borderRadius);
+        ctx.clip();
+        ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+        ctx.fill();
+        ctx.restore();
+
+        // Draw placeholder "?"
+        ctx.save();
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(179, 230, 255, 0.6)';
+        ctx.fillText('?', characterPosition.x, characterPosition.y);
+        ctx.restore();
+      }
+
+      // Draw inner dashed border
+      ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 3]);
+      drawRoundedRect(drawX + 2, drawY + 2, size - 4, size - 4, borderRadius - 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw emote if present
+      if (characterStore.activeEmote) {
+        const opacity = characterStore.emoteOpacity;
+        ctx.save();
+        ctx.globalAlpha = opacity;
+
+        // Measure emote text
+        ctx.font = '20px Arial';
+        const metrics = ctx.measureText(characterStore.activeEmote);
+        const textWidth = metrics.width;
+
+        // Expression bubble dimensions (offset 16px to the right)
+        const bubbleWidth = textWidth + 12;
+        const bubbleHeight = 28;
+        const bubbleX = characterPosition.x - bubbleWidth / 2 + 16;
+        const bubbleY = characterPosition.y - size / 2 - 40;
+        const borderRadius = 6;
+        const tailTipY = characterPosition.y - size / 2 - 6; // 6px gap above avatar
+        const tailBaseY = bubbleY + bubbleHeight;
+
+        // Draw outer background for bubble
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+        ctx.fill();
+
+        // Draw outer dashed border for bubble (cyan for current player)
+        ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw inner bubble with clipping
+        ctx.save();
+        drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, borderRadius);
+        ctx.clip();
+        ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+        ctx.fill();
+        ctx.restore();
+
+        // Draw inner dashed border for bubble (cyan for current player)
+        ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, borderRadius - 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw triangle tail (sticking out from lower left corner of bubble)
+        const tailWidth = 4;
+        const tailLeftX = bubbleX + 12; // 12px from left edge of bubble
+
+        // Draw tail background (triangle pointing down to 2px above avatar)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(tailLeftX, tailBaseY); // Top left at bubble bottom
+        ctx.lineTo(tailLeftX + tailWidth, tailBaseY); // Top right at bubble bottom
+        ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY); // Point at 2px above avatar
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw tail dashed border (cyan for current player)
+        ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(tailLeftX, tailBaseY);
+        ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+        ctx.moveTo(tailLeftX + tailWidth, tailBaseY);
+        ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw emote text (centered in the bubble)
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#000';
+        ctx.fillText(characterStore.activeEmote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2);
+        ctx.restore();
+      }
+
+      // Draw username below character
+      ctx.save();
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      // Add glow effect with cyan color for current player
+      ctx.shadowColor = 'rgba(179, 230, 255, 0.8)';
+      ctx.shadowBlur = 0.5;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+      ctx.fillText(profileStore.username || 'You', characterPosition.x, characterPosition.y + size / 2 + 9);
+      ctx.restore();
+    }
+
+    // Draw emote menu if open
+    if (isEmoteMenuOpen && characterPosition) {
+      const numEmotes = 12;
+      const radius = 160;
+      const angleStep = (Math.PI * 2) / numEmotes;
+      const emotes = [
+        '😊', '😂', '😍', '😎',
+        '🤔', '😢', '😠', '🎉',
+        '👍', '👋', '❤️', '🔥'
+      ];
+
+      // Draw semi-transparent background circle
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.beginPath();
+      ctx.arc(characterPosition.x, characterPosition.y, radius + 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw separator lines between emotes (not going to center)
+      ctx.strokeStyle = 'rgba(92, 90, 88, 0.2)';
+      ctx.lineWidth = 1;
+      emotes.forEach((_, index) => {
+        const angle = angleStep * index - Math.PI / 2;
+        const startX = characterPosition.x + Math.cos(angle) * 80;
+        const startY = characterPosition.y + Math.sin(angle) * 80;
+        const endX = characterPosition.x + Math.cos(angle) * (radius + 20);
+        const endY = characterPosition.y + Math.sin(angle) * (radius + 20);
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      });
+
+      // Draw each emote (offset by half angle step to be between lines)
+      ctx.save();
+      ctx.font = '32px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#000';
+      emotes.forEach((emote, index) => {
+        const angle = angleStep * index + angleStep / 2 - Math.PI / 2; // Offset by half step
+        const emoteX = characterPosition.x + Math.cos(angle) * radius;
+        const emoteY = characterPosition.y + Math.sin(angle) * radius;
+
+        // Draw emote text (no background)
+        ctx.fillText(emote, emoteX, emoteY);
+      });
+      ctx.restore();
+    }
   };
 
   const handleCanvasClick = (event) => {
@@ -139,27 +823,86 @@ const MapCanvas = ({ location }) => {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Collect all clickable objects
+    // If emote menu is open, check for emote selection
+    if (isEmoteMenuOpen && characterPosition) {
+      const clickResult = getClickedEmote(x, y, characterPosition.x, characterPosition.y, 160);
+
+      if (clickResult.type === 'emote') {
+        // Send emote to server
+        if (WebSocketService.socket && canvasWidth && canvasHeight) {
+          WebSocketService.socket.emit('map:emote', {
+            roomId: location,
+            emote: clickResult.emote,
+            x: characterPosition.x / canvasWidth,
+            y: characterPosition.y / canvasHeight,
+            avatarUrl: profileStore.avatarUrl,
+            username: profileStore.username
+          });
+        }
+
+        // Set local emote
+        characterStore.setEmote(clickResult.emote);
+        setIsEmoteMenuOpen(false);
+        return;
+      } else if (clickResult.type === 'close' || clickResult.type === 'outside') {
+        setIsEmoteMenuOpen(false);
+        return;
+      }
+    }
+
+    // Check if clicking on own character to open emote menu
+    if (characterPosition && isPointInCharacter(x, y, characterPosition.x, characterPosition.y, 64)) {
+      setIsEmoteMenuOpen(true);
+      return;
+    }
+
+    // Collect all clickable objects (exclude navigation on mobile)
     const allObjects = [
       roomData.backButton,
-      ...(roomData.navigation || []),
+      ...(isMobile ? [] : (roomData.navigation || [])),
       ...(roomData.doors || []),
       ...(roomData.entities || [])
     ].filter(Boolean);
 
     // Check if click is on an object
+    let clickedObject = false;
     for (const obj of allObjects) {
       if (x >= obj.x && x <= obj.x + obj.width && y >= obj.y && y <= obj.y + obj.height) {
         if (obj.navigateTo) {
-          // Ensure navigateTo is a string and use replace for client-side navigation
+          // Ensure navigateTo is a string and use push for proper navigation history
           const navPath = typeof obj.navigateTo === 'string' ? obj.navigateTo : obj.navigateTo.pathname || obj.navigateTo.path;
           if (navPath) {
-            router.replace(navPath);
+            router.push(navPath);
           }
+        } else if (obj.id === 'wishing-well') {
+          setIsWishingWellOpen(true);
+        } else if (obj.flow === 'weepingWillow') {
+          setIsWeepingWillowOpen(true);
+        } else if (obj.action === 'openBankModal') {
+          setIsBankFlowOpen(true);
         } else if (obj.description) {
           alert(obj.description); // TODO: Replace with modal
         }
+        clickedObject = true;
         break;
+      }
+    }
+
+    // If didn't click on any object, move character to clicked position
+    if (!clickedObject && characterPosition) {
+      // Update local position
+      setCharacterPosition({ x, y });
+      characterStore.setPosition(location, x, y);
+
+      // Send move command to server
+      if (WebSocketService.socket && canvasWidth && canvasHeight) {
+        WebSocketService.socket.emit('map:move', {
+          roomId: location,
+          x: x / canvasWidth,
+          y: y / canvasHeight,
+          avatarUrl: profileStore.avatarUrl,
+          username: profileStore.username
+        });
       }
     }
   };
@@ -174,10 +917,10 @@ const MapCanvas = ({ location }) => {
 
     let foundHover = null;
 
-    // Collect all hoverable objects
+    // Collect all hoverable objects (exclude navigation on mobile)
     const allObjects = [
       roomData.backButton,
-      ...(roomData.navigation || []),
+      ...(isMobile ? [] : (roomData.navigation || [])),
       ...(roomData.doors || []),
       ...(roomData.entities || [])
     ].filter(Boolean);
@@ -198,6 +941,78 @@ const MapCanvas = ({ location }) => {
     if (foundHover !== hoveredObject) {
       setHoveredObject(foundHover);
     }
+  };
+
+  const handleTouchStart = (event) => {
+    if (!roomData || Platform.OS !== 'web' || !isMobile) return;
+
+    const touch = event.touches[0];
+    setTouchStart({
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    });
+  };
+
+  const handleTouchEnd = (event) => {
+    if (!roomData || Platform.OS !== 'web' || !isMobile || !touchStart) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    const deltaTime = Date.now() - touchStart.time;
+
+    // Minimum swipe distance and maximum time for a swipe
+    const minSwipeDistance = 50;
+    const maxSwipeTime = 300;
+
+    if (deltaTime > maxSwipeTime) {
+      setTouchStart(null);
+      return;
+    }
+
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    // Determine swipe direction
+    if (absX > minSwipeDistance || absY > minSwipeDistance) {
+      let direction = null;
+
+      if (absX > absY) {
+        // Horizontal swipe
+        direction = deltaX > 0 ? 'right' : 'left';
+      } else {
+        // Vertical swipe
+        direction = deltaY > 0 ? 'down' : 'up';
+      }
+
+      // Find navigation option for this direction
+      if (roomData.navigation && direction) {
+        const nav = roomData.navigation.find(n => {
+          // Map navigation positions to swipe directions
+          const isLeft = n.x < canvasWidth * 0.2;
+          const isRight = n.x > canvasWidth * 0.8;
+          const isTop = n.y < canvasHeight * 0.2;
+          const isBottom = n.y > canvasHeight * 0.8;
+
+          if (direction === 'left' && isRight) return true;
+          if (direction === 'right' && isLeft) return true;
+          if (direction === 'up' && isBottom) return true;
+          if (direction === 'down' && isTop) return true;
+
+          return false;
+        });
+
+        if (nav && nav.navigateTo) {
+          const navPath = typeof nav.navigateTo === 'string' ? nav.navigateTo : nav.navigateTo.pathname || nav.navigateTo.path;
+          if (navPath) {
+            router.push(navPath);
+          }
+        }
+      }
+    }
+
+    setTouchStart(null);
   };
 
   const handleKnapsackClick = () => {
@@ -221,15 +1036,20 @@ const MapCanvas = ({ location }) => {
         `}</style>
         <canvas
           ref={canvasRef}
-          width={window.innerWidth}
-          height={window.innerHeight}
+          width={canvasWidth}
+          height={canvasHeight}
           onClick={handleCanvasClick}
           onMouseMove={handleCanvasMouseMove}
-          style={{ display: 'block', background: 'transparent' }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            display: 'block',
+            background: 'transparent'
+          }}
         />
         {roomData && (
           <View style={styles.titleOverlay}>
-            <Text style={styles.roomTitle}>{roomData.name}</Text>
+            <Text style={styles.roomTitle}>{roomData.name.toUpperCase()}</Text>
           </View>
         )}
         <UserStatus />
@@ -275,6 +1095,19 @@ const MapCanvas = ({ location }) => {
             />
           </button>
         </View>
+        <WishingWell
+          visible={isWishingWellOpen}
+          onClose={() => setIsWishingWellOpen(false)}
+        />
+        <WeepingWillow
+          visible={isWeepingWillowOpen}
+          onClose={() => setIsWeepingWillowOpen(false)}
+        />
+        <FlowEngine
+          flowDefinition={heartsFlow}
+          visible={isBankFlowOpen}
+          onClose={() => setIsBankFlowOpen(false)}
+        />
       </View>
     );
   }
@@ -294,7 +1127,7 @@ const styles = StyleSheet.create({
   },
   titleOverlay: {
     position: 'absolute',
-    top: 20,
+    top: 32,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -302,11 +1135,8 @@ const styles = StyleSheet.create({
   },
   roomTitle: {
     fontSize: 42,
-    fontWeight: 'bold',
+    fontFamily: 'ChubbyTrail',
     color: '#5C5A58',
-    textShadowColor: 'rgba(255, 255, 255, 0.8)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
   },
   saveButtonContainer: {
     position: 'absolute',

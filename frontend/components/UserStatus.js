@@ -1,36 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TextInput, StyleSheet, Platform, ImageBackground } from 'react-native';
+import { View, Text, Image, StyleSheet, Platform, ImageBackground, Pressable } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import profileStore from '../stores/ProfileStore';
-import sessionStore from '../stores/SessionStore';
 import StitchedBorder from './StitchedBorder';
+import BankModal from './BankModal';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
 const UserStatus = observer(() => {
-  const [isEditingStatus, setIsEditingStatus] = useState(false);
-  const [statusInput, setStatusInput] = useState(profileStore.currentStatus);
-
-  const handleStatusSubmit = () => {
-    setIsEditingStatus(false);
-    if (statusInput !== profileStore.currentStatus) {
-      profileStore.updateCurrentStatus(statusInput, sessionStore.sessionId);
-    }
-  };
-
-  const handleStatusBlur = () => {
-    handleStatusSubmit();
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleStatusSubmit();
-      e.target.blur();
-    }
-  };
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
 
   return (
+    <>
+      <BankModal visible={isBankModalOpen} onClose={() => setIsBankModalOpen(false)} />
     <View style={styles.wrapper}>
       {/* Background texture */}
       {Platform.OS === 'web' && (
@@ -101,47 +83,15 @@ const UserStatus = observer(() => {
               ))}
             </View>
 
-            {/* Current status */}
-            <View style={styles.statusContainer}>
-              <Text style={styles.statusLabel}>Currently:</Text>
-              {Platform.OS === 'web' ? (
-                <input
-                  type="text"
-                  value={isEditingStatus ? statusInput : profileStore.currentStatus}
-                  onChange={(e) => setStatusInput(e.target.value)}
-                  onFocus={() => {
-                    setIsEditingStatus(true);
-                    setStatusInput(profileStore.currentStatus);
-                  }}
-                  onBlur={handleStatusBlur}
-                  onKeyPress={handleKeyPress}
-                  placeholder="What are you up to?"
-                  style={{
-                    ...styles.statusInput,
-                    border: 'none',
-                    outline: 'none',
-                    fontFamily: 'Arial',
-                  }}
-                />
-              ) : (
-                <TextInput
-                  value={isEditingStatus ? statusInput : profileStore.currentStatus}
-                  onChangeText={setStatusInput}
-                  onFocus={() => {
-                    setIsEditingStatus(true);
-                    setStatusInput(profileStore.currentStatus);
-                  }}
-                  onBlur={handleStatusBlur}
-                  onSubmitEditing={handleStatusSubmit}
-                  placeholder="What are you up to?"
-                  style={styles.statusInput}
-                />
-              )}
-            </View>
+            {/* Bank Icon - Bottom left */}
+            <Pressable style={styles.bankIcon} onPress={() => setIsBankModalOpen(true)}>
+              <Text style={styles.bankIconText}>💰</Text>
+            </Pressable>
           </View>
         </StitchedBorder>
       </View>
     </View>
+    </>
   );
 });
 
@@ -241,23 +191,16 @@ const styles = StyleSheet.create({
   heart: {
     fontSize: 14,
   },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statusLabel: {
-    fontSize: 11,
-    color: '#5C5A58',
-    fontWeight: '600',
-  },
-  statusInput: {
-    flex: 1,
-    fontSize: 11,
-    color: '#403F3E',
+  bankIcon: {
+    alignSelf: 'flex-start',
     padding: 4,
-    backgroundColor: 'rgba(222, 134, 223, 0.1)',
-    borderRadius: 4,
+    borderRadius: 6,
+    backgroundColor: 'rgba(112, 68, 199, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(112, 68, 199, 0.3)',
+  },
+  bankIconText: {
+    fontSize: 18,
   },
 });
 

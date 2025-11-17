@@ -70,15 +70,6 @@ export default (width, height) => ({
   // Room entrances (doors to interior spaces)
   doors: [
     {
-      id: 'library-door',
-      x: width / 2 - 200,
-      y: height / 2 - 100,
-      width: 80,
-      height: 120,
-      label: 'Library',
-      navigateTo: '/homestead/explore/map/library'
-    },
-    {
       id: 'coffee-shop-door',
       x: width / 2 + 120,
       y: height / 2 - 100,
@@ -87,19 +78,41 @@ export default (width, height) => ({
       label: 'Coffee Shop',
       navigateTo: '/homestead/explore/map/coffee-shop'
     },
+    {
+      id: 'bank-door',
+      x: width / 2 - 200,
+      y: height / 2 - 100,
+      width: 80,
+      height: 120,
+      label: 'Bank',
+      navigateTo: '/homestead/explore/map/bank'
+    },
   ],
 
   // Outdoor entities (decorations, interactables)
   entities: [
     {
-      id: 'fountain',
+      id: 'wishing-well',
       type: 'decoration',
-      x: width / 2 - 30,
-      y: height / 2 + 80,
-      width: 60,
-      height: 60,
-      label: 'Fountain',
-      description: 'A beautiful fountain in the center of town.'
+      x: width * 0.7,
+      y: height * 0.75 - 24,
+      width: 150,
+      height: 150,
+      label: 'Wishing Well',
+      image: 'wishing-well.png',
+      description: 'A beautiful wishing well in the center of town.'
+    },
+    {
+      id: 'weeping-willow',
+      type: 'interactable',
+      x: width * 0.6,
+      y: height * 0.2,
+      width: 200,
+      height: 240,
+      label: 'Weeping Willow',
+      image: 'weeping-willow.png',
+      description: 'A serene weeping willow, perfect for quiet contemplation.',
+      navigateTo: '/homestead/explore/map/weeping-willow'
     }
   ]
 });

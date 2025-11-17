@@ -22,7 +22,9 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors({
   origin: "*"
 }));
@@ -56,6 +58,20 @@ app.use('/api/users', require('./routes/user-rest'));
 // Account routes
 app.use('/api/accounts', require('./routes/accounts'));
 
+// Logs routes
+app.use('/api/logs', require('./routes/logs'));
+
+// Load Flow Engine
+const flowEngine = require('./utils/FlowEngine');
+const wishingWellFlow = require('./flows/wishingWell');
+const weepingWillowFlow = require('./flows/weepingWillow');
+const heartsFlow = require('./flows/hearts');
+
+// Register flows
+flowEngine.registerFlow(wishingWellFlow);
+flowEngine.registerFlow(weepingWillowFlow);
+flowEngine.registerFlow(heartsFlow);
+
 // Socket connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -65,6 +81,12 @@ io.on('connection', (socket) => {
   require('./routes/users')(socket, io);
   require('./routes/rooms')(socket, io);
   require('./routes/actions')(socket, io);
+  require('./routes/map')(socket, io);
+
+  // Setup Flow Engine handlers
+  flowEngine.setupFlow(socket, io, 'wishingWell');
+  flowEngine.setupFlow(socket, io, 'weepingWillow');
+  flowEngine.setupFlow(socket, io, 'hearts');
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
