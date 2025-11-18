@@ -7,8 +7,13 @@ const getBackendDomain = () => {
     return 'http://192.168.0.198:9000';
   }
 
-  // Production: use heartsbox.com
-  return 'https://heartsbox.com';
+  // Production web: use same origin (nginx handles proxy)
+  if (Platform.OS === 'web') {
+    return window.location.origin;
+  }
+
+  // Production mobile: use server IP
+  return 'http://34.130.3.97';
 };
 
 export const domain = getBackendDomain;
