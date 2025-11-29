@@ -1,19 +1,66 @@
 const fs = require('fs').promises;
 const path = require('path');
+const crypto = require('crypto');
 const OpenAI = require('openai');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Generate a short hash from IP for anonymous user identification
+function hashIpToId(ip) {
+  if (!ip) return 'unknown';
+  const hash = crypto.createHash('sha256').update(ip).digest('hex');
+  return `anon_${hash.substring(0, 12)}`;
+}
+
 class AvatarService {
   constructor() {
     this.promptsDir = path.join(__dirname, '../../prompts');
+    this.avatarDir = path.join(__dirname, '../../public/avatars');
     this.generationCounts = new Map(); // Track generations per user
     this.rateLimits = {
       maxGenerationsPerHour: 10,
       maxGenerationsPerDay: 50,
     };
+
+    // Ensure avatars directory exists
+    this.ensureAvatarDir();
+  }
+
+  async ensureAvatarDir() {
+    try {
+      await fs.mkdir(this.avatarDir, { recursive: true });
+    } catch (error) {
+      console.error('Error creating avatars directory:', error);
+    }
+  }
+
+  /**
+   * Download image from URL and save to local storage
+   * Returns the local filename
+   */
+  async saveImageLocally(imageUrl, userId) {
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error('Failed to download image');
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const imageBuffer = Buffer.from(arrayBuffer);
+
+      // Generate unique filename
+      const filename = `avatar_${userId}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.png`;
+      const filePath = path.join(this.avatarDir, filename);
+
+      await fs.writeFile(filePath, imageBuffer);
+
+      return filename;
+    } catch (error) {
+      console.error('Error saving image locally:', error);
+      throw error;
+    }
   }
 
   async loadPromptTemplate(styleName) {
@@ -72,12 +119,15 @@ class AvatarService {
       time => now - time < 24 * 60 * 60 * 1000
     );
     
-    if (lastHour.length >= this.rateLimits.maxGenerationsPerHour) {
-      throw new Error('Rate limit exceeded: Too many generations in the last hour');
-    }
-    
-    if (lastDay.length >= this.rateLimits.maxGenerationsPerDay) {
-      throw new Error('Rate limit exceeded: Too many generations in the last day');
+    // Skip rate limiting in development
+    if (process.env.NODE_ENV !== 'development') {
+      if (lastHour.length >= this.rateLimits.maxGenerationsPerHour) {
+        throw new Error('Rate limit exceeded: Too many generations in the last hour');
+      }
+
+      if (lastDay.length >= this.rateLimits.maxGenerationsPerDay) {
+        throw new Error('Rate limit exceeded: Too many generations in the last day');
+      }
     }
     
     return true;
@@ -94,7 +144,7 @@ class AvatarService {
     this.generationCounts.set(userId, filteredGenerations);
   }
 
-  async generateMultipleOptions(userId, adjective, adverb, noun, color = 'blue', colorText = 'blue') {
+  async generateMultipleOptions(userId, adjective, adverb, noun, color = 'blue', colorText = 'blue', baseUrl = '') {
     try {
       // Check rate limits
       this.checkRateLimit(userId);
@@ -106,39 +156,44 @@ class AvatarService {
       console.log('='.repeat(80));
       console.log(`[Avatar Generation] Starting for user: ${userId}`);
       console.log(`[Avatar Generation] Parameters:`, { adjective, adverb, noun, color, colorText });
-      console.log(`[Avatar Generation] Full prompt: ${prompt}`);
       console.log('='.repeat(80));
 
       // DALL-E 3 only supports n=1, so we need to make 4 separate calls
       // Make them simultaneously for faster generation
-      const promises = Array.from({ length: 4 }, (_, i) =>
-        openai.images.generate({
-          model: "dall-e-3",
-          prompt: prompt,
-          size: "1024x1024",
-          n: 1,
-        })
-        .then(response => {
-          console.log(`[Avatar Generation] Avatar ${i + 1}/4 - SUCCESS`);
+      const promises = Array.from({ length: 4 }, async (_, i) => {
+        try {
+          const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: prompt,
+            size: "1024x1024",
+            n: 1,
+          });
+
+          const openaiUrl = response.data[0].url;
+          console.log(`[Avatar Generation] Avatar ${i + 1}/4 - Generated, saving locally...`);
+
+          // Save image locally immediately
+          const filename = await this.saveImageLocally(openaiUrl, userId);
+          const localUrl = `${baseUrl}/api/avatars/${filename}`;
+
+          console.log(`[Avatar Generation] Avatar ${i + 1}/4 - SUCCESS (saved as ${filename})`);
+
           return {
             success: true,
-            imageUrl: response.data[0].url,
-            prompt: prompt,
+            imageUrl: localUrl,
             style: `kawaii-pixel-art-${i + 1}`,
             variables: { adjective, adverb, noun, color }
           };
-        })
-        .catch(error => {
+        } catch (error) {
           console.error(`[Avatar Generation] Avatar ${i + 1}/4 - FAILED: ${error.message}`);
           return {
             success: false,
             imageUrl: null,
-            prompt: prompt,
             style: `kawaii-pixel-art-${i + 1}`,
             variables: { adjective, adverb, noun, color }
           };
-        })
-      );
+        }
+      });
 
       const results = await Promise.all(promises);
 
@@ -148,7 +203,7 @@ class AvatarService {
       const successCount = results.filter(r => r.success).length;
       console.log('='.repeat(80));
       console.log(`[Avatar Generation] Completed for user: ${userId}`);
-      console.log(`[Avatar Generation] Success: ${successCount}/4 avatars generated`);
+      console.log(`[Avatar Generation] Success: ${successCount}/4 avatars generated and saved`);
       console.log('='.repeat(80));
 
       return results;
@@ -165,4 +220,7 @@ class AvatarService {
   }
 }
 
-module.exports = new AvatarService();
+const avatarService = new AvatarService();
+avatarService.hashIpToId = hashIpToId;
+
+module.exports = avatarService;

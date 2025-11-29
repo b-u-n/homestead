@@ -80,7 +80,15 @@ class FormStore {
    */
   async persist(formName) {
     try {
-      const data = JSON.stringify(this.forms[formName]);
+      let dataToSave = this.forms[formName];
+
+      // Don't persist avatarOptions - they contain temporary OpenAI URLs that expire
+      if (formName === 'avatarGeneration') {
+        const { avatarOptions, selectedAvatar, ...rest } = dataToSave;
+        dataToSave = rest;
+      }
+
+      const data = JSON.stringify(dataToSave);
       const key = `@homestead:form:${formName}`;
 
       if (Platform.OS === 'web') {
@@ -112,6 +120,13 @@ class FormStore {
 
         if (data) {
           const parsed = JSON.parse(data);
+
+          // Never restore avatarOptions or selectedAvatar - URLs expire
+          if (formName === 'avatarGeneration') {
+            delete parsed.avatarOptions;
+            delete parsed.selectedAvatar;
+          }
+
           this.forms[formName] = { ...this.forms[formName], ...parsed };
         }
       } catch (error) {

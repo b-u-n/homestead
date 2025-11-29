@@ -7,21 +7,25 @@ import StitchedBorder from './StitchedBorder';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
-const VaporwaveButton = ({ 
-  title, 
-  onPress, 
-  variant = 'primary', 
+// WoolButton is an alias for VaporwaveButton - the "wool" style
+// This is the standard textured button with stitched border
+const VaporwaveButton = ({
+  title,
+  onPress,
+  variant = 'primary',
   disabled = false,
   style = {},
   textStyle = {},
   accessibilityLabel,
-  accessibilityHint 
+  accessibilityHint
 }) => {
   const getOverlayColor = () => {
     if (disabled) return 'rgba(68, 71, 90, 0.21)';
 
     // Single color overlays (no gradient split)
+    // 'wool' is an alias for 'primary' - the default wool style
     switch (variant) {
+      case 'wool':
       case 'primary':
         return 'rgba(222, 134, 223, 0.25)'; // Mid pink/purple
       case 'secondary':
@@ -32,6 +36,14 @@ const VaporwaveButton = ({
         return 'rgba(179, 230, 255, 0.25)'; // Sky blue
       case 'green':
         return 'rgba(110, 200, 130, 0.32)'; // Forest green (complementary to purple)
+      case 'blurple':
+      case 'discord':
+        return 'rgba(130, 140, 255, 0.35)'; // Discord blurple (pastel)
+      case 'coral':
+        return 'rgba(255, 160, 130, 0.35)'; // Warm coral/peach
+      case 'candy':
+      case 'maxine':
+        return 'rgba(200, 75, 95, 0.45)'; // Bright rosy pink (deeper)
       default:
         return 'rgba(222, 134, 223, 0.25)';
     }
@@ -59,7 +71,7 @@ const VaporwaveButton = ({
               height: '100%',
               backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
               backgroundRepeat: 'repeat',
-              backgroundSize: '40%',
+              backgroundSize: '28%',
               borderRadius: 8,
               pointerEvents: 'none',
               opacity: 0.8,
@@ -146,4 +158,6 @@ const styles = StyleSheet.create({
   },
 });
 
+// WoolButton is an alias for VaporwaveButton
+export const WoolButton = VaporwaveButton;
 export default VaporwaveButton;

@@ -3,8 +3,13 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   googleId: {
     type: String,
-    required: true,
-    unique: true
+    unique: true,
+    sparse: true
+  },
+  discordId: {
+    type: String,
+    unique: true,
+    sparse: true
   },
   email: {
     type: String,

@@ -12,8 +12,8 @@ const getBackendDomain = () => {
     return window.location.origin;
   }
 
-  // Production mobile: use server IP
-  return 'http://34.130.3.97';
+  // Production mobile: use production domain
+  return 'https://homestead.heartsbox.com';
 };
 
 export const domain = getBackendDomain;

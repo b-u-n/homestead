@@ -1,5 +1,40 @@
 # Homestead Development Guidelines
 
+## AI Service Abstraction (CRITICAL)
+
+**The frontend must NEVER have direct knowledge of AI services.** All AI-generated content must be fully abstracted by the backend.
+
+### Rules
+
+1. **No AI URLs on frontend**: The frontend must never receive URLs from AI providers (OpenAI, Anthropic, etc.). All AI-generated files (images, audio, etc.) must be downloaded and stored on the backend, and only backend URLs should be returned to the frontend.
+
+2. **No AI prompts on frontend**: Prompts, model names, and AI configuration must never be exposed to the frontend. The frontend should only send semantic data (e.g., "generate avatar for user X with color Y") and receive results.
+
+3. **No AI provider knowledge**: Frontend code should not import, reference, or be aware of any AI provider SDKs, APIs, or data structures.
+
+### Example: Avatar Generation
+
+**WRONG:**
+```javascript
+// Frontend receives OpenAI URL directly
+const result = await fetch('/api/avatar/generate');
+// result.imageUrl = "https://oaidalleapiprodscus.blob.core.windows.net/..."  ❌
+```
+
+**CORRECT:**
+```javascript
+// Frontend receives backend URL only
+const result = await fetch('/api/avatar/generate');
+// result.imageUrl = "https://yourbackend.com/api/avatars/avatar_123.png"  ✓
+```
+
+### Backend Implementation
+
+When implementing AI features:
+1. Call AI service and get response
+2. Download/save any generated images to backend storage
+3. Return only backend URLs and sanitized data to frontend
+
 ## Modal Pattern
 
 When implementing modals in this application, always use the standard `Modal` component located at `frontend/components/Modal.js`.
@@ -43,6 +78,52 @@ const MyComponent = () => {
 - `children` (ReactNode): Content to display in the modal
 
 ## Design System
+
+### Reusable Style Components
+
+#### Wool (Buttons)
+The "wool" style is for buttons. Use `VaporwaveButton` (or `WoolButton` alias) from `frontend/components/VaporwaveButton.js`.
+
+```jsx
+import VaporwaveButton from '../components/VaporwaveButton';
+// or
+import { WoolButton } from '../components/VaporwaveButton';
+
+<VaporwaveButton
+  title="Button Text"
+  onPress={handlePress}
+  variant="wool"  // or "primary" (default), "secondary", "accent", "blue", "green"
+/>
+```
+
+Features:
+- Textured background (button-bg.png)
+- Stitched border
+- Color overlay based on variant
+- Needlework font
+
+#### Minky (Panels)
+The "minky" style is for content panels/containers. Use `MinkyPanel` from `frontend/components/MinkyPanel.js`.
+
+```jsx
+import MinkyPanel from '../components/MinkyPanel';
+
+<MinkyPanel
+  borderRadius={20}           // default: 20
+  overlayColor="rgba(222, 134, 223, 0.25)"  // default: pink overlay
+  padding={20}                // default: 20
+  paddingTop={25}             // default: 25
+>
+  {/* Your content here */}
+  <Text>Panel content</Text>
+</MinkyPanel>
+```
+
+Features:
+- Textured background (slot-bg-2.jpeg)
+- Pink/purple color overlay
+- Stitched border
+- Shadow glow effect
 
 ### Fonts
 - **Headers**: ChubbyTrail (imported via app/_layout.tsx)

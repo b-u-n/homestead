@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TouchableOpacity, Dimensions, Platform, ImageBackground } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, ImageBackground, ScrollView } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import VaporwaveButton from '../components/VaporwaveButton';
 import StitchedBorder from '../components/StitchedBorder';
+import MinkyPanel from '../components/MinkyPanel';
+import KnittedLoader from '../components/KnittedLoader';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import domain from '../utils/domain';
+import numberToText from '../utils/numberToText';
+import { getErrorMessage } from '../utils/errorMessages';
 import ErrorStore from '../stores/ErrorStore';
 import AuthStore from '../stores/AuthStore';
 import SessionStore from '../stores/SessionStore';
@@ -14,12 +18,16 @@ import WebSocketService from '../services/websocket';
 import FormStore from '../stores/FormStore';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
-const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
+
+// Default dev avatars for local development
+const DEV_AVATARS = [
+  { imageUrl: 'https://i.imgur.com/nfyBwil.png', success: true },
+  { imageUrl: 'https://i.imgur.com/kg074PR.png', success: true },
+];
 
 const AvatarGenerationScreen = observer(() => {
   const router = useRouter();
   const { username } = useLocalSearchParams();
-  const screenHeight = Dimensions.get('window').height;
   const [isGenerating, setIsGenerating] = useState(false);
   const [refreshesRemaining, setRefreshesRemaining] = useState(3);
 
@@ -37,6 +45,13 @@ const AvatarGenerationScreen = observer(() => {
   const setSelectedAvatar = (value) => FormStore.setField('avatarGeneration', 'selectedAvatar', value);
   const setSelectedColor = (value) => FormStore.setField('avatarGeneration', 'selectedColor', value);
   const setSelectedColorName = (value) => FormStore.setField('avatarGeneration', 'selectedColorName', value);
+
+  // In dev mode, initialize with default avatars
+  useEffect(() => {
+    if (__DEV__ && avatarOptions.length === 0) {
+      setAvatarOptions(DEV_AVATARS);
+    }
+  }, []);
 
   // Parse username into components
   const parseUsername = (username) => {
@@ -154,13 +169,10 @@ const AvatarGenerationScreen = observer(() => {
 
       const data = await response.json();
 
-      if (response.status === 429) {
-        ErrorStore.addError(data.error || 'Rate limit exceeded. Please try again later.');
-        return;
-      }
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate avatars');
+        const message = getErrorMessage('avatar-generation', response.status, data.error);
+        ErrorStore.addError(message);
+        return;
       }
 
       console.log('Avatar generation response:', data);
@@ -262,14 +274,9 @@ const AvatarGenerationScreen = observer(() => {
     }
   };
 
-  const handleSkip = () => {
-    router.push('/homestead/explore/map');
-  };
-
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
+    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.content}>
           <View style={styles.headerContainer}>
           <Text
             style={[
@@ -293,35 +300,7 @@ const AvatarGenerationScreen = observer(() => {
           </Text>
         </View>
 
-        <View style={styles.colorWheelContainer}>
-          {/* Background texture */}
-          {Platform.OS === 'web' && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundImage: `url(${typeof slotBgImage === 'string' ? slotBgImage : slotBgImage.default || slotBgImage.uri || slotBgImage})`,
-                backgroundRepeat: 'repeat',
-                backgroundSize: '40%',
-                borderRadius: 20,
-                pointerEvents: 'none',
-                opacity: 0.8,
-              }}
-            />
-          )}
-          {Platform.OS !== 'web' && (
-            <ImageBackground
-              source={slotBgImage}
-              style={styles.slotBgImage}
-              imageStyle={styles.slotBgImageStyle}
-              resizeMode="repeat"
-            />
-          )}
-          <View style={styles.colorWheelOverlay}>
-            <StitchedBorder borderRadius={20} style={styles.colorWheelBorder}>
+        <MinkyPanel style={styles.colorWheelContainer}>
               <Text
                 style={[
                   styles.usernameInBox,
@@ -513,14 +492,18 @@ const AvatarGenerationScreen = observer(() => {
             />
 
             {isGenerating && (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.vaporwave.cyan} />
-                <Text style={styles.loadingText}>This may take a minute...</Text>
-              </View>
+              <KnittedLoader text="This may take a whole minute, please be patient..." />
             )}
 
-            <Text style={styles.rateLimit}>
-              {refreshesRemaining > 0 ? `${refreshesRemaining} refreshes remaining` : 'No refreshes remaining'}
+            <Text
+              style={[
+                styles.rateLimit,
+                Platform.OS === 'web' && {
+                  textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                }
+              ]}
+            >
+              {refreshesRemaining > 0 ? `${numberToText(refreshesRemaining)} refreshes remaining` : 'no refreshes remaining'}
             </Text>
 
             <View style={styles.navigationButtons}>
@@ -532,41 +515,33 @@ const AvatarGenerationScreen = observer(() => {
                   style={styles.continueButton}
                 />
               ) : (
-                <>
-                  <Text style={styles.placeholderText}>
-                    {avatarOptions.length === 0 ? 'Generate an avatar to continue...' : 'Select an avatar to continue...'}
-                  </Text>
-                  <VaporwaveButton
-                    title="Skip for now"
-                    onPress={handleSkip}
-                    variant="blue"
-                    style={styles.skipButton}
-                  />
-                </>
+                <Text
+                  style={[
+                    styles.placeholderText,
+                    Platform.OS === 'web' && {
+                      textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                    }
+                  ]}
+                >
+                  {avatarOptions.length === 0 ? 'generate an avatar to continue' : 'select an avatar to continue'}
+                </Text>
               )}
               </View>
             </View>
-            </StitchedBorder>
-          </View>
-        </View>
-        </View>
-      </ScrollView>
-    </View>
+        </MinkyPanel>
+      </View>
+    </ScrollView>
   );
 });
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
   scrollView: {
     flex: 1,
     backgroundColor: 'transparent',
   },
   scrollContent: {
     flexGrow: 1,
-    backgroundColor: 'transparent',
+    paddingTop: 24,
   },
   content: {
     flex: 1,
@@ -726,22 +701,17 @@ const styles = StyleSheet.create({
   generateButton: {
     marginBottom: 20,
   },
-  loadingContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  loadingText: {
-    color: Colors.light.secondary,
-    fontSize: 14,
-    marginTop: 10,
-    textAlign: 'center',
-  },
   rateLimit: {
-    fontFamily: Typography.fonts.body,
-    fontSize: 12,
+    fontFamily: Typography.fonts.header,
+    fontSize: 20,
+    fontWeight: '700',
     color: Colors.cottagecore.greyDark,
     marginBottom: 30,
     textAlign: 'center',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
   },
   navigationButtons: {
     gap: 15,
@@ -750,46 +720,9 @@ const styles = StyleSheet.create({
   continueButton: {
     minWidth: 200,
   },
-  skipButton: {
-    minWidth: 150,
-  },
   colorWheelContainer: {
-    position: 'relative',
-    alignItems: 'center',
     marginVertical: 30,
     marginHorizontal: 34,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: 'rgba(255, 255, 255, 0.3)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  slotBgImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    opacity: 0.8,
-  },
-  slotBgImageStyle: {
-    borderRadius: 20,
-    opacity: 0.8,
-  },
-  colorWheelOverlay: {
-    width: '100%',
-    backgroundColor: 'rgba(222, 134, 223, 0.25)',
-    padding: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  colorWheelBorder: {
-    width: '100%',
-    padding: 20,
-    paddingTop: 25,
-    overflow: 'visible',
   },
   colorWheel: {
     flexDirection: 'column',
@@ -891,11 +824,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   placeholderText: {
-    fontFamily: Typography.fonts.body,
-    fontSize: 12,
+    fontFamily: Typography.fonts.header,
+    fontSize: 20,
+    fontWeight: '700',
     color: Colors.cottagecore.greyDark,
     textAlign: 'center',
     marginBottom: 10,
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
   },
 });
 

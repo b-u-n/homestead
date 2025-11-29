@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, Linking, ScrollView, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, Alert, Linking, Image, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -13,6 +13,15 @@ import domain from '../utils/domain';
 const OnboardingScreen = observer(() => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check if already authenticated on mount
+  useEffect(() => {
+    if (AuthStore.isAuthenticated && AuthStore.user) {
+      // User is already logged in, redirect to app
+      WebSocketService.connect();
+      router.replace('/homestead/explore/map/town-square');
+    }
+  }, [AuthStore.isAuthenticated, AuthStore.isInitialized]);
 
   useEffect(() => {
     // Handle deep link from auth callback
@@ -56,7 +65,7 @@ const OnboardingScreen = observer(() => {
     setIsLoading(true);
     try {
       const authUrl = `${domain()}/auth/google`;
-      
+
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
         'com.heartsbox.homestead://'
@@ -73,14 +82,35 @@ const OnboardingScreen = observer(() => {
     }
   };
 
+  const handleDiscordSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const authUrl = `${domain()}/auth/discord`;
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl,
+        'com.heartsbox.homestead://'
+      );
+
+      if (result.type === 'cancel') {
+        Alert.alert('Authentication cancelled');
+      }
+    } catch (error) {
+      console.error('Discord Sign-In error:', error);
+      Alert.alert('Error', error.message || 'Authentication failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSkipForNow = () => {
     // For development purposes
     router.push('/homestead/onboarding/username');
   };
 
   return (
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content} accessibilityRole="main">
+    <View style={styles.container}>
+      <View style={styles.content} accessibilityRole="main">
           <View style={styles.headerContainer}>
           <Text
             style={[
@@ -115,19 +145,29 @@ const OnboardingScreen = observer(() => {
 
         <View style={styles.buttonContainer}>
           <VaporwaveButton
-            title={isLoading ? 'Connecting...' : 'Sign In with Google'}
+            title={isLoading ? 'Connecting...' : 'Google Sign-in'}
             onPress={handleGoogleSignIn}
             disabled={isLoading}
-            variant="primary"
+            variant="green"
             style={styles.googleButton}
             accessibilityLabel={isLoading ? 'Connecting to Google' : 'Sign in with Google'}
             accessibilityHint="Authenticate with your Google account to save progress"
           />
 
           <VaporwaveButton
+            title={isLoading ? 'Connecting...' : 'Discord Sign-in'}
+            onPress={handleDiscordSignIn}
+            disabled={isLoading}
+            variant="blurple"
+            style={styles.discordButton}
+            accessibilityLabel={isLoading ? 'Connecting to Discord' : 'Sign in with Discord'}
+            accessibilityHint="Authenticate with your Discord account to save progress"
+          />
+
+          <VaporwaveButton
             title="Skip & Explore"
             onPress={handleSkipForNow}
-            variant="blue"
+            variant="candy"
             style={styles.skipButton}
             accessibilityLabel="Skip authentication"
             accessibilityHint="Continue without signing in"
@@ -135,18 +175,14 @@ const OnboardingScreen = observer(() => {
         </View>
 
         <Text style={styles.footerText}></Text>
-        </View>
-      </ScrollView>
+      </View>
+    </View>
   );
 });
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
-    backgroundColor: 'transparent',
-  },
-  scrollContent: {
-    flexGrow: 1,
     backgroundColor: 'transparent',
   },
   content: {
@@ -201,6 +237,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   googleButton: {
+    width: '100%',
+  },
+  discordButton: {
     width: '100%',
   },
   skipButton: {

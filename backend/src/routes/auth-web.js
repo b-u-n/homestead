@@ -10,6 +10,10 @@ const client = new OAuth2Client(
   `${process.env.FRONTEND_URL || 'http://192.168.0.143:9001'}/auth/callback`
 );
 
+// Discord OAuth configuration
+const DISCORD_API_BASE = 'https://discord.com/api/v10';
+const DISCORD_SCOPES = ['identify', 'email'].join(' ');
+
 // Start Google OAuth flow
 router.get('/google', (req, res) => {
   const authUrl = client.generateAuthUrl({
@@ -64,6 +68,99 @@ router.get('/google/callback', async (req, res) => {
     
   } catch (error) {
     console.error('Google auth error:', error);
+    res.redirect(`${process.env.FRONTEND_URL}?error=auth_failed`);
+  }
+});
+
+// Start Discord OAuth flow
+router.get('/discord', (req, res) => {
+  const redirectUri = `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+  const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(DISCORD_SCOPES)}`;
+
+  res.redirect(authUrl);
+});
+
+// Handle Discord OAuth callback
+router.get('/discord/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+    const redirectUri = `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+
+    // Exchange code for access token
+    const tokenResponse = await fetch(`${DISCORD_API_BASE}/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: process.env.DISCORD_CLIENT_ID,
+        client_secret: process.env.DISCORD_CLIENT_SECRET,
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+      }),
+    });
+
+    const tokens = await tokenResponse.json();
+
+    if (tokens.error) {
+      throw new Error(tokens.error_description || tokens.error);
+    }
+
+    // Get user info from Discord
+    const userResponse = await fetch(`${DISCORD_API_BASE}/users/@me`, {
+      headers: {
+        Authorization: `Bearer ${tokens.access_token}`,
+      },
+    });
+
+    const discordUser = await userResponse.json();
+
+    if (discordUser.error) {
+      throw new Error(discordUser.error);
+    }
+
+    // Find or create user
+    let user = await User.findOne({ discordId: discordUser.id });
+
+    if (!user) {
+      // Check if user exists with same email
+      if (discordUser.email) {
+        user = await User.findOne({ email: discordUser.email });
+        if (user) {
+          // Link Discord to existing account
+          user.discordId = discordUser.id;
+          await user.save();
+        }
+      }
+
+      if (!user) {
+        user = new User({
+          discordId: discordUser.id,
+          email: discordUser.email || `${discordUser.id}@discord.user`,
+          name: discordUser.global_name || discordUser.username,
+          avatar: discordUser.avatar
+            ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
+            : null
+        });
+        await user.save();
+      }
+    } else {
+      user.lastLogin = new Date();
+      await user.save();
+    }
+
+    const jwtToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Redirect to frontend with token
+    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}&user=${encodeURIComponent(JSON.stringify(user))}`);
+
+  } catch (error) {
+    console.error('Discord auth error:', error);
     res.redirect(`${process.env.FRONTEND_URL}?error=auth_failed`);
   }
 });

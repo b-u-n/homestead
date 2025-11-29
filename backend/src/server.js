@@ -34,12 +34,23 @@ app.use(express.json());
 // Serve static files
 app.use('/api/avatars', express.static(path.join(__dirname, '../public/avatars')));
 
-// Rate limiting
-const limiter = rateLimit({
+// Custom error messages per endpoint and status code
+const errorMessages = {
+  '/api/avatar': {
+    429: 'no more rolls'
+  }
+};
+
+// Rate limiting - only apply to avatar generation endpoint
+const avatarLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100
+  max: 100,
+  message: (req, res) => {
+    const endpointMessages = errorMessages['/api/avatar'] || {};
+    return { error: endpointMessages[429] || 'Too many requests' };
+  }
 });
-app.use(limiter);
+app.use('/api/avatar', avatarLimiter);
 
 // Basic route
 app.get('/health', (req, res) => {
