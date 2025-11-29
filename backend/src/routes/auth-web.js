@@ -18,7 +18,7 @@ const getBaseUrl = (req) => {
 
 // Discord OAuth configuration
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
-const DISCORD_SCOPES = ['identify', 'email'].join(' ');
+const DISCORD_SCOPES = ['identify'].join(' ');
 
 // Start Google OAuth flow
 router.get('/google', (req, res) => {
