@@ -13,7 +13,7 @@ const getBackendUrl = (req) => {
   return `${protocol}://${host}`;
 };
 
-// Create new account with session ID
+// Create new account with session ID or return existing
 router.post('/create', async (req, res) => {
   try {
     const { sessionId, lastScreen } = req.body;
@@ -25,18 +25,27 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    // Check if account already exists
-    const existingAccount = await Account.findOne({ sessionId });
+    // Check if account already exists with this session
+    const existingAccount = await Account.findOne({ 'activeSessions.sessionId': sessionId });
     if (existingAccount) {
+      // Update last active time for this session
+      await Account.updateOne(
+        { _id: existingAccount._id, 'activeSessions.sessionId': sessionId },
+        { $set: { 'activeSessions.$.lastActiveAt': new Date() } }
+      );
       return res.json({
         success: true,
         account: existingAccount
       });
     }
 
-    // Create new account
+    // Create new account with this session
     const account = new Account({
-      sessionId,
+      activeSessions: [{
+        sessionId,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }],
       lastScreen: lastScreen || 'Landing',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -63,7 +72,7 @@ router.get('/session/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
 
-    const account = await Account.findOne({ sessionId });
+    const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
     if (!account) {
       return res.status(404).json({
         success: false,
@@ -98,8 +107,8 @@ router.post('/update-screen', async (req, res) => {
     }
 
     const account = await Account.findOneAndUpdate(
-      { sessionId },
-      { 
+      { 'activeSessions.sessionId': sessionId },
+      {
         lastScreen,
         updatedAt: new Date()
       },
@@ -140,7 +149,7 @@ router.post('/save-user-avatar', async (req, res) => {
     }
 
     // Find existing account by session ID
-    const account = await Account.findOne({ sessionId });
+    const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
     if (!account) {
       return res.status(404).json({
         success: false,
@@ -219,8 +228,8 @@ router.post('/link-google', async (req, res) => {
     }
 
     const account = await Account.findOneAndUpdate(
-      { sessionId },
-      { 
+      { 'activeSessions.sessionId': sessionId },
+      {
         googleId: googleUser.id,
         email: googleUser.email,
         name: googleUser.name,

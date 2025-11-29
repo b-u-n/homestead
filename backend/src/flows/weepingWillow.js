@@ -86,7 +86,7 @@ module.exports = {
         const { sessionId, content, hearts } = data;
 
         // Get user account
-        const account = await Account.findOne({ sessionId });
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!account) {
           return { success: false, error: 'Account not found' };
@@ -160,7 +160,7 @@ module.exports = {
         }
 
         // Get responder account
-        const responder = await Account.findOne({ sessionId });
+        const responder = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!responder) {
           return { success: false, error: 'Account not found' };

@@ -31,7 +31,7 @@ module.exports = (socket, io) => {
         return callback({ success: false, error: 'Session ID is required' });
       }
 
-      const account = await Account.findOne({ sessionId });
+      const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
       if (!account) {
         return callback({ success: false, error: 'User not found' });

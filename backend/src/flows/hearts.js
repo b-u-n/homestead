@@ -29,7 +29,7 @@ module.exports = {
       handler: async (data, context) => {
         const { sessionId, amount } = data;
 
-        const account = await Account.findOne({ sessionId });
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!account) {
           return { success: false, error: 'Account not found' };
@@ -81,7 +81,7 @@ module.exports = {
       handler: async (data, context) => {
         const { sessionId, amount } = data;
 
-        const account = await Account.findOne({ sessionId });
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!account) {
           return { success: false, error: 'Account not found' };
@@ -164,7 +164,7 @@ module.exports = {
       handler: async (data, context) => {
         const { sessionId } = data;
 
-        const account = await Account.findOne({ sessionId });
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!account) {
           return { success: false, error: 'Account not found' };

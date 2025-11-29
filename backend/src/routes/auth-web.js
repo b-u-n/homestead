@@ -48,22 +48,34 @@ router.get('/google/callback', async (req, res) => {
     
     const payload = ticket.getPayload();
 
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     let account = await Account.findOne({ googleId: payload.sub });
 
     if (!account) {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       account = new Account({
-        sessionId,
+        activeSessions: [{
+          sessionId,
+          createdAt: new Date(),
+          lastActiveAt: new Date()
+        }],
         googleId: payload.sub,
         email: payload.email,
         name: payload.name,
         googleData: payload
       });
       await account.save();
+    } else {
+      // Add new session to existing account
+      account.activeSessions.push({
+        sessionId,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      });
+      await account.save();
     }
 
     const jwtToken = jwt.sign(
-      { accountId: account._id, sessionId: account.sessionId },
+      { accountId: account._id, sessionId },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -125,21 +137,32 @@ router.get('/discord/callback', async (req, res) => {
       throw new Error(discordUser.error);
     }
 
-    // Find or create account
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     let account = await Account.findOne({ discordId: discordUser.id });
 
     if (!account) {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       account = new Account({
-        sessionId,
+        activeSessions: [{
+          sessionId,
+          createdAt: new Date(),
+          lastActiveAt: new Date()
+        }],
         discordId: discordUser.id,
         name: discordUser.global_name || discordUser.username
+      });
+      await account.save();
+    } else {
+      // Add new session to existing account
+      account.activeSessions.push({
+        sessionId,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
       });
       await account.save();
     }
 
     const jwtToken = jwt.sign(
-      { accountId: account._id, sessionId: account.sessionId },
+      { accountId: account._id, sessionId },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );

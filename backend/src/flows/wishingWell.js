@@ -82,7 +82,7 @@ module.exports = {
         const { sessionId, content } = data;
 
         // Get user account
-        const account = await Account.findOne({ sessionId });
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!account) {
           return { success: false, error: 'Account not found' };
@@ -144,7 +144,7 @@ module.exports = {
         }
 
         // Get responder account
-        const responder = await Account.findOne({ sessionId });
+        const responder = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!responder) {
           return { success: false, error: 'Account not found' };
@@ -214,7 +214,7 @@ module.exports = {
         }
 
         // Get tipper account
-        const tipper = await Account.findOne({ sessionId });
+        const tipper = await Account.findOne({ 'activeSessions.sessionId': sessionId });
 
         if (!tipper) {
           return { success: false, error: 'Account not found' };
@@ -245,7 +245,7 @@ module.exports = {
         }
 
         // Get author account
-        const author = await Account.findOne({ sessionId: post.authorSessionId });
+        const author = await Account.findOne({ 'activeSessions.sessionId': post.authorSessionId });
 
         if (!author) {
           return { success: false, error: 'Post author not found' };

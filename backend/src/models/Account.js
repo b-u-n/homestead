@@ -1,12 +1,20 @@
 const mongoose = require('mongoose');
 
 const accountSchema = new mongoose.Schema({
-  sessionId: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true
-  },
+  activeSessions: [{
+    sessionId: {
+      type: String,
+      required: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    lastActiveAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   lastScreen: {
     type: String,
     default: 'Landing'
