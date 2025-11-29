@@ -36,9 +36,19 @@ const transparentTheme = {
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+// Get initial dimensions, fallback to DESIGN_WIDTH if not available
+const getInitialDimensions = () => {
+  const { width, height } = Dimensions.get('window');
+  return {
+    width: width || DESIGN_WIDTH,
+    height: height || 800
+  };
+};
+
 export default function RootLayout() {
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
-  const [screenHeight, setScreenHeight] = useState(Dimensions.get('window').height);
+  const initial = getInitialDimensions();
+  const [screenWidth, setScreenWidth] = useState(initial.width);
+  const [screenHeight, setScreenHeight] = useState(initial.height);
 
   // Calculate scale factor for mobile
   const getScale = () => {
@@ -49,6 +59,11 @@ export default function RootLayout() {
   const scale = getScale();
 
   useEffect(() => {
+    // Update dimensions on mount in case initial was wrong
+    const { width, height } = Dimensions.get('window');
+    if (width && width !== screenWidth) setScreenWidth(width);
+    if (height && height !== screenHeight) setScreenHeight(height);
+
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
       setScreenWidth(window.width);
       setScreenHeight(window.height);

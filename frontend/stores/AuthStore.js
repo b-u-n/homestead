@@ -57,9 +57,9 @@ class AuthStore {
 
       const jsonData = JSON.stringify(data);
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
         localStorage.setItem(AUTH_STORAGE_KEY, jsonData);
-      } else {
+      } else if (Platform.OS !== 'web') {
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, jsonData);
       }
     } catch (error) {
@@ -74,9 +74,9 @@ class AuthStore {
     try {
       let data;
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
         data = localStorage.getItem(AUTH_STORAGE_KEY);
-      } else {
+      } else if (Platform.OS !== 'web') {
         data = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       }
 
@@ -108,9 +108,9 @@ class AuthStore {
    */
   async clearPersistedAuth() {
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
         localStorage.removeItem(AUTH_STORAGE_KEY);
-      } else {
+      } else if (Platform.OS !== 'web') {
         await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
       }
     } catch (error) {

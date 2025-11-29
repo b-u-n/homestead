@@ -229,20 +229,27 @@ const AvatarGenerationScreen = observer(() => {
       }
 
       console.log('Creating user and saving avatar...');
+
+      // Prefer accountId if authenticated, fall back to sessionId
+      const accountId = AuthStore.user?.id;
+      const sessionId = SessionStore.sessionId;
+
       console.log('Request body:', {
-        sessionId: SessionStore.sessionId,
+        accountId,
+        sessionId,
         username: username,
         avatarUrl: selectedAvatar.imageUrl
       });
 
-      // Create or update user with session and avatar
+      // Create or update user with account and avatar
       const response = await fetch(`${domain()}/api/accounts/save-user-avatar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sessionId: SessionStore.sessionId,
+          accountId,
+          sessionId,
           username: username,
           avatarUrl: selectedAvatar.imageUrl,
           avatarData: selectedAvatar

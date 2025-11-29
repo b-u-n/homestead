@@ -99,9 +99,9 @@ class ProfileStore {
       const jsonData = JSON.stringify(data);
       const key = '@homestead:profile';
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
         localStorage.setItem(key, jsonData);
-      } else {
+      } else if (Platform.OS !== 'web') {
         await AsyncStorage.setItem(key, jsonData);
       }
     } catch (error) {
@@ -117,9 +117,9 @@ class ProfileStore {
       const key = '@homestead:profile';
       let data;
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
         data = localStorage.getItem(key);
-      } else {
+      } else if (Platform.OS !== 'web') {
         data = await AsyncStorage.getItem(key);
       }
 

@@ -23,8 +23,10 @@ const OnboardingScreen = observer(() => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Handle OAuth callback on web
+  const [handledToken, setHandledToken] = useState(false);
+
   useEffect(() => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && !handledToken) {
       const params = new URLSearchParams(window.location.search);
       const token = params.get('token');
       const error = params.get('error');
@@ -37,13 +39,15 @@ const OnboardingScreen = observer(() => {
       }
 
       if (token) {
+        setHandledToken(true);
         try {
           // Decode JWT to get sessionId and accountId
           const payload = JSON.parse(atob(token.split('.')[1]));
           const { accountId, sessionId } = payload;
 
-          // Update SessionStore with the new session
+          // Update SessionStore with the new session and account
           SessionStore.sessionId = sessionId;
+          SessionStore.accountId = accountId;
 
           // Store token in AuthStore
           AuthStore.token = token;
@@ -56,30 +60,50 @@ const OnboardingScreen = observer(() => {
           // Clear URL params
           window.history.replaceState({}, '', window.location.pathname);
 
-          // Load account and route based on whether they have username/avatar
-          SessionStore.loadAccount().then((account) => {
-            if (account?.userData?.username && account?.userData?.avatar) {
-              // Update AuthStore with user data
-              AuthStore.setUser({
-                id: account._id,
-                sessionId: sessionId,
-                username: account.userData.username,
-                avatar: account.userData.avatar,
-                avatarData: account.userData.avatarData,
-              }, token);
-              // User has completed onboarding, go to map
-              router.push('/homestead/explore/map/town-square');
-            } else {
-              // New user, go to onboarding
+          // Load account by ID (not session) and route based on whether they have username/avatar
+          fetch(`${domain()}/api/accounts/${accountId}`)
+            .then(res => res.json())
+            .then(data => {
+              const account = data.account;
+              console.log('OAuth callback - loaded account:', account);
+              console.log('userData:', account?.userData);
+
+              // Update SessionStore with account data
+              SessionStore.accountData = account;
+
+              if (account?.userData?.username && account?.userData?.avatar) {
+                console.log('Returning user - redirecting to map');
+                // Update AuthStore with user data
+                AuthStore.setUser({
+                  id: account._id,
+                  sessionId: sessionId,
+                  username: account.userData.username,
+                  avatar: account.userData.avatar,
+                  avatarData: account.userData.avatarData,
+                }, token);
+                // User has completed onboarding, go to map (index will restore last location)
+                router.push('/homestead/explore/map');
+              } else {
+                console.log('New user - redirecting to onboarding');
+                // Still set basic auth info so session is persisted for onboarding
+                AuthStore.setUser({
+                  id: account._id,
+                  sessionId: sessionId,
+                }, token);
+                // New user, go to onboarding
+                router.push('/homestead/onboarding/username');
+              }
+            })
+            .catch(err => {
+              console.error('Error loading account:', err);
               router.push('/homestead/onboarding/username');
-            }
-          });
+            });
         } catch (e) {
           console.error('Error processing OAuth token:', e);
         }
       }
     }
-  }, [router]);
+  }, [router, handledToken]);
 
   // Check if already authenticated on mount
   useEffect(() => {
@@ -89,7 +113,8 @@ const OnboardingScreen = observer(() => {
         // Delay to ensure layout is mounted
         const timer = setTimeout(() => {
           WebSocketService.connect();
-          router.replace('/homestead/explore/map/town-square');
+          // Go to map index which will restore last location
+          router.replace('/homestead/explore/map');
         }, 0);
         return () => clearTimeout(timer);
       }

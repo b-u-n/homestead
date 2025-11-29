@@ -35,7 +35,8 @@ router.post('/create', async (req, res) => {
       );
       return res.json({
         success: true,
-        account: existingAccount
+        account: existingAccount,
+        accountId: existingAccount._id
       });
     }
 
@@ -55,7 +56,8 @@ router.post('/create', async (req, res) => {
 
     res.json({
       success: true,
-      account: account
+      account: account,
+      accountId: account._id
     });
 
   } catch (error) {
@@ -94,20 +96,59 @@ router.get('/session/:sessionId', async (req, res) => {
   }
 });
 
-// Update last screen
-router.post('/update-screen', async (req, res) => {
+// Get account by account ID (MongoDB _id)
+router.get('/:accountId', async (req, res) => {
   try {
-    const { sessionId, lastScreen } = req.body;
+    const { accountId } = req.params;
 
-    if (!sessionId || !lastScreen) {
-      return res.status(400).json({
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return res.status(404).json({
         success: false,
-        error: 'Session ID and last screen are required'
+        error: 'Account not found'
       });
     }
 
+    res.json({
+      success: true,
+      account: account
+    });
+
+  } catch (error) {
+    console.error('Error fetching account by ID:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch account'
+    });
+  }
+});
+
+// Update last screen
+router.post('/update-screen', async (req, res) => {
+  try {
+    const { accountId, sessionId, lastScreen } = req.body;
+
+    if (!lastScreen) {
+      return res.status(400).json({
+        success: false,
+        error: 'Last screen is required'
+      });
+    }
+
+    if (!accountId && !sessionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Account ID or Session ID is required'
+      });
+    }
+
+    // Find by accountId (preferred) or sessionId (fallback)
+    const query = accountId
+      ? { _id: accountId }
+      : { 'activeSessions.sessionId': sessionId };
+
     const account = await Account.findOneAndUpdate(
-      { 'activeSessions.sessionId': sessionId },
+      query,
       {
         lastScreen,
         updatedAt: new Date()
@@ -136,24 +177,37 @@ router.post('/update-screen', async (req, res) => {
   }
 });
 
-// Save user data and avatar to session account
+// Save user data and avatar to account
 router.post('/save-user-avatar', async (req, res) => {
   try {
-    const { sessionId, username, avatarUrl: sourceAvatarUrl, avatarData } = req.body;
+    const { accountId, sessionId, username, avatarUrl: sourceAvatarUrl, avatarData } = req.body;
 
-    if (!sessionId || !username || !sourceAvatarUrl) {
+    if (!username || !sourceAvatarUrl) {
       return res.status(400).json({
         success: false,
-        error: 'Session ID, username, and avatar URL are required'
+        error: 'Username and avatar URL are required'
       });
     }
 
-    // Find existing account by session ID
-    const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+    if (!accountId && !sessionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Account ID or Session ID is required'
+      });
+    }
+
+    // Find account by accountId (preferred) or sessionId (fallback)
+    let account;
+    if (accountId) {
+      account = await Account.findById(accountId);
+    } else {
+      account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+    }
+
     if (!account) {
       return res.status(404).json({
         success: false,
-        error: 'Session not found'
+        error: 'Account not found'
       });
     }
 
@@ -165,9 +219,9 @@ router.post('/save-user-avatar', async (req, res) => {
 
     const arrayBuffer = await response.arrayBuffer();
     const imageBuffer = Buffer.from(arrayBuffer);
-    
-    // Generate unique filename
-    const filename = `avatar_${sessionId}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.png`;
+
+    // Generate unique filename using accountId
+    const filename = `avatar_${account._id}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.png`;
     const avatarDir = path.join(__dirname, '../../public/avatars');
     const avatarPath = path.join(avatarDir, filename);
 
@@ -190,10 +244,13 @@ router.post('/save-user-avatar', async (req, res) => {
     account.updatedAt = new Date();
     await account.save();
 
+    // Get the active sessionId for this request
+    const activeSessionId = sessionId || (account.activeSessions[0]?.sessionId);
+
     // Return user object for AuthStore
     const user = {
       id: account._id,
-      sessionId: account.sessionId,
+      sessionId: activeSessionId,
       username: username,
       avatar: avatarUrl,
       avatarData: avatarData
@@ -202,7 +259,7 @@ router.post('/save-user-avatar', async (req, res) => {
     res.json({
       success: true,
       user: user,
-      token: `session_${sessionId}`,
+      accountId: account._id,
       message: 'User data and avatar saved successfully'
     });
 

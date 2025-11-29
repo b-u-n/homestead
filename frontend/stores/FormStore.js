@@ -91,9 +91,9 @@ class FormStore {
       const data = JSON.stringify(dataToSave);
       const key = `@homestead:form:${formName}`;
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
         localStorage.setItem(key, data);
-      } else {
+      } else if (Platform.OS !== 'web') {
         await AsyncStorage.setItem(key, data);
       }
     } catch (error) {
@@ -112,9 +112,9 @@ class FormStore {
         const key = `@homestead:form:${formName}`;
         let data;
 
-        if (Platform.OS === 'web') {
+        if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
           data = localStorage.getItem(key);
-        } else {
+        } else if (Platform.OS !== 'web') {
           data = await AsyncStorage.getItem(key);
         }
 

@@ -1,35 +1,78 @@
 import { makeAutoObservable } from 'mobx';
+import { Platform } from 'react-native';
 import domain from '../utils/domain';
+
+const AUTH_STORAGE_KEY = '@homestead:auth';
 
 class SessionStore {
   sessionId = null;
+  accountId = null;
   lastScreen = 'Landing';
   accountData = null;
   isLoading = false;
 
   constructor() {
     makeAutoObservable(this);
-    this.initSession();
+    // Don't auto-init in constructor - let _layout.tsx call initSession after fonts load
   }
 
   async initSession() {
     this.isLoading = true;
-    
+
     try {
-      // Generate new session ID
-      this.sessionId = this.generateSessionId();
-      console.log('Generated session ID:', this.sessionId);
-      
-      // Load or create account
-      await this.loadAccount();
-      
+      // Check if this is an OAuth callback (has token param) - don't create session, let OAuth handle it
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('token')) {
+          console.log('OAuth callback detected, skipping session init');
+          this.isLoading = false;
+          return;
+        }
+      }
+
+      // First check if we have persisted auth with a session
+      const existingSession = await this.getPersistedSessionId();
+
+      if (existingSession) {
+        this.sessionId = existingSession;
+        console.log('Using persisted session ID:', this.sessionId);
+        await this.loadAccount();
+      } else {
+        // Generate new session ID for anonymous user
+        this.sessionId = this.generateSessionId();
+        console.log('Generated new session ID:', this.sessionId);
+        await this.loadAccount();
+      }
+
     } catch (error) {
       console.error('Error initializing session:', error);
       // Fallback to generated ID
-      this.sessionId = this.generateSessionId();
+      if (!this.sessionId) {
+        this.sessionId = this.generateSessionId();
+      }
     }
-    
+
     this.isLoading = false;
+  }
+
+  async getPersistedSessionId() {
+    try {
+      let data;
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        data = localStorage.getItem(AUTH_STORAGE_KEY);
+      }
+      // Note: AsyncStorage for native would need to be added if needed
+
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (parsed.user?.sessionId) {
+          return parsed.user.sessionId;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting persisted session:', error);
+    }
+    return null;
   }
 
   generateSessionId() {
@@ -38,6 +81,15 @@ class SessionStore {
 
   async loadAccount() {
     if (!this.sessionId) return null;
+
+    // Don't load/create account if OAuth callback is pending
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('token')) {
+        console.log('OAuth callback pending, skipping account load');
+        return null;
+      }
+    }
 
     try {
       const response = await fetch(`${domain()}/api/accounts/session/${this.sessionId}`, {
@@ -50,8 +102,9 @@ class SessionStore {
       if (response.ok) {
         const data = await response.json();
         this.accountData = data.account;
+        this.accountId = data.account._id;
         this.lastScreen = data.account.lastScreen || 'Landing';
-        console.log('Loaded existing account:', data.account);
+        console.log('Loaded existing account:', data.account, 'accountId:', this.accountId);
         return data.account;
       } else if (response.status === 404) {
         // Account doesn't exist, create new one
@@ -67,6 +120,15 @@ class SessionStore {
 
   async createAccount() {
     if (!this.sessionId) return;
+
+    // Don't create account if OAuth callback is pending
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('token')) {
+        console.log('OAuth callback pending, skipping account creation');
+        return;
+      }
+    }
 
     try {
       const response = await fetch(`${domain()}/api/accounts/create`, {
@@ -84,8 +146,9 @@ class SessionStore {
       if (response.ok) {
         const data = await response.json();
         this.accountData = data.account;
+        this.accountId = data.accountId;
         this.lastScreen = 'Landing';
-        console.log('Created new account:', data.account);
+        console.log('Created new account:', data.account, 'accountId:', data.accountId);
       }
     } catch (error) {
       console.error('Error creating account:', error);
@@ -94,8 +157,8 @@ class SessionStore {
 
   async updateLastScreen(screenName) {
     this.lastScreen = screenName;
-    
-    if (!this.sessionId) return;
+
+    if (!this.accountId && !this.sessionId) return;
 
     try {
       await fetch(`${domain()}/api/accounts/update-screen`, {
@@ -104,11 +167,12 @@ class SessionStore {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          accountId: this.accountId,
           sessionId: this.sessionId,
           lastScreen: screenName
         })
       });
-      
+
       console.log('Updated last screen to:', screenName);
     } catch (error) {
       console.error('Error updating last screen:', error);
