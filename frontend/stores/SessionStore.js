@@ -37,7 +37,7 @@ class SessionStore {
   }
 
   async loadAccount() {
-    if (!this.sessionId) return;
+    if (!this.sessionId) return null;
 
     try {
       const response = await fetch(`${domain()}/api/accounts/session/${this.sessionId}`, {
@@ -52,13 +52,16 @@ class SessionStore {
         this.accountData = data.account;
         this.lastScreen = data.account.lastScreen || 'Landing';
         console.log('Loaded existing account:', data.account);
+        return data.account;
       } else if (response.status === 404) {
         // Account doesn't exist, create new one
         await this.createAccount();
+        return this.accountData;
       }
     } catch (error) {
       console.error('Error loading account:', error);
       await this.createAccount();
+      return this.accountData;
     }
   }
 

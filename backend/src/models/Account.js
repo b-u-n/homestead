@@ -39,6 +39,9 @@ const accountSchema = new mongoose.Schema({
   googleData: {
     type: Object // Store full Google user data
   },
+  discordData: {
+    type: Object // Store full Discord user data
+  },
   authToken: {
     type: String
   },

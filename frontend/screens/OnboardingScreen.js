@@ -57,8 +57,7 @@ const OnboardingScreen = observer(() => {
           window.history.replaceState({}, '', window.location.pathname);
 
           // Load account and route based on whether they have username/avatar
-          SessionStore.loadAccount().then(() => {
-            const account = SessionStore.accountData;
+          SessionStore.loadAccount().then((account) => {
             if (account?.userData?.username && account?.userData?.avatar) {
               // Update AuthStore with user data
               AuthStore.setUser({

@@ -65,12 +65,13 @@ router.get('/google/callback', async (req, res) => {
       });
       await account.save();
     } else {
-      // Add new session to existing account
+      // Add new session to existing account and update google data
       account.activeSessions.push({
         sessionId,
         createdAt: new Date(),
         lastActiveAt: new Date()
       });
+      account.googleData = payload;
       await account.save();
     }
 
@@ -82,7 +83,7 @@ router.get('/google/callback', async (req, res) => {
 
     // Redirect to frontend with token only
     res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}`);
-    
+
   } catch (error) {
     console.error('Google auth error:', error);
     res.redirect(`${process.env.FRONTEND_URL}?error=auth_failed`);
@@ -148,16 +149,18 @@ router.get('/discord/callback', async (req, res) => {
           lastActiveAt: new Date()
         }],
         discordId: discordUser.id,
-        name: discordUser.global_name || discordUser.username
+        name: discordUser.global_name || discordUser.username,
+        discordData: discordUser
       });
       await account.save();
     } else {
-      // Add new session to existing account
+      // Add new session to existing account and update discord data
       account.activeSessions.push({
         sessionId,
         createdAt: new Date(),
         lastActiveAt: new Date()
       });
+      account.discordData = discordUser;
       await account.save();
     }
 
