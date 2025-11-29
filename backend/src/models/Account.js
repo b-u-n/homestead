@@ -12,10 +12,14 @@ const accountSchema = new mongoose.Schema({
     default: 'Landing'
   },
   
-  // Google account linking (optional)
+  // OAuth account linking (optional)
   googleId: {
     type: String,
     sparse: true // Allow null values but maintain uniqueness when present
+  },
+  discordId: {
+    type: String,
+    sparse: true
   },
   email: {
     type: String,

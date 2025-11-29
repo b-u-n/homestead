@@ -1,7 +1,7 @@
 const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const Account = require('../models/Account');
 
 const router = express.Router();
 const client = new OAuth2Client(
@@ -47,30 +47,29 @@ router.get('/google/callback', async (req, res) => {
     });
     
     const payload = ticket.getPayload();
-    
-    let user = await User.findOne({ googleId: payload.sub });
-    
-    if (!user) {
-      user = new User({
+
+    let account = await Account.findOne({ googleId: payload.sub });
+
+    if (!account) {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      account = new Account({
+        sessionId,
         googleId: payload.sub,
         email: payload.email,
         name: payload.name,
-        avatar: payload.picture
+        googleData: payload
       });
-      await user.save();
-    } else {
-      user.lastLogin = new Date();
-      await user.save();
+      await account.save();
     }
 
     const jwtToken = jwt.sign(
-      { userId: user._id, email: user.email },
+      { accountId: account._id, sessionId: account.sessionId },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}&user=${encodeURIComponent(JSON.stringify(user))}`);
+    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}&account=${encodeURIComponent(JSON.stringify(account))}`);
     
   } catch (error) {
     console.error('Google auth error:', error);
@@ -126,44 +125,27 @@ router.get('/discord/callback', async (req, res) => {
       throw new Error(discordUser.error);
     }
 
-    // Find or create user
-    let user = await User.findOne({ discordId: discordUser.id });
+    // Find or create account
+    let account = await Account.findOne({ discordId: discordUser.id });
 
-    if (!user) {
-      // Check if user exists with same email
-      if (discordUser.email) {
-        user = await User.findOne({ email: discordUser.email });
-        if (user) {
-          // Link Discord to existing account
-          user.discordId = discordUser.id;
-          await user.save();
-        }
-      }
-
-      if (!user) {
-        user = new User({
-          discordId: discordUser.id,
-          email: discordUser.email || `${discordUser.id}@discord.user`,
-          name: discordUser.global_name || discordUser.username,
-          avatar: discordUser.avatar
-            ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
-            : null
-        });
-        await user.save();
-      }
-    } else {
-      user.lastLogin = new Date();
-      await user.save();
+    if (!account) {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      account = new Account({
+        sessionId,
+        discordId: discordUser.id,
+        name: discordUser.global_name || discordUser.username
+      });
+      await account.save();
     }
 
     const jwtToken = jwt.sign(
-      { userId: user._id, email: user.email },
+      { accountId: account._id, sessionId: account.sessionId },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}&user=${encodeURIComponent(JSON.stringify(user))}`);
+    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}&account=${encodeURIComponent(JSON.stringify(account))}`);
 
   } catch (error) {
     console.error('Discord auth error:', error);
