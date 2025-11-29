@@ -1,9 +1,9 @@
 import { Stack } from 'expo-router';
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState, createContext } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { Platform, View, Dimensions, StyleSheet } from 'react-native';
-import { ThemeProvider, useTheme } from '@react-navigation/native';
+import { View, Dimensions, StyleSheet } from 'react-native';
+import { ThemeProvider } from '@react-navigation/native';
 import ErrorContainer from '../components/ErrorContainer';
 import SessionStore from '../stores/SessionStore';
 import TiledBackground from '../components/TiledBackground';

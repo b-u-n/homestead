@@ -80,8 +80,8 @@ router.get('/google/callback', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}&account=${encodeURIComponent(JSON.stringify(account))}`);
+    // Redirect to frontend with token only
+    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}`);
     
   } catch (error) {
     console.error('Google auth error:', error);
@@ -167,8 +167,8 @@ router.get('/discord/callback', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}&account=${encodeURIComponent(JSON.stringify(account))}`);
+    // Redirect to frontend with token only
+    res.redirect(`${process.env.FRONTEND_URL}?token=${jwtToken}`);
 
   } catch (error) {
     console.error('Discord auth error:', error);

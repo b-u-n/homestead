@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Platform, ImageBackground, ScrollView } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import VaporwaveButton from '../components/VaporwaveButton';
@@ -98,7 +98,7 @@ const UsernameCreationScreen = observer(() => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.content}>
           <View style={styles.headerContainer}>
             <Text
@@ -210,7 +210,7 @@ const UsernameCreationScreen = observer(() => {
             />
           </View>
         </View>
-    </View>
+    </ScrollView>
   );
 });
 
@@ -219,7 +219,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-    content: {
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: 24,
+  },
+  content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

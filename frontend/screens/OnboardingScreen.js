@@ -7,21 +7,76 @@ import VaporwaveButton from '../components/VaporwaveButton';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import AuthStore from '../stores/AuthStore';
+import SessionStore from '../stores/SessionStore';
 import WebSocketService from '../services/websocket';
 import domain from '../utils/domain';
+
+// Helper for web redirect
+const webRedirect = (url) => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    window.location.href = url;
+  }
+};
 
 const OnboardingScreen = observer(() => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle OAuth callback on web
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      const error = params.get('error');
+
+      if (error) {
+        console.error('OAuth error:', error);
+        // Clear the URL params
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+
+      if (token) {
+        try {
+          // Decode JWT to get sessionId and accountId
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const { accountId, sessionId } = payload;
+
+          // Update SessionStore with the new session
+          SessionStore.sessionId = sessionId;
+          SessionStore.loadAccount();
+
+          // Store token in AuthStore
+          AuthStore.token = token;
+          AuthStore.isAuthenticated = true;
+          AuthStore.persist();
+
+          // Connect websocket
+          WebSocketService.connect();
+
+          // Clear URL params
+          window.history.replaceState({}, '', window.location.pathname);
+
+          // Navigate to username page
+          router.push('/homestead/onboarding/username');
+        } catch (e) {
+          console.error('Error processing OAuth token:', e);
+        }
+      }
+    }
+  }, [router]);
+
   // Check if already authenticated on mount
   useEffect(() => {
-    if (AuthStore.isAuthenticated && AuthStore.user) {
-      // User is already logged in, redirect to app
-      WebSocketService.connect();
-      router.replace('/homestead/explore/map/town-square');
+    if (AuthStore.isInitialized && AuthStore.isAuthenticated && AuthStore.user) {
+      // Delay to ensure layout is mounted
+      const timer = setTimeout(() => {
+        WebSocketService.connect();
+        router.replace('/homestead/explore/map/town-square');
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [AuthStore.isAuthenticated, AuthStore.isInitialized]);
+  }, [AuthStore.isAuthenticated, AuthStore.isInitialized, router]);
 
   useEffect(() => {
     // Handle deep link from auth callback
@@ -63,9 +118,16 @@ const OnboardingScreen = observer(() => {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    try {
-      const authUrl = `${domain()}/auth/google`;
+    const authUrl = `${domain()}/auth/google`;
 
+    if (Platform.OS === 'web') {
+      // Simple redirect on web
+      webRedirect(authUrl);
+      return;
+    }
+
+    // Use WebBrowser for native
+    try {
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
         'com.heartsbox.homestead://'
@@ -84,9 +146,16 @@ const OnboardingScreen = observer(() => {
 
   const handleDiscordSignIn = async () => {
     setIsLoading(true);
-    try {
-      const authUrl = `${domain()}/auth/discord`;
+    const authUrl = `${domain()}/auth/discord`;
 
+    if (Platform.OS === 'web') {
+      // Simple redirect on web
+      webRedirect(authUrl);
+      return;
+    }
+
+    // Use WebBrowser for native
+    try {
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
         'com.heartsbox.homestead://'
@@ -122,8 +191,17 @@ const OnboardingScreen = observer(() => {
             accessibilityRole="header"
             accessibilityLevel={1}
           >
-            homestead{' '}
-            <Text style={styles.byHeartsbox}>by heartsbox</Text>
+            homestead
+          </Text>
+          <Text
+            style={[
+              styles.byHeartsbox,
+              Platform.OS === 'web' && {
+                textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+              }
+            ]}
+          >
+            by heartsbox
           </Text>
           <Text
             style={[
@@ -205,7 +283,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: Typography.fonts.header,
     fontSize: 42,
-    marginBottom: 24,
+    marginBottom: 8,
     textAlign: 'center',
     color: Colors.cottagecore.greyDark,
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
@@ -215,9 +293,16 @@ const styles = StyleSheet.create({
     textTransform: 'lowercase',
   },
   byHeartsbox: {
+    fontFamily: Typography.fonts.header,
     fontSize: 28,
-    position: 'relative',
-    top: -8,
+    marginBottom: 24,
+    textAlign: 'center',
+    color: Colors.cottagecore.greyDark,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
+    letterSpacing: 1,
+    textTransform: 'lowercase',
   },
   subtitle: {
     fontFamily: Typography.fonts.subheader,

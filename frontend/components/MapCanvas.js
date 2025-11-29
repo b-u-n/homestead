@@ -6,6 +6,7 @@ import { reaction } from 'mobx';
 import inventoryStore from '../stores/InventoryStore';
 import profileStore from '../stores/ProfileStore';
 import characterStore from '../stores/CharacterStore';
+import AuthStore from '../stores/AuthStore';
 import UserStatus from './UserStatus';
 import VaporwaveButton from './VaporwaveButton';
 import WishingWell from './WishingWell';
@@ -1019,11 +1020,15 @@ const MapCanvas = ({ location }) => {
     inventoryStore.toggleInventory();
   };
 
-  const handleSaveClick = () => {
-    // TODO: Implement actual save functionality
-    // For now, just log that save was clicked
-    console.log('Save clicked - saving profile and inventory data');
-    alert('Game saved!');
+  const handleSaveOrLogout = () => {
+    if (AuthStore.isAuthenticated) {
+      // Logout
+      AuthStore.logout();
+      router.replace('/');
+    } else {
+      // Save - redirect to login
+      router.push('/');
+    }
   };
 
   if (Platform.OS === 'web') {
@@ -1055,8 +1060,8 @@ const MapCanvas = ({ location }) => {
         <UserStatus />
         <View style={styles.saveButtonContainer}>
           <VaporwaveButton
-            title="Save"
-            onPress={handleSaveClick}
+            title={AuthStore.isAuthenticated ? "Logout" : "Save"}
+            onPress={handleSaveOrLogout}
             variant="primary"
             style={styles.saveButton}
           />
