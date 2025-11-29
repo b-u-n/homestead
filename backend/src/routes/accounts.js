@@ -5,11 +5,11 @@ const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
 
-// Helper to get backend base URL
+// Helper to get backend base URL (respects nginx proxy headers)
 // TODO: Move to S3, then this will be replaced with S3 URL
 const getBackendUrl = (req) => {
-  const protocol = req.protocol;
-  const host = req.get('host');
+  const protocol = req.get('X-Forwarded-Proto') || req.protocol;
+  const host = req.get('X-Forwarded-Host') || req.get('host');
   return `${protocol}://${host}`;
 };
 
