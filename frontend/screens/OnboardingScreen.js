@@ -44,7 +44,6 @@ const OnboardingScreen = observer(() => {
 
           // Update SessionStore with the new session
           SessionStore.sessionId = sessionId;
-          SessionStore.loadAccount();
 
           // Store token in AuthStore
           AuthStore.token = token;
@@ -57,8 +56,25 @@ const OnboardingScreen = observer(() => {
           // Clear URL params
           window.history.replaceState({}, '', window.location.pathname);
 
-          // Navigate to username page
-          router.push('/homestead/onboarding/username');
+          // Load account and route based on whether they have username/avatar
+          SessionStore.loadAccount().then(() => {
+            const account = SessionStore.accountData;
+            if (account?.userData?.username && account?.userData?.avatar) {
+              // Update AuthStore with user data
+              AuthStore.setUser({
+                id: account._id,
+                sessionId: sessionId,
+                username: account.userData.username,
+                avatar: account.userData.avatar,
+                avatarData: account.userData.avatarData,
+              }, token);
+              // User has completed onboarding, go to map
+              router.push('/homestead/explore/map/town-square');
+            } else {
+              // New user, go to onboarding
+              router.push('/homestead/onboarding/username');
+            }
+          });
         } catch (e) {
           console.error('Error processing OAuth token:', e);
         }
@@ -69,12 +85,15 @@ const OnboardingScreen = observer(() => {
   // Check if already authenticated on mount
   useEffect(() => {
     if (AuthStore.isInitialized && AuthStore.isAuthenticated && AuthStore.user) {
-      // Delay to ensure layout is mounted
-      const timer = setTimeout(() => {
-        WebSocketService.connect();
-        router.replace('/homestead/explore/map/town-square');
-      }, 0);
-      return () => clearTimeout(timer);
+      // Only redirect to map if they have completed onboarding (have username and avatar)
+      if (AuthStore.user.username && AuthStore.user.avatar) {
+        // Delay to ensure layout is mounted
+        const timer = setTimeout(() => {
+          WebSocketService.connect();
+          router.replace('/homestead/explore/map/town-square');
+        }, 0);
+        return () => clearTimeout(timer);
+      }
     }
   }, [AuthStore.isAuthenticated, AuthStore.isInitialized, router]);
 
