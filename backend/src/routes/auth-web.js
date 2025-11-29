@@ -10,6 +10,12 @@ const client = new OAuth2Client(
   `${process.env.FRONTEND_URL || 'http://192.168.0.143:9001'}/auth/callback`
 );
 
+// Helper to get the correct protocol (respects X-Forwarded-Proto from nginx)
+const getBaseUrl = (req) => {
+  const protocol = req.get('X-Forwarded-Proto') || req.protocol;
+  return `${protocol}://${req.get('host')}`;
+};
+
 // Discord OAuth configuration
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
 const DISCORD_SCOPES = ['identify', 'email'].join(' ');
@@ -19,7 +25,7 @@ router.get('/google', (req, res) => {
   const authUrl = client.generateAuthUrl({
     access_type: 'offline',
     scope: ['openid', 'profile', 'email'],
-    redirect_uri: `${req.protocol}://${req.get('host')}/auth/google/callback`
+    redirect_uri: `${getBaseUrl(req)}/auth/google/callback`
   });
   
   res.redirect(authUrl);
@@ -32,7 +38,7 @@ router.get('/google/callback', async (req, res) => {
     
     const { tokens } = await client.getToken({
       code,
-      redirect_uri: `${req.protocol}://${req.get('host')}/auth/google/callback`
+      redirect_uri: `${getBaseUrl(req)}/auth/google/callback`
     });
     
     const ticket = await client.verifyIdToken({
@@ -74,7 +80,7 @@ router.get('/google/callback', async (req, res) => {
 
 // Start Discord OAuth flow
 router.get('/discord', (req, res) => {
-  const redirectUri = `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+  const redirectUri = `${getBaseUrl(req)}/auth/discord/callback`;
   const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(DISCORD_SCOPES)}`;
 
   res.redirect(authUrl);
@@ -84,7 +90,7 @@ router.get('/discord', (req, res) => {
 router.get('/discord/callback', async (req, res) => {
   try {
     const { code } = req.query;
-    const redirectUri = `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+    const redirectUri = `${getBaseUrl(req)}/auth/discord/callback`;
 
     // Exchange code for access token
     const tokenResponse = await fetch(`${DISCORD_API_BASE}/oauth2/token`, {
