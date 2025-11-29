@@ -60,7 +60,7 @@ const TiledBackground = ({ children, layers = [] }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#e6d9bf',
     overflow: 'hidden',
     position: 'relative',
   },
