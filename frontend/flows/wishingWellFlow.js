@@ -14,6 +14,7 @@ export const wishingWellFlow = {
   name: 'wishingWell',
   title: 'Wishing Well',
   startAt: 'wishingWell:landing',
+  additionalOpenSound: 'wishingWell',
 
   drops: {
     'wishingWell:landing': {

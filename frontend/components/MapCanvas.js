@@ -9,6 +9,7 @@ import characterStore from '../stores/CharacterStore';
 import AuthStore from '../stores/AuthStore';
 import UserStatus from './UserStatus';
 import VaporwaveButton from './VaporwaveButton';
+import HamburgerMenu from './HamburgerMenu';
 import WishingWell from './WishingWell';
 import WeepingWillow from './WeepingWillow';
 import FlowEngine from './FlowEngine';
@@ -25,13 +26,22 @@ import garden from '../locations/sections/garden';
 
 // Import rooms
 import weepingWillow from '../locations/rooms/weeping-willow';
-import coffeeShop from '../locations/rooms/coffee-shop';
+import sugarbeeCafe from '../locations/rooms/sugarbee-cafe';
 import bank from '../locations/rooms/bank';
 
 // Import images
 const knapsackImage = require('../assets/images/knapsack.png');
 const wishingWellImage = require('../assets/images/wishing-well.png');
 const weepingWillowImage = require('../assets/images/weeping-willow.png');
+
+// Import sounds config and manager
+import sounds from '../config/sounds';
+import SoundManager from '../services/SoundManager';
+
+// Helper to play emote sound
+const playEmoteSound = () => {
+  SoundManager.play('emote');
+};
 
 // Location lookup object (includes both sections and rooms)
 const LOCATIONS = {
@@ -43,7 +53,7 @@ const LOCATIONS = {
   'garden': garden,
   // Rooms
   'weeping-willow': weepingWillow,
-  'coffee-shop': coffeeShop,
+  'sugarbee-cafe': sugarbeeCafe,
   'bank': bank,
 };
 
@@ -104,83 +114,282 @@ const MapCanvas = ({ location }) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Load location data (section or room)
+  // Track if we've entered this location to avoid duplicate map:enter calls
+  const hasEnteredRef = useRef(false);
+
+  // Track active entity sound instances and timeouts
+  const entitySoundsRef = useRef({ instances: [], timeouts: [], started: false, location: null });
+
+  // Helper to stop all entity sounds
+  const stopAllEntitySounds = () => {
+    const state = entitySoundsRef.current;
+    console.log('[Sound] Stopping all sounds, instances:', state.instances.length, 'timeouts:', state.timeouts.length);
+
+    // Clear all scheduled timeouts
+    state.timeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    state.timeouts = [];
+
+    // Stop all tracked instances with quick fade
+    state.instances.forEach(instance => {
+      console.log('[Sound] Stopping instance:', instance.soundKey);
+      instance.fadeOut(200);
+    });
+    state.instances = [];
+    state.started = false;
+
+    // Also use SoundManager.stopAll() as a safety net
+    SoundManager.stopAll();
+  };
+
+
+  // Load location data (section or room) - runs on dimension changes too
   useEffect(() => {
-    const loadLocation = () => {
-      const locationFn = LOCATIONS[location];
+    const locationFn = LOCATIONS[location];
 
-      if (locationFn) {
-        // Call location function with current canvas dimensions
-        const locationData = typeof locationFn === 'function' ? locationFn(canvasWidth, canvasHeight) : locationFn;
+    if (locationFn) {
+      // Call location function with current canvas dimensions
+      const locationData = typeof locationFn === 'function' ? locationFn(canvasWidth, canvasHeight) : locationFn;
+      setRoomData(locationData);
 
-        setRoomData(locationData);
-
-        // Initialize character position from store or center
-        const position = characterStore.getPosition(location, canvasWidth, canvasHeight);
-        setCharacterPosition(position);
-
-        // Notify backend that we entered this room and get existing players
-        if (WebSocketService.socket && profileStore.avatarUrl) {
-          WebSocketService.emit('map:enter', {
-            roomId: location,
-            x: position.x / canvasWidth,
-            y: position.y / canvasHeight,
-            avatarUrl: profileStore.avatarUrl,
-            username: profileStore.username
-          }).then(result => {
-            if (result && result.existingPlayers) {
-              // Add all existing players to the store
-              result.existingPlayers.forEach(player => {
-                const playerData = {
-                  position: { x: player.x * canvasWidth, y: player.y * canvasHeight },
-                  avatarUrl: player.avatarUrl,
-                  username: player.username
-                };
-                // Include emote if it exists
-                if (player.emote) {
-                  playerData.emote = player.emote;
-                }
-                characterStore.updateOtherPlayer(player.socketId, playerData);
-
-                // Load avatar images
-                if (player.avatarUrl && !avatarImages[player.avatarUrl]) {
-                  const img = new window.Image();
-                  img.onload = () => {
-                    setAvatarImages(prev => ({ ...prev, [player.avatarUrl]: img }));
-                  };
-                  img.src = player.avatarUrl;
-                }
-              });
-            }
-          });
-        }
-
-        // Save to localStorage - ensure location is a string
-        if (Platform.OS === 'web' && typeof localStorage !== 'undefined' && typeof location === 'string') {
-          localStorage.setItem('lastMapLocation', location);
-        }
-      } else {
-        console.error(`Failed to load location: ${location}`);
-        // Fallback to town square if location doesn't exist
-        if (location !== 'town-square') {
-          router.replace('/homestead/explore/map/town-square');
-        }
+      // Initialize character position from store or center
+      const position = characterStore.getPosition(location, canvasWidth, canvasHeight);
+      setCharacterPosition(position);
+    } else {
+      console.error(`Failed to load location: ${location}`);
+      // Fallback to town square if location doesn't exist
+      if (location !== 'town-square') {
+        router.replace('/homestead/explore/map/town-square');
       }
-    };
+    }
+  }, [location, canvasWidth, canvasHeight]);
 
-    loadLocation();
+  // Handle entering/leaving rooms - only runs once per location change
+  useEffect(() => {
+    // Clear other players when location changes (before entering new room)
+    characterStore.clearOtherPlayers();
+    // Reset on location change
+    hasEnteredRef.current = false;
+  }, [location]);
 
-    // Clear other players when changing rooms and notify backend
-    return () => {
-      // Notify backend that we're leaving this room
-      if (WebSocketService.socket) {
-        WebSocketService.socket.emit('map:leave', {
-          roomId: location
+  // Separate effect to actually enter the room once everything is ready
+  useEffect(() => {
+    if (hasEnteredRef.current) return;
+    if (!WebSocketService.socket || !profileStore.avatarUrl) return;
+    if (!canvasWidth || !canvasHeight) return;
+
+    hasEnteredRef.current = true;
+    const position = characterStore.getPosition(location, canvasWidth, canvasHeight);
+
+    WebSocketService.emitRaw('map:enter', {
+      roomId: location,
+      x: position.x / canvasWidth,
+      y: position.y / canvasHeight,
+      avatarUrl: profileStore.avatarUrl,
+      avatarColor: profileStore.avatarColor,
+      username: profileStore.username
+    }).then(result => {
+      if (result && result.data && result.data.existingPlayers) {
+        // Add all existing players to the store
+        result.data.existingPlayers.forEach(player => {
+          const playerData = {
+            position: { x: player.x * canvasWidth, y: player.y * canvasHeight },
+            avatarUrl: player.avatarUrl,
+            avatarColor: player.avatarColor,
+            username: player.username
+          };
+          // Include emote if it exists
+          if (player.emote) {
+            playerData.emote = player.emote;
+          }
+          characterStore.updateOtherPlayer(player.socketId, playerData);
+
+          // Load avatar images
+          if (player.avatarUrl && !avatarImages[player.avatarUrl]) {
+            const img = new window.Image();
+            img.onload = () => {
+              setAvatarImages(prev => ({ ...prev, [player.avatarUrl]: img }));
+            };
+            img.src = player.avatarUrl;
+          }
         });
       }
-      characterStore.clearOtherPlayers();
+
+      // Start sounds for this room
+      if (result && result.success && result.roomId) {
+        console.log('[Sound] Entered room:', result.roomId);
+        const locationFn = LOCATIONS[result.roomId];
+        if (locationFn) {
+          const locationData = typeof locationFn === 'function'
+            ? locationFn(canvasWidth, canvasHeight)
+            : locationFn;
+          if (locationData) {
+            startEntitySounds(locationData.entities, locationData.backgroundSounds, result.roomId);
+          }
+        }
+      }
+    });
+
+    // Save to localStorage - ensure location is a string
+    if (Platform.OS === 'web' && typeof localStorage !== 'undefined' && typeof location === 'string') {
+      localStorage.setItem('lastMapLocation', location);
+    }
+  }, [location, canvasWidth, canvasHeight, profileStore.avatarUrl]);
+
+
+  // Listen for map:leave (our own) to stop sounds
+  useEffect(() => {
+    if (!WebSocketService.socket) return;
+
+    const socket = WebSocketService.socket;
+
+    const handleLeave = (data) => {
+      // Only stop sounds if it's our own leave event
+      if (data.socketId === socket.id) {
+        console.log('[Sound] Received map:leave for room:', data.roomId);
+        stopAllEntitySounds();
+      }
     };
-  }, [location, canvasWidth, canvasHeight]);
+
+    socket.on('map:leave', handleLeave);
+
+    return () => {
+      socket.off('map:leave', handleLeave);
+    };
+  }, []);
+
+  // Helper to start sounds for current room
+  const startEntitySounds = (entities, backgroundSounds, roomLocation) => {
+    const state = entitySoundsRef.current;
+
+    if (state.started && state.location === roomLocation) {
+      console.log('[Sound] Already started for', roomLocation, ', skipping');
+      return;
+    }
+
+    state.started = true;
+    state.location = roomLocation;
+    console.log('[Sound] Starting sounds for', roomLocation);
+
+    // Start background sounds first
+    if (backgroundSounds && backgroundSounds.length > 0) {
+      console.log('[Sound] Starting background sounds:', backgroundSounds);
+      backgroundSounds.forEach((soundDef) => {
+        const soundKey = typeof soundDef === 'string' ? soundDef : soundDef.key;
+        const initialDelay = typeof soundDef === 'object' ? (soundDef.initialDelay ?? soundDef.delay ?? 0) : 0;
+        const minDelay = typeof soundDef === 'object' ? soundDef.minDelay : 0;
+        const maxDelay = typeof soundDef === 'object' ? soundDef.maxDelay : 0;
+
+        const instance = SoundManager.createInstance(soundKey);
+        state.instances.push(instance);
+
+        // Random interval background sounds
+        if (minDelay && maxDelay) {
+          const getRandomDelay = () => {
+            const raw = minDelay + Math.random() * (maxDelay - minDelay);
+            return Math.floor(raw / 480) * 480;
+          };
+
+          const scheduleNextPlay = () => {
+            if (state.location !== roomLocation) return;
+
+            const nextDelay = getRandomDelay();
+            const timeoutId = setTimeout(() => {
+              if (state.location !== roomLocation) return;
+              instance.play();
+              scheduleNextPlay();
+            }, nextDelay);
+            state.timeouts.push(timeoutId);
+          };
+
+          // Start with initial delay, then schedule random intervals
+          const initialTimeout = setTimeout(() => {
+            if (state.location !== roomLocation) return;
+            instance.play();
+            scheduleNextPlay();
+          }, initialDelay);
+          state.timeouts.push(initialTimeout);
+        } else {
+          // Simple delayed start (loops handled by sound config)
+          const timeoutId = setTimeout(() => {
+            if (state.location !== roomLocation) return;
+            instance.play();
+          }, initialDelay);
+          state.timeouts.push(timeoutId);
+        }
+      });
+    }
+
+    const allEntities = [...(entities || [])];
+
+    allEntities.forEach(entity => {
+      if (!entity.sounds) return;
+
+      const soundsList = Array.isArray(entity.sounds) ? entity.sounds : [entity.sounds];
+
+      soundsList.forEach((soundDef) => {
+        const soundKey = typeof soundDef === 'string' ? soundDef : soundDef.key;
+        const delay = typeof soundDef === 'object' ? soundDef.delay : 0;
+        const minDelay = typeof soundDef === 'object' ? soundDef.minDelay : 0;
+        const maxDelay = typeof soundDef === 'object' ? soundDef.maxDelay : 0;
+
+        if (minDelay && maxDelay) {
+          const instance = SoundManager.createInstance(soundKey);
+          state.instances.push(instance);
+
+          const soundDuration = instance.config?.duration || 0;
+          const effectiveMinDelay = Math.max(minDelay, soundDuration);
+          const effectiveMaxDelay = Math.max(maxDelay, soundDuration);
+
+          const getRandomDelay = () => {
+            const raw = effectiveMinDelay + Math.random() * (effectiveMaxDelay - effectiveMinDelay);
+            return Math.floor(raw / 480) * 480;
+          };
+
+          const scheduleNextPlay = () => {
+            if (state.location !== roomLocation) return;
+
+            const nextDelay = getRandomDelay();
+            const timeoutId = setTimeout(() => {
+              if (state.location !== roomLocation) return;
+
+              if (!instance.isPlaying()) {
+                instance.tryPlay();
+              }
+              scheduleNextPlay();
+            }, nextDelay);
+            state.timeouts.push(timeoutId);
+          };
+
+          if (delay) {
+            const initialTimeout = setTimeout(() => {
+              if (state.location !== roomLocation) return;
+              if (!instance.isPlaying()) {
+                instance.tryPlay();
+              }
+              scheduleNextPlay();
+            }, delay);
+            state.timeouts.push(initialTimeout);
+          } else {
+            if (!instance.isPlaying()) {
+              instance.tryPlay();
+            }
+            scheduleNextPlay();
+          }
+        } else {
+          const instance = SoundManager.createInstance(soundKey);
+          state.instances.push(instance);
+
+          const effectiveDelay = delay || 100;
+          const timeoutId = setTimeout(() => {
+            if (state.location !== roomLocation) return;
+            instance.play();
+          }, effectiveDelay);
+          state.timeouts.push(timeoutId);
+        }
+      });
+    });
+  };
+
 
   // Load images for entities
   useEffect(() => {
@@ -193,23 +402,42 @@ const MapCanvas = ({ location }) => {
 
     const imagesToLoad = {};
 
-    // Find all entities with images
-    const allEntities = [...(roomData.entities || [])];
+    // Find all entities with images (including doors and navigation)
+    const allEntities = [
+      ...(roomData.entities || []),
+      ...(roomData.doors || []),
+      ...(roomData.navigation || []),
+    ];
 
     allEntities.forEach(entity => {
-      if (entity.image && imageMap[entity.image]) {
+      if (entity.image) {
         const img = new window.Image();
-        const imageSrc = typeof imageMap[entity.image] === 'string'
-          ? imageMap[entity.image]
-          : imageMap[entity.image].default || imageMap[entity.image].uri || imageMap[entity.image];
+        let imageSrc;
+        let imageKey;
 
-        img.onload = () => {
-          setLoadedImages(prev => ({
-            ...prev,
-            [entity.image]: img
-          }));
-        };
-        img.src = imageSrc;
+        // Check if entity.image is a string key for imageMap
+        if (typeof entity.image === 'string' && imageMap[entity.image]) {
+          imageKey = entity.image;
+          imageSrc = typeof imageMap[entity.image] === 'string'
+            ? imageMap[entity.image]
+            : imageMap[entity.image].default || imageMap[entity.image].uri || imageMap[entity.image];
+        } else if (entity.image) {
+          // entity.image is already a require() result (number/module)
+          imageKey = entity.id; // Use entity id as key for loaded images
+          imageSrc = typeof entity.image === 'string'
+            ? entity.image
+            : entity.image.default || entity.image.uri || entity.image;
+        }
+
+        if (imageSrc) {
+          img.onload = () => {
+            setLoadedImages(prev => ({
+              ...prev,
+              [imageKey]: img
+            }));
+          };
+          img.src = imageSrc;
+        }
       }
     });
   }, [roomData]);
@@ -230,6 +458,7 @@ const MapCanvas = ({ location }) => {
         characterStore.updateOtherPlayer(data.socketId, {
           position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
           avatarUrl: data.avatarUrl,
+          avatarColor: data.avatarColor,
           username: data.username
         });
 
@@ -255,8 +484,12 @@ const MapCanvas = ({ location }) => {
           emote: data.emote,
           position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
           avatarUrl: data.avatarUrl,
+          avatarColor: data.avatarColor,
           username: data.username
         });
+
+        // Play emote sound
+        playEmoteSound();
 
         // Load avatar image if not already loaded
         if (data.avatarUrl && !avatarImages[data.avatarUrl]) {
@@ -279,6 +512,7 @@ const MapCanvas = ({ location }) => {
         characterStore.updateOtherPlayer(data.socketId, {
           position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
           avatarUrl: data.avatarUrl,
+          avatarColor: data.avatarColor,
           username: data.username
         });
 
@@ -306,15 +540,6 @@ const MapCanvas = ({ location }) => {
     socket.on('map:enter', handleEnter);
     socket.on('map:leave', handleLeave);
 
-    // Load current user's avatar image
-    if (profileStore.avatarUrl && !avatarImages[profileStore.avatarUrl]) {
-      const img = new window.Image();
-      img.onload = () => {
-        setAvatarImages(prev => ({ ...prev, [profileStore.avatarUrl]: img }));
-      };
-      img.src = profileStore.avatarUrl;
-    }
-
     return () => {
       socket.off('map:move', handleMove);
       socket.off('map:emote', handleEmote);
@@ -322,6 +547,18 @@ const MapCanvas = ({ location }) => {
       socket.off('map:leave', handleLeave);
     };
   }, [location, avatarImages, canvasWidth, canvasHeight]);
+
+  // Load current user's avatar image when profileStore.avatarUrl changes
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    if (profileStore.avatarUrl && !avatarImages[profileStore.avatarUrl]) {
+      const img = new window.Image();
+      img.onload = () => {
+        setAvatarImages(prev => ({ ...prev, [profileStore.avatarUrl]: img }));
+      };
+      img.src = profileStore.avatarUrl;
+    }
+  }, [profileStore.avatarUrl]);
 
   // Draw canvas
   useEffect(() => {
@@ -348,8 +585,10 @@ const MapCanvas = ({ location }) => {
       const isHovered = hoveredObject === obj.id;
 
       // Check if this entity has an image
-      if (obj.image && loadedImages[obj.image]) {
-        const img = loadedImages[obj.image];
+      // Image may be stored under obj.image (string key) or obj.id (for direct require() results)
+      const imageKey = typeof obj.image === 'string' ? obj.image : obj.id;
+      if (obj.image && loadedImages[imageKey]) {
+        const img = loadedImages[imageKey];
 
         // Calculate scale based on hover
         const scale = isHovered ? 1.06 : 1;
@@ -450,13 +689,26 @@ const MapCanvas = ({ location }) => {
         const drawY = player.position.y - size / 2;
         const borderRadius = 8;
 
+        // Get border color from player's avatar color or use default
+        const getBorderColor = (hexColor, opacity = 0.7) => {
+          if (!hexColor) return `rgba(92, 90, 88, ${opacity})`;
+          // Convert hex to rgb
+          const hex = hexColor.replace('#', '');
+          const r = parseInt(hex.substring(0, 2), 16);
+          const g = parseInt(hex.substring(2, 4), 16);
+          const b = parseInt(hex.substring(4, 6), 16);
+          return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        };
+
+        const borderColor = getBorderColor(player.avatarColor, 0.7);
+
         // Draw outer background (white)
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
         ctx.fill();
 
-        // Draw outer dashed border
-        ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+        // Draw outer dashed border (using player's color)
+        ctx.strokeStyle = borderColor;
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 5]);
         drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
@@ -492,8 +744,8 @@ const MapCanvas = ({ location }) => {
           ctx.restore();
         }
 
-        // Draw inner dashed border
-        ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+        // Draw inner dashed border (using player's color)
+        ctx.strokeStyle = borderColor;
         ctx.lineWidth = 1.5;
         ctx.setLineDash([3, 3]);
         drawRoundedRect(drawX + 2, drawY + 2, size - 4, size - 4, borderRadius - 2);
@@ -622,8 +874,21 @@ const MapCanvas = ({ location }) => {
       // Reset shadow
       ctx.shadowBlur = 0;
 
-      // Draw outer dashed border (thicker for current user with cyan color)
-      ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+      // Get border color from player's avatar color or use default
+      const getMyBorderColor = (hexColor, opacity = 0.8) => {
+        if (!hexColor) return `rgba(179, 230, 255, ${opacity})`; // Default sky blue
+        // Convert hex to rgb
+        const hex = hexColor.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      };
+
+      const myBorderColor = getMyBorderColor(profileStore.avatarColor, 0.8);
+
+      // Draw outer dashed border (thicker for current user with their color)
+      ctx.strokeStyle = myBorderColor;
       ctx.lineWidth = 3;
       ctx.setLineDash([5, 5]);
       drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
@@ -653,13 +918,13 @@ const MapCanvas = ({ location }) => {
         ctx.font = 'bold 32px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(179, 230, 255, 0.6)';
+        ctx.fillStyle = getMyBorderColor(profileStore.avatarColor, 0.6);
         ctx.fillText('?', characterPosition.x, characterPosition.y);
         ctx.restore();
       }
 
       // Draw inner dashed border
-      ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+      ctx.strokeStyle = myBorderColor;
       ctx.lineWidth = 2;
       ctx.setLineDash([3, 3]);
       drawRoundedRect(drawX + 2, drawY + 2, size - 4, size - 4, borderRadius - 2);
@@ -837,12 +1102,14 @@ const MapCanvas = ({ location }) => {
             x: characterPosition.x / canvasWidth,
             y: characterPosition.y / canvasHeight,
             avatarUrl: profileStore.avatarUrl,
+            avatarColor: profileStore.avatarColor,
             username: profileStore.username
           });
         }
 
-        // Set local emote
+        // Set local emote and play sound
         characterStore.setEmote(clickResult.emote);
+        playEmoteSound();
         setIsEmoteMenuOpen(false);
         return;
       } else if (clickResult.type === 'close' || clickResult.type === 'outside') {
@@ -902,6 +1169,7 @@ const MapCanvas = ({ location }) => {
           x: x / canvasWidth,
           y: y / canvasHeight,
           avatarUrl: profileStore.avatarUrl,
+          avatarColor: profileStore.avatarColor,
           username: profileStore.username
         });
       }
@@ -1020,16 +1288,6 @@ const MapCanvas = ({ location }) => {
     inventoryStore.toggleInventory();
   };
 
-  const handleSaveOrLogout = () => {
-    if (AuthStore.isAuthenticated) {
-      // Logout
-      AuthStore.logout();
-      router.replace('/');
-    } else {
-      // Save - redirect to login
-      router.push('/');
-    }
-  };
 
   if (Platform.OS === 'web') {
     return (
@@ -1058,13 +1316,8 @@ const MapCanvas = ({ location }) => {
           </View>
         )}
         <UserStatus />
-        <View style={styles.saveButtonContainer}>
-          <VaporwaveButton
-            title={AuthStore.isAuthenticated ? "Logout" : "Save"}
-            onPress={handleSaveOrLogout}
-            variant="primary"
-            style={styles.saveButton}
-          />
+        <View style={styles.menuContainer}>
+          <HamburgerMenu />
         </View>
         {inventoryStore.isOpen && (
           <View style={styles.inventoryPanel}>
@@ -1143,14 +1396,11 @@ const styles = StyleSheet.create({
     fontFamily: 'ChubbyTrail',
     color: '#5C5A58',
   },
-  saveButtonContainer: {
+  menuContainer: {
     position: 'absolute',
     top: 20,
     right: 30,
     zIndex: 100,
-  },
-  saveButton: {
-    minWidth: 120,
   },
   knapsackContainer: {
     position: 'absolute',

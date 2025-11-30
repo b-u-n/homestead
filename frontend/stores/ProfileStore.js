@@ -6,6 +6,7 @@ import domain from '../utils/domain';
 class ProfileStore {
   // User profile data
   avatarUrl = null;
+  avatarColor = null;
   username = null;
   energy = 100;
   maxEnergy = 100;
@@ -26,6 +27,7 @@ class ProfileStore {
 
   setProfile(profile) {
     if (profile.avatarUrl) this.avatarUrl = profile.avatarUrl;
+    if (profile.avatarColor) this.avatarColor = profile.avatarColor;
     if (profile.username) this.username = profile.username;
     if (profile.energy !== undefined) this.energy = profile.energy;
     if (profile.maxEnergy !== undefined) this.maxEnergy = profile.maxEnergy;
@@ -87,6 +89,7 @@ class ProfileStore {
     try {
       const data = {
         avatarUrl: this.avatarUrl,
+        avatarColor: this.avatarColor,
         username: this.username,
         energy: this.energy,
         maxEnergy: this.maxEnergy,
@@ -140,6 +143,7 @@ class ProfileStore {
     reaction(
       () => ({
         avatarUrl: this.avatarUrl,
+        avatarColor: this.avatarColor,
         username: this.username,
         energy: this.energy,
         maxEnergy: this.maxEnergy,

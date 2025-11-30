@@ -4,6 +4,7 @@ import AuthStore from '../stores/AuthStore';
 import ProfileStore from '../stores/ProfileStore';
 import RoomStore from '../stores/RoomStore';
 import SessionStore from '../stores/SessionStore';
+import SoundSettingsStore from '../stores/SoundSettingsStore';
 import domain from '../utils/domain';
 
 class WebSocketService {
@@ -24,6 +25,13 @@ class WebSocketService {
         } catch (error) {
           console.error('Failed to load user profile on connect:', error);
         }
+      }
+
+      // Load sound settings from server
+      try {
+        await SoundSettingsStore.loadFromServer();
+      } catch (error) {
+        console.error('Failed to load sound settings on connect:', error);
       }
     });
 
@@ -58,6 +66,24 @@ class WebSocketService {
     });
   }
 
+  // Emit and return full response (including socketId, roomId, etc.)
+  emitRaw(event, data) {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      this.socket.emit(event, data, (response) => {
+        if (response.success) {
+          resolve(response);
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+    });
+  }
+
   // User methods
   async loadUserProfile(sessionId) {
     try {
@@ -66,6 +92,7 @@ class WebSocketService {
       // Update ProfileStore with the loaded data
       ProfileStore.setProfile({
         avatarUrl: userProfile.avatar,
+        avatarColor: userProfile.avatarData?.color,
         username: userProfile.username,
         energy: userProfile.energy,
         maxEnergy: userProfile.maxEnergy,
@@ -140,6 +167,92 @@ class WebSocketService {
     } catch (error) {
       throw error;
     }
+  }
+
+  // Layer methods
+  async listLayers() {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      this.socket.emit('layers:list', {}, (response) => {
+        if (response.success) {
+          resolve(response.layers);
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+    });
+  }
+
+  async joinLayer(layerId) {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      this.socket.emit('layers:join', { layerId }, (response) => {
+        if (response.success) {
+          resolve(response.layer);
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+    });
+  }
+
+  async leaveLayer() {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      this.socket.emit('layers:leave', {}, (response) => {
+        if (response.success) {
+          resolve();
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+    });
+  }
+
+  async getCurrentLayer() {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      this.socket.emit('layers:current', {}, (response) => {
+        if (response.success) {
+          resolve(response.layer);
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+    });
+  }
+
+  async createLayer(layerData) {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      this.socket.emit('layers:create', layerData, (response) => {
+        if (response.success) {
+          resolve(response.layer);
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+    });
   }
 }
 

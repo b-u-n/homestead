@@ -12,8 +12,8 @@ const TownMapScreen = observer(() => {
   const [rooms] = useState([
     { id: '1', name: 'Community Center', type: 'community' },
     { id: '2', name: 'Town Square', type: 'community' },
-    { id: '3', name: 'Weeping Willow', type: 'nature' },
-    { id: '4', name: 'Coffee Shop', type: 'community' },
+    { id: '3', name: 'Weeping Willows', type: 'nature' },
+    { id: '4', name: 'Sugarbee Cafe', type: 'community' },
   ]);
 
   useEffect(() => {

@@ -135,6 +135,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {} }) =
       onBack={goBack}
       canGoBack={flowHistory.length > 1}
       title={flowDefinition.title}
+      additionalOpenSound={flowDefinition.additionalOpenSound}
     >
       <View style={styles.container}>
         <DropComponent

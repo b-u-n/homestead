@@ -1,17 +1,43 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView, Pressable, ImageBackground } from 'react-native';
 import StitchedBorder from './StitchedBorder';
 import TiledBackground from './TiledBackground';
+import SoundManager from '../services/SoundManager';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
-const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize }) => {
+const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true }) => {
+  const hasPlayedOpenSound = useRef(false);
+
+  // Play open sounds once when modal first becomes visible
+  useEffect(() => {
+    if (visible && !hasPlayedOpenSound.current) {
+      hasPlayedOpenSound.current = true;
+      if (playSound) {
+        SoundManager.play('openActivity');
+        if (additionalOpenSound) {
+          SoundManager.play(additionalOpenSound);
+        }
+      }
+    }
+    if (!visible) {
+      hasPlayedOpenSound.current = false;
+    }
+  }, [visible, playSound, additionalOpenSound]);
+
   if (!visible) return null;
 
+  const handleClose = () => {
+    if (playSound) {
+      SoundManager.play('closeActivity');
+    }
+    onClose();
+  };
+
   const handleOverlayPress = (event) => {
-    // Only close if clicking the overlay itself, not its children
-    if (event.target === event.currentTarget) {
-      onClose();
+    // Only close if clicking the overlay itself, not its children, and if close is allowed
+    if (showClose && event.target === event.currentTarget) {
+      handleClose();
     }
   };
 
@@ -71,39 +97,43 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                 )}
 
                 {/* Close button */}
-                <Pressable onPress={onClose} style={[styles.navButtonPressable, { right: 0 }]}>
-                  {/* Background texture */}
-                  {Platform.OS === 'web' && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
-                        backgroundRepeat: 'repeat',
-                        backgroundSize: '15%',
-                        borderRadius: 8,
-                        pointerEvents: 'none',
-                        opacity: 0.8,
-                      }}
-                    />
-                  )}
-                  {Platform.OS !== 'web' && (
-                    <ImageBackground
-                      source={buttonBgImage}
-                      style={styles.navButtonBgImage}
-                      imageStyle={{ opacity: 0.8, borderRadius: 8 }}
-                      resizeMode="repeat"
-                    />
-                  )}
-                  <View style={styles.navButtonOverlay}>
-                    <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)">
-                      <Text style={styles.navButtonText}>✕</Text>
-                    </StitchedBorder>
-                  </View>
-                </Pressable>
+                {showClose ? (
+                  <Pressable onPress={handleClose} style={[styles.navButtonPressable, { right: 0 }]}>
+                    {/* Background texture */}
+                    {Platform.OS === 'web' && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
+                          backgroundRepeat: 'repeat',
+                          backgroundSize: '15%',
+                          borderRadius: 8,
+                          pointerEvents: 'none',
+                          opacity: 0.8,
+                        }}
+                      />
+                    )}
+                    {Platform.OS !== 'web' && (
+                      <ImageBackground
+                        source={buttonBgImage}
+                        style={styles.navButtonBgImage}
+                        imageStyle={{ opacity: 0.8, borderRadius: 8 }}
+                        resizeMode="repeat"
+                      />
+                    )}
+                    <View style={styles.navButtonOverlay}>
+                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)">
+                        <Text style={styles.navButtonText}>✕</Text>
+                      </StitchedBorder>
+                    </View>
+                  </Pressable>
+                ) : (
+                  <View style={styles.navButtonSpacer} />
+                )}
               </View>
 
               {/* Content */}
@@ -120,7 +150,7 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
     top: 0,
     left: 0,
     right: 0,

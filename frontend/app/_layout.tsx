@@ -6,6 +6,7 @@ import { View, Dimensions, StyleSheet } from 'react-native';
 import { ThemeProvider } from '@react-navigation/native';
 import ErrorContainer from '../components/ErrorContainer';
 import SessionStore from '../stores/SessionStore';
+import SoundManager from '../services/SoundManager';
 import TiledBackground from '../components/TiledBackground';
 import { Colors } from '../constants/colors';
 
@@ -91,6 +92,8 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
       // Initialize session when app starts
       SessionStore.initSession();
+      // Initialize audio
+      SoundManager.init();
     }
   }, [fontsLoaded]);
 

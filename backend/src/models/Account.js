@@ -59,6 +59,31 @@ const accountSchema = new mongoose.Schema({
     avatarData: Object
   },
 
+  // Permissions
+  permissions: [{
+    type: String,
+    enum: ['admin', 'moderator', 'creator']
+  }],
+
+  // Current layer
+  currentLayer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Layer',
+    default: null
+  },
+
+  // Sound settings overrides (only stores user-modified values)
+  // Keys are sound names, values are objects with overridden properties
+  // e.g. { "campfire": { "volume": 0.5, "enabled": false }, "emote": { "volume": 0.8 } }
+  soundSettings: {
+    type: Map,
+    of: {
+      volume: { type: Number, min: 0, max: 1 },
+      enabled: { type: Boolean },
+    },
+    default: new Map()
+  },
+
   // Hearts system
   hearts: {
     type: Number,

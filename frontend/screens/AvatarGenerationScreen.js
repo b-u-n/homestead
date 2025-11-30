@@ -14,6 +14,7 @@ import { getErrorMessage } from '../utils/errorMessages';
 import ErrorStore from '../stores/ErrorStore';
 import AuthStore from '../stores/AuthStore';
 import SessionStore from '../stores/SessionStore';
+import ProfileStore from '../stores/ProfileStore';
 import WebSocketService from '../services/websocket';
 import FormStore from '../stores/FormStore';
 
@@ -263,6 +264,14 @@ const AvatarGenerationScreen = observer(() => {
       if (response.ok) {
         // Update AuthStore with the created user
         AuthStore.setUser(data.user, data.token || 'session_token');
+
+        // Also update ProfileStore with the avatar color immediately
+        ProfileStore.setProfile({
+          avatarUrl: data.user.avatar,
+          avatarColor: selectedColor,
+          username: data.user.username
+        });
+
         console.log('User created and avatar saved, connecting to websocket...');
 
         // Connect to websocket to load user profile

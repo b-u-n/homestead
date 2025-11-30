@@ -1,7 +1,17 @@
 export default (width, height) => ({
-  name: 'Coffee Shop',
+  name: 'Sugarbee Cafe',
   type: 'room',
   parentSection: 'town-square',
+
+  // Background sounds for the cafe
+  backgroundSounds: [
+    // Two ambient loops that pick random sounds from pool
+    'cafeAmbientGroup',
+    { key: 'cafeAmbientGroup', initialDelay: 4000 },
+    // Random overlay sounds
+    { key: 'cafeOverlayGroup', minDelay: 10000, maxDelay: 18000, initialDelay: 6000 },
+    { key: 'cafeOverlayGroup', minDelay: 12000, maxDelay: 20000, initialDelay: 10000 },
+  ],
 
   // Back button to parent section
   backButton: {
@@ -49,14 +59,15 @@ export default (width, height) => ({
       description: 'Order your favorite brew here.'
     },
     {
-      id: 'cozy-chair',
+      id: 'cat-couch',
       type: 'decoration',
       x: width / 2 - 180,
       y: height / 2 + 50,
-      width: 70,
-      height: 70,
-      label: 'Cozy Chair',
-      description: 'A comfortable armchair perfect for sipping coffee.'
+      width: 105,
+      height: 105,
+      label: 'Cat Couch',
+      description: 'A comfortable armchair perfect for sipping coffee.',
+      image: require('../../assets/images/cafe-cat-couch.png')
     }
   ]
 });

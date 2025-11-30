@@ -1,7 +1,14 @@
 export default (width, height) => ({
-  name: 'Weeping Willow',
+  name: 'Weeping Willows',
   type: 'room',
   parentSection: 'town-square',
+
+  // Background ambient sounds for this room
+  backgroundSounds: [
+    'weepingWillow', // Main loop
+    { key: 'weepingWillowRandom', minDelay: 8000, maxDelay: 12000, initialDelay: 4000 }, // Random copy 1, offset 4s
+    { key: 'weepingWillowRandom', minDelay: 8000, maxDelay: 12000, initialDelay: 8000 }, // Random copy 2, offset 8s
+  ],
 
   // Back button to parent section
   backButton: {

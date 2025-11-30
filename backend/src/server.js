@@ -92,6 +92,8 @@ io.on('connection', (socket) => {
   require('./routes/users')(socket, io);
   require('./routes/rooms')(socket, io);
   require('./routes/actions')(socket, io);
+  require('./routes/layers')(socket, io);
+  require('./routes/soundSettings')(socket, io);
   require('./routes/map')(socket, io);
 
   // Setup Flow Engine handlers

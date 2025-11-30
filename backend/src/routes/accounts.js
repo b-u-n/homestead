@@ -5,12 +5,13 @@ const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
 
-// Helper to get backend base URL (respects nginx proxy headers)
+// Helper to get backend base URL
 // TODO: Move to S3, then this will be replaced with S3 URL
 const getBackendUrl = (req) => {
-  const protocol = req.get('X-Forwarded-Proto') || req.protocol;
-  const host = req.get('X-Forwarded-Host') || req.get('host');
-  return `${protocol}://${host}`;
+  if (process.env.BACKEND_URL) {
+    return process.env.BACKEND_URL;
+  }
+  return `${req.protocol}://${req.get('host')}`;
 };
 
 // Create new account with session ID or return existing

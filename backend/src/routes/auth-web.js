@@ -10,10 +10,12 @@ const client = new OAuth2Client(
   `${process.env.FRONTEND_URL || 'http://192.168.0.143:9001'}/auth/callback`
 );
 
-// Helper to get the correct protocol (respects X-Forwarded-Proto from nginx)
+// Helper to get the correct base URL
 const getBaseUrl = (req) => {
-  const protocol = req.get('X-Forwarded-Proto') || req.protocol;
-  return `${protocol}://${req.get('host')}`;
+  if (process.env.BACKEND_URL) {
+    return process.env.BACKEND_URL;
+  }
+  return `${req.protocol}://${req.get('host')}`;
 };
 
 // Discord OAuth configuration
