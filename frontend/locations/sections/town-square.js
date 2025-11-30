@@ -71,8 +71,8 @@ export default (width, height) => ({
   doors: [
     {
       id: 'sugarbee-cafe-door',
-      x: width / 2 + 120,
-      y: height / 2 - 100,
+      x: width / 2 + 96,
+      y: height / 2 - 76,
       width: 320,
       height: 480,
       label: 'Sugarbee Cafe',
@@ -81,8 +81,8 @@ export default (width, height) => ({
     },
     {
       id: 'bank-door',
-      x: width / 2 - 200,
-      y: height / 2 - 100,
+      x: width / 2 - 284,
+      y: height / 2 - 52,
       width: 80,
       height: 120,
       label: 'Bank',
@@ -95,8 +95,8 @@ export default (width, height) => ({
     {
       id: 'campfire',
       type: 'decoration',
-      x: width / 2 - 50,
-      y: height / 2 + 50,
+      x: width / 2 - 68,
+      y: height / 2 + 32,
       width: 100,
       height: 100,
       label: 'Campfire',

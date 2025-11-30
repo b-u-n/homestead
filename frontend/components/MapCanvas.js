@@ -37,6 +37,7 @@ const weepingWillowImage = require('../assets/images/weeping-willow.png');
 // Import sounds config and manager
 import sounds from '../config/sounds';
 import SoundManager from '../services/SoundManager';
+import uxStore, { BASELINE_WIDTH, BASELINE_HEIGHT } from '../stores/UXStore';
 
 // Helper to play emote sound
 const playEmoteSound = () => {
@@ -97,15 +98,21 @@ const MapCanvas = ({ location }) => {
     return () => dispose();
   }, []);
 
-  // Update canvas dimensions and detect mobile
+  // Update canvas dimensions and detect mobile/portrait - sync with UXStore
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
     const updateDimensions = () => {
-      setCanvasWidth(window.innerWidth);
-      setCanvasHeight(window.innerHeight);
-      // Detect mobile based on window width
-      setIsMobile(window.innerWidth < 768);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      // Update the UX store (calculates isPortrait, renderScale, isMobile)
+      uxStore.updateDimensions(w, h);
+
+      // Sync local state from store
+      setCanvasWidth(uxStore.screenWidth);
+      setCanvasHeight(uxStore.screenHeight);
+      setIsMobile(uxStore.isMobile);
     };
 
     updateDimensions();
@@ -142,17 +149,17 @@ const MapCanvas = ({ location }) => {
   };
 
 
-  // Load location data (section or room) - runs on dimension changes too
+  // Load location data (section or room) - use baseline dimensions for consistent layout
   useEffect(() => {
     const locationFn = LOCATIONS[location];
 
     if (locationFn) {
-      // Call location function with current canvas dimensions
-      const locationData = typeof locationFn === 'function' ? locationFn(canvasWidth, canvasHeight) : locationFn;
+      // Call location function with baseline dimensions (1080p) for consistent positioning
+      const locationData = typeof locationFn === 'function' ? locationFn(BASELINE_WIDTH, BASELINE_HEIGHT) : locationFn;
       setRoomData(locationData);
 
       // Initialize character position from store or center
-      const position = characterStore.getPosition(location, canvasWidth, canvasHeight);
+      const position = characterStore.getPosition(location, BASELINE_WIDTH, BASELINE_HEIGHT);
       setCharacterPosition(position);
     } else {
       console.error(`Failed to load location: ${location}`);
@@ -161,7 +168,7 @@ const MapCanvas = ({ location }) => {
         router.replace('/homestead/explore/map/town-square');
       }
     }
-  }, [location, canvasWidth, canvasHeight]);
+  }, [location]);
 
   // Handle entering/leaving rooms - only runs once per location change
   useEffect(() => {
@@ -175,15 +182,14 @@ const MapCanvas = ({ location }) => {
   useEffect(() => {
     if (hasEnteredRef.current) return;
     if (!WebSocketService.socket || !profileStore.avatarUrl) return;
-    if (!canvasWidth || !canvasHeight) return;
 
     hasEnteredRef.current = true;
-    const position = characterStore.getPosition(location, canvasWidth, canvasHeight);
+    const position = characterStore.getPosition(location, BASELINE_WIDTH, BASELINE_HEIGHT);
 
     WebSocketService.emitRaw('map:enter', {
       roomId: location,
-      x: position.x / canvasWidth,
-      y: position.y / canvasHeight,
+      x: position.x / BASELINE_WIDTH,
+      y: position.y / BASELINE_HEIGHT,
       avatarUrl: profileStore.avatarUrl,
       avatarColor: profileStore.avatarColor,
       username: profileStore.username
@@ -192,7 +198,7 @@ const MapCanvas = ({ location }) => {
         // Add all existing players to the store
         result.data.existingPlayers.forEach(player => {
           const playerData = {
-            position: { x: player.x * canvasWidth, y: player.y * canvasHeight },
+            position: { x: player.x * BASELINE_WIDTH, y: player.y * BASELINE_HEIGHT },
             avatarUrl: player.avatarUrl,
             avatarColor: player.avatarColor,
             username: player.username
@@ -220,7 +226,7 @@ const MapCanvas = ({ location }) => {
         const locationFn = LOCATIONS[result.roomId];
         if (locationFn) {
           const locationData = typeof locationFn === 'function'
-            ? locationFn(canvasWidth, canvasHeight)
+            ? locationFn(BASELINE_WIDTH, BASELINE_HEIGHT)
             : locationFn;
           if (locationData) {
             startEntitySounds(locationData.entities, locationData.backgroundSounds, result.roomId);
@@ -233,7 +239,7 @@ const MapCanvas = ({ location }) => {
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined' && typeof location === 'string') {
       localStorage.setItem('lastMapLocation', location);
     }
-  }, [location, canvasWidth, canvasHeight, profileStore.avatarUrl]);
+  }, [location, profileStore.avatarUrl]);
 
 
   // Listen for map:leave (our own) to stop sounds
@@ -456,7 +462,7 @@ const MapCanvas = ({ location }) => {
       // Only update if in same room
       if (data.roomId === location) {
         characterStore.updateOtherPlayer(data.socketId, {
-          position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
+          position: { x: data.x * BASELINE_WIDTH, y: data.y * BASELINE_HEIGHT },
           avatarUrl: data.avatarUrl,
           avatarColor: data.avatarColor,
           username: data.username
@@ -482,7 +488,7 @@ const MapCanvas = ({ location }) => {
       if (data.roomId === location) {
         characterStore.updateOtherPlayer(data.socketId, {
           emote: data.emote,
-          position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
+          position: { x: data.x * BASELINE_WIDTH, y: data.y * BASELINE_HEIGHT },
           avatarUrl: data.avatarUrl,
           avatarColor: data.avatarColor,
           username: data.username
@@ -510,7 +516,7 @@ const MapCanvas = ({ location }) => {
       // Only update if in same room
       if (data.roomId === location) {
         characterStore.updateOtherPlayer(data.socketId, {
-          position: { x: data.x * canvasWidth, y: data.y * canvasHeight },
+          position: { x: data.x * BASELINE_WIDTH, y: data.y * BASELINE_HEIGHT },
           avatarUrl: data.avatarUrl,
           avatarColor: data.avatarColor,
           username: data.username
@@ -565,7 +571,7 @@ const MapCanvas = ({ location }) => {
     if (roomData && Platform.OS === 'web') {
       drawCanvas();
     }
-  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile]);
+  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -579,6 +585,12 @@ const MapCanvas = ({ location }) => {
     ctx.clearRect(0, 0, width, height);
 
     if (!roomData) return;
+
+    // Calculate avatar/emote size multiplier for smaller screens
+    // When renderScale is small (mobile), make avatars 50% larger
+    const avatarSizeMultiplier = uxStore.avatarSizeMultiplier;
+    const baseAvatarSize = 64;
+    const avatarSize = baseAvatarSize * avatarSizeMultiplier;
 
     // Helper function to draw a button/entity
     const drawButton = (obj) => {
@@ -651,8 +663,8 @@ const MapCanvas = ({ location }) => {
       drawButton(roomData.backButton);
     }
 
-    // Draw navigation buttons (section-to-section) - only on desktop
-    if (roomData.navigation && !isMobile) {
+    // Draw navigation buttons (section-to-section)
+    if (roomData.navigation) {
       roomData.navigation.forEach(drawButton);
     }
 
@@ -684,10 +696,10 @@ const MapCanvas = ({ location }) => {
     // Draw other players
     characterStore.otherPlayersArray.forEach(player => {
       if (player.position) {
-        const size = 64;
+        const size = avatarSize;
         const drawX = player.position.x - size / 2;
         const drawY = player.position.y - size / 2;
-        const borderRadius = 8;
+        const borderRadius = 8 * avatarSizeMultiplier;
 
         // Get border color from player's avatar color or use default
         const getBorderColor = (hexColor, opacity = 0.7) => {
@@ -754,23 +766,24 @@ const MapCanvas = ({ location }) => {
 
         // Draw emote if present
         if (player.emote) {
-          const size = 64;
+          const emoteSize = avatarSize;
           const opacity = player.emoteOpacity !== undefined ? player.emoteOpacity : 1;
           ctx.save();
           ctx.globalAlpha = opacity;
 
           // Measure emote text
-          ctx.font = '20px Arial';
+          const emoteFontSize = 20 * avatarSizeMultiplier;
+          ctx.font = `${emoteFontSize}px Arial`;
           const metrics = ctx.measureText(player.emote);
           const textWidth = metrics.width;
 
-          // Expression bubble dimensions (offset 16px to the right)
-          const bubbleWidth = textWidth + 12;
-          const bubbleHeight = 28;
-          const bubbleX = player.position.x - bubbleWidth / 2 + 16;
-          const bubbleY = player.position.y - size / 2 - 40;
-          const borderRadius = 6;
-          const tailTipY = player.position.y - size / 2 - 6; // 6px gap above avatar
+          // Expression bubble dimensions (offset scaled)
+          const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
+          const bubbleHeight = 28 * avatarSizeMultiplier;
+          const bubbleX = player.position.x - bubbleWidth / 2 + 16 * avatarSizeMultiplier;
+          const bubbleY = player.position.y - emoteSize / 2 - 40 * avatarSizeMultiplier;
+          const borderRadius = 6 * avatarSizeMultiplier;
+          const tailTipY = player.position.y - emoteSize / 2 - 6 * avatarSizeMultiplier; // gap above avatar
           const tailBaseY = bubbleY + bubbleHeight;
 
           // Draw outer background for bubble
@@ -848,17 +861,17 @@ const MapCanvas = ({ location }) => {
         ctx.shadowOffsetY = 0;
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillText(player.username || 'Player', player.position.x, player.position.y + 64 / 2 + 9);
+        ctx.fillText(player.username || 'Player', player.position.x, player.position.y + avatarSize / 2 + 9 * avatarSizeMultiplier);
         ctx.restore();
       }
     });
 
     // Draw current player
     if (characterPosition) {
-      const size = 64;
+      const size = avatarSize;
       const drawX = characterPosition.x - size / 2;
       const drawY = characterPosition.y - size / 2;
-      const borderRadius = 8;
+      const borderRadius = 8 * avatarSizeMultiplier;
 
       // Draw shadow/glow for current user
       ctx.shadowColor = 'rgba(179, 230, 255, 0.6)';
@@ -938,35 +951,36 @@ const MapCanvas = ({ location }) => {
         ctx.globalAlpha = opacity;
 
         // Measure emote text
-        ctx.font = '20px Arial';
+        const emoteFontSize = 20 * avatarSizeMultiplier;
+        ctx.font = `${emoteFontSize}px Arial`;
         const metrics = ctx.measureText(characterStore.activeEmote);
         const textWidth = metrics.width;
 
-        // Expression bubble dimensions (offset 16px to the right)
-        const bubbleWidth = textWidth + 12;
-        const bubbleHeight = 28;
-        const bubbleX = characterPosition.x - bubbleWidth / 2 + 16;
-        const bubbleY = characterPosition.y - size / 2 - 40;
-        const borderRadius = 6;
-        const tailTipY = characterPosition.y - size / 2 - 6; // 6px gap above avatar
+        // Expression bubble dimensions (offset scaled)
+        const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
+        const bubbleHeight = 28 * avatarSizeMultiplier;
+        const bubbleX = characterPosition.x - bubbleWidth / 2 + 16 * avatarSizeMultiplier;
+        const bubbleY = characterPosition.y - size / 2 - 40 * avatarSizeMultiplier;
+        const emoteBorderRadius = 6 * avatarSizeMultiplier;
+        const tailTipY = characterPosition.y - size / 2 - 6 * avatarSizeMultiplier; // gap above avatar
         const tailBaseY = bubbleY + bubbleHeight;
 
         // Draw outer background for bubble
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, emoteBorderRadius + 2);
         ctx.fill();
 
         // Draw outer dashed border for bubble (cyan for current player)
         ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 5]);
-        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, emoteBorderRadius + 2);
         ctx.stroke();
         ctx.setLineDash([]);
 
         // Draw inner bubble with clipping
         ctx.save();
-        drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, borderRadius);
+        drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, emoteBorderRadius);
         ctx.clip();
         ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
         ctx.fill();
@@ -976,13 +990,13 @@ const MapCanvas = ({ location }) => {
         ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([3, 3]);
-        drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, borderRadius - 2);
+        drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, emoteBorderRadius - 2);
         ctx.stroke();
         ctx.setLineDash([]);
 
         // Draw triangle tail (sticking out from lower left corner of bubble)
-        const tailWidth = 4;
-        const tailLeftX = bubbleX + 12; // 12px from left edge of bubble
+        const tailWidth = 4 * avatarSizeMultiplier;
+        const tailLeftX = bubbleX + 12 * avatarSizeMultiplier;
 
         // Draw tail background (triangle pointing down to 2px above avatar)
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -1033,7 +1047,7 @@ const MapCanvas = ({ location }) => {
     // Draw emote menu if open
     if (isEmoteMenuOpen && characterPosition) {
       const numEmotes = 12;
-      const radius = 160;
+      const radius = 160 * avatarSizeMultiplier;
       const angleStep = (Math.PI * 2) / numEmotes;
       const emotes = [
         '😊', '😂', '😍', '😎',
@@ -1044,7 +1058,7 @@ const MapCanvas = ({ location }) => {
       // Draw semi-transparent background circle
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.beginPath();
-      ctx.arc(characterPosition.x, characterPosition.y, radius + 30, 0, Math.PI * 2);
+      ctx.arc(characterPosition.x, characterPosition.y, radius + 30 * avatarSizeMultiplier, 0, Math.PI * 2);
       ctx.fill();
 
       // Draw separator lines between emotes (not going to center)
@@ -1052,10 +1066,10 @@ const MapCanvas = ({ location }) => {
       ctx.lineWidth = 1;
       emotes.forEach((_, index) => {
         const angle = angleStep * index - Math.PI / 2;
-        const startX = characterPosition.x + Math.cos(angle) * 80;
-        const startY = characterPosition.y + Math.sin(angle) * 80;
-        const endX = characterPosition.x + Math.cos(angle) * (radius + 20);
-        const endY = characterPosition.y + Math.sin(angle) * (radius + 20);
+        const startX = characterPosition.x + Math.cos(angle) * 80 * avatarSizeMultiplier;
+        const startY = characterPosition.y + Math.sin(angle) * 80 * avatarSizeMultiplier;
+        const endX = characterPosition.x + Math.cos(angle) * (radius + 20 * avatarSizeMultiplier);
+        const endY = characterPosition.y + Math.sin(angle) * (radius + 20 * avatarSizeMultiplier);
 
         ctx.beginPath();
         ctx.moveTo(startX, startY);
@@ -1065,7 +1079,8 @@ const MapCanvas = ({ location }) => {
 
       // Draw each emote (offset by half angle step to be between lines)
       ctx.save();
-      ctx.font = '32px Arial';
+      const emoteFontSize = 32 * avatarSizeMultiplier;
+      ctx.font = `${emoteFontSize}px Arial`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#000';
@@ -1086,21 +1101,38 @@ const MapCanvas = ({ location }) => {
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+
+    let x, y;
+    if (uxStore.isPortrait) {
+      // Mobile mode: content is rotated 90deg, so we need to transform click coordinates
+      // The visual X becomes canvas Y, visual Y becomes canvas X (inverted)
+      const visualX = event.clientX - rect.left;
+      const visualY = event.clientY - rect.top;
+      // Scale and swap coordinates
+      x = (visualY / rect.height) * BASELINE_WIDTH;
+      y = BASELINE_HEIGHT - (visualX / rect.width) * BASELINE_HEIGHT;
+    } else {
+      // Normal mode: scale click coordinates from CSS size to baseline canvas size
+      const scaleX = BASELINE_WIDTH / rect.width;
+      const scaleY = BASELINE_HEIGHT / rect.height;
+      x = (event.clientX - rect.left) * scaleX;
+      y = (event.clientY - rect.top) * scaleY;
+    }
 
     // If emote menu is open, check for emote selection
+    // Scale emote menu radius for mobile
+    const emoteMenuRadius = uxStore.shouldScaleUI ? 160 * 1.5 : 160;
     if (isEmoteMenuOpen && characterPosition) {
-      const clickResult = getClickedEmote(x, y, characterPosition.x, characterPosition.y, 160);
+      const clickResult = getClickedEmote(x, y, characterPosition.x, characterPosition.y, emoteMenuRadius);
 
       if (clickResult.type === 'emote') {
         // Send emote to server
-        if (WebSocketService.socket && canvasWidth && canvasHeight) {
+        if (WebSocketService.socket) {
           WebSocketService.socket.emit('map:emote', {
             roomId: location,
             emote: clickResult.emote,
-            x: characterPosition.x / canvasWidth,
-            y: characterPosition.y / canvasHeight,
+            x: characterPosition.x / BASELINE_WIDTH,
+            y: characterPosition.y / BASELINE_HEIGHT,
             avatarUrl: profileStore.avatarUrl,
             avatarColor: profileStore.avatarColor,
             username: profileStore.username
@@ -1119,15 +1151,17 @@ const MapCanvas = ({ location }) => {
     }
 
     // Check if clicking on own character to open emote menu
-    if (characterPosition && isPointInCharacter(x, y, characterPosition.x, characterPosition.y, 64)) {
+    // Calculate avatar size (50% larger when scaled down for mobile)
+    const clickAvatarSize = uxStore.avatarSize;
+    if (characterPosition && isPointInCharacter(x, y, characterPosition.x, characterPosition.y, clickAvatarSize)) {
       setIsEmoteMenuOpen(true);
       return;
     }
 
-    // Collect all clickable objects (exclude navigation on mobile)
+    // Collect all clickable objects
     const allObjects = [
       roomData.backButton,
-      ...(isMobile ? [] : (roomData.navigation || [])),
+      ...(roomData.navigation || []),
       ...(roomData.doors || []),
       ...(roomData.entities || [])
     ].filter(Boolean);
@@ -1163,11 +1197,11 @@ const MapCanvas = ({ location }) => {
       characterStore.setPosition(location, x, y);
 
       // Send move command to server
-      if (WebSocketService.socket && canvasWidth && canvasHeight) {
+      if (WebSocketService.socket) {
         WebSocketService.socket.emit('map:move', {
           roomId: location,
-          x: x / canvasWidth,
-          y: y / canvasHeight,
+          x: x / BASELINE_WIDTH,
+          y: y / BASELINE_HEIGHT,
           avatarUrl: profileStore.avatarUrl,
           avatarColor: profileStore.avatarColor,
           username: profileStore.username
@@ -1181,15 +1215,29 @@ const MapCanvas = ({ location }) => {
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+
+    let x, y;
+    if (uxStore.isPortrait) {
+      // Mobile mode: content is rotated 90deg, so we need to transform coordinates
+      const visualX = event.clientX - rect.left;
+      const visualY = event.clientY - rect.top;
+      // Scale and swap coordinates
+      x = (visualY / rect.height) * BASELINE_WIDTH;
+      y = BASELINE_HEIGHT - (visualX / rect.width) * BASELINE_HEIGHT;
+    } else {
+      // Normal mode: scale coordinates from CSS size to baseline canvas size
+      const scaleX = BASELINE_WIDTH / rect.width;
+      const scaleY = BASELINE_HEIGHT / rect.height;
+      x = (event.clientX - rect.left) * scaleX;
+      y = (event.clientY - rect.top) * scaleY;
+    }
 
     let foundHover = null;
 
-    // Collect all hoverable objects (exclude navigation on mobile)
+    // Collect all hoverable objects
     const allObjects = [
       roomData.backButton,
-      ...(isMobile ? [] : (roomData.navigation || [])),
+      ...(roomData.navigation || []),
       ...(roomData.doors || []),
       ...(roomData.entities || [])
     ].filter(Boolean);
@@ -1258,11 +1306,11 @@ const MapCanvas = ({ location }) => {
       // Find navigation option for this direction
       if (roomData.navigation && direction) {
         const nav = roomData.navigation.find(n => {
-          // Map navigation positions to swipe directions
-          const isLeft = n.x < canvasWidth * 0.2;
-          const isRight = n.x > canvasWidth * 0.8;
-          const isTop = n.y < canvasHeight * 0.2;
-          const isBottom = n.y > canvasHeight * 0.8;
+          // Map navigation positions to swipe directions (using baseline dimensions)
+          const isLeft = n.x < BASELINE_WIDTH * 0.2;
+          const isRight = n.x > BASELINE_WIDTH * 0.8;
+          const isTop = n.y < BASELINE_HEIGHT * 0.2;
+          const isBottom = n.y > BASELINE_HEIGHT * 0.8;
 
           if (direction === 'left' && isRight) return true;
           if (direction === 'right' && isLeft) return true;
@@ -1290,8 +1338,23 @@ const MapCanvas = ({ location }) => {
 
 
   if (Platform.OS === 'web') {
+    // Container style with rotation when in portrait
+    // canvasWidth/canvasHeight are already swapped when isPortrait is true
+    // So canvasWidth = screen height, canvasHeight = screen width
+    const containerStyle = uxStore.isPortrait ? {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: canvasWidth,   // This is the taller dimension (screen height)
+      height: canvasHeight, // This is the shorter dimension (screen width)
+      transform: `rotate(90deg) translateY(-${canvasHeight}px)`,
+      transformOrigin: 'top left',
+      backgroundColor: 'transparent',
+      zIndex: 1,
+    } : styles.container;
+
     return (
-      <View style={styles.container}>
+      <View style={containerStyle}>
         <style>{`
           button:hover {
             transform: scale(1.06) !important;
@@ -1299,24 +1362,26 @@ const MapCanvas = ({ location }) => {
         `}</style>
         <canvas
           ref={canvasRef}
-          width={canvasWidth}
-          height={canvasHeight}
+          width={BASELINE_WIDTH}
+          height={BASELINE_HEIGHT}
           onClick={handleCanvasClick}
           onMouseMove={handleCanvasMouseMove}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           style={{
             display: 'block',
-            background: 'transparent'
+            background: 'transparent',
+            width: canvasWidth,
+            height: canvasHeight,
           }}
         />
         {roomData && (
-          <View style={styles.titleOverlay}>
-            <Text style={styles.roomTitle}>{roomData.name.toUpperCase()}</Text>
+          <View style={[styles.titleOverlay, uxStore.shouldScaleUI && { top: 16 }]}>
+            <Text style={[styles.roomTitle, uxStore.shouldScaleUI && { fontSize: 28 }]}>{roomData.name.toUpperCase()}</Text>
           </View>
         )}
         <UserStatus />
-        <View style={styles.menuContainer}>
+        <View style={[styles.menuContainer, uxStore.shouldScaleUI && { transform: 'scale(0.8)', transformOrigin: 'top right' }]}>
           <HamburgerMenu />
         </View>
         {inventoryStore.isOpen && (
@@ -1344,7 +1409,7 @@ const MapCanvas = ({ location }) => {
             </View>
           </View>
         )}
-        <View style={styles.knapsackContainer}>
+        <View style={[styles.knapsackContainer, uxStore.shouldScaleUI && { transform: 'scale(0.7)', transformOrigin: 'bottom right' }]}>
           <button onClick={handleKnapsackClick} style={styles.knapsackButton}>
             <img
               src={typeof knapsackImage === 'string' ? knapsackImage : knapsackImage.default || knapsackImage.uri || knapsackImage}

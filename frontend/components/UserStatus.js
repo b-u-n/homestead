@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Platform, ImageBackground, Pressable } from 'react-native';
+import React from 'react';
+import { View, Text, Image, StyleSheet, Platform, ImageBackground } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import profileStore from '../stores/ProfileStore';
+import uxStore from '../stores/UXStore';
 import StitchedBorder from './StitchedBorder';
-import BankModal from './BankModal';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
 const UserStatus = observer(() => {
-  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  // Scale down on mobile
+  const mobileStyle = uxStore.shouldScaleUI ? {
+    transform: 'scale(0.7)',
+    transformOrigin: 'top left',
+  } : {};
 
   return (
-    <>
-      <BankModal visible={isBankModalOpen} onClose={() => setIsBankModalOpen(false)} />
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, mobileStyle]}>
       {/* Background texture */}
       {Platform.OS === 'web' && (
         <div
@@ -25,7 +27,7 @@ const UserStatus = observer(() => {
             height: '100%',
             backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
             backgroundRepeat: 'repeat',
-            backgroundSize: '40%',
+            backgroundSize: '28%',
             borderRadius: 12,
             pointerEvents: 'none',
             opacity: 0.2,
@@ -83,15 +85,10 @@ const UserStatus = observer(() => {
               ))}
             </View>
 
-            {/* Bank Icon - Bottom left */}
-            <Pressable style={styles.bankIcon} onPress={() => setIsBankModalOpen(true)}>
-              <Text style={styles.bankIconText}>💰</Text>
-            </Pressable>
           </View>
         </StitchedBorder>
       </View>
     </View>
-    </>
   );
 });
 
@@ -121,7 +118,7 @@ const styles = StyleSheet.create({
     opacity: 0.2,
   },
   overlay: {
-    backgroundColor: 'rgba(222, 134, 223, 0.1)',
+    backgroundColor: 'rgba(222, 134, 223, 0.25)',
     padding: 4,
   },
   container: {
@@ -190,17 +187,6 @@ const styles = StyleSheet.create({
   },
   heart: {
     fontSize: 14,
-  },
-  bankIcon: {
-    alignSelf: 'flex-start',
-    padding: 4,
-    borderRadius: 6,
-    backgroundColor: 'rgba(112, 68, 199, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(112, 68, 199, 0.3)',
-  },
-  bankIconText: {
-    fontSize: 18,
   },
 });
 

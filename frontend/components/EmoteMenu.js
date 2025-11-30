@@ -62,28 +62,39 @@ export const getClickedEmote = (clickX, clickY, centerX, centerY, radius = 160) 
   const numEmotes = EMOTES.length;
   const angleStep = (Math.PI * 2) / numEmotes;
 
-  // Check each emote (larger hit area since no bubbles)
-  for (let i = 0; i < numEmotes; i++) {
-    const angle = angleStep * i + angleStep / 2 - Math.PI / 2; // Offset by half step to match rendering
-    const emoteX = centerX + Math.cos(angle) * radius;
-    const emoteY = centerY + Math.sin(angle) * radius;
-
-    const distToEmote = Math.sqrt(
-      Math.pow(clickX - emoteX, 2) + Math.pow(clickY - emoteY, 2)
-    );
-
-    if (distToEmote <= 30) {
-      return { type: 'emote', emote: EMOTES[i] };
-    }
-  }
-
-  // Check if clicked in center area (close the menu)
+  // Calculate distance from center
   const distToCenter = Math.sqrt(
     Math.pow(clickX - centerX, 2) + Math.pow(clickY - centerY, 2)
   );
 
-  if (distToCenter <= 60) {
+  // Minimum radius for emote selection (inner ring) - reduced to 8px
+  const minRadius = 8;
+  // Maximum radius for emote selection (outer ring)
+  const maxRadius = radius + 30;
+
+  // Check if clicked in center area (close the menu)
+  if (distToCenter <= minRadius) {
     return { type: 'close' };
+  }
+
+  // Check if within the emote ring (between inner and outer radius)
+  if (distToCenter >= minRadius && distToCenter <= maxRadius) {
+    // Calculate angle of click relative to center
+    let clickAngle = Math.atan2(clickY - centerY, clickX - centerX);
+
+    // Adjust angle to match emote positioning (offset by -PI/2 to start at top)
+    clickAngle += Math.PI / 2;
+
+    // Normalize to 0-2PI range
+    if (clickAngle < 0) clickAngle += Math.PI * 2;
+    if (clickAngle >= Math.PI * 2) clickAngle -= Math.PI * 2;
+
+    // Determine which emote slice was clicked
+    const emoteIndex = Math.floor(clickAngle / angleStep);
+
+    if (emoteIndex >= 0 && emoteIndex < numEmotes) {
+      return { type: 'emote', emote: EMOTES[emoteIndex] };
+    }
   }
 
   // Clicked outside

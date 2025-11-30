@@ -51,8 +51,13 @@ export default function RootLayout() {
   const [screenWidth, setScreenWidth] = useState(initial.width);
   const [screenHeight, setScreenHeight] = useState(initial.height);
 
+  // Check if device is in portrait mode (mobile held upright)
+  const isPortrait = screenHeight > screenWidth;
+
   // Calculate scale factor for mobile
+  // Don't scale when in portrait - MapCanvas handles its own rotation/scaling
   const getScale = () => {
+    if (isPortrait) return 1;
     if (screenWidth >= DESIGN_WIDTH) return 1;
     return screenWidth / DESIGN_WIDTH;
   };
