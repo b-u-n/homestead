@@ -38,6 +38,14 @@ export const sounds = {
     file: require('../assets/sounds/close-activity.mp3'),
     volume: 1,
   },
+  nextPage: {
+    file: require('../assets/sounds/next-page.mp3'),
+    volume: 0.7,
+  },
+  heart: {
+    file: require('../assets/sounds/heart.mp3'),
+    volume: 0.7,
+  },
   weepingWillow: {
     file: require('../assets/sounds/weepingwillow.mp3'),
     volume: 0.15,

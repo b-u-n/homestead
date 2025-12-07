@@ -62,7 +62,7 @@ const LayerSelectModal = observer(({ visible, onClose, onLayerSelected }) => {
       visible={visible}
       onClose={onClose}
       title="Select Layer"
-      modalSize={{ width: '90%', maxWidth: 400, height: 'auto', maxHeight: 500 }}
+      zIndex={5000}
       showClose={false}
     >
       <View style={styles.container}>

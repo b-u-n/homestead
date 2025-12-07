@@ -2,6 +2,7 @@ import React, { createContext, useContext } from 'react';
 import { Pressable, Text as RNText, View, StyleSheet, ImageBackground, Platform } from 'react-native';
 import StitchedBorder from './StitchedBorder';
 import { Typography } from '../constants/typography';
+import { useWoolColors } from '../hooks/useTheme';
 
 const woolBgImage = require('../assets/images/button-bg.png');
 const minkyBgImage = require('../assets/images/slot-bg-2.jpeg');
@@ -31,21 +32,37 @@ const textStyles = {
   },
 };
 
-// Context to pass texture down to Text components
-const ButtonTextureContext = createContext('wool');
+// Size presets for text fontSize adjustment
+const sizeTextScale = {
+  small: 0.6,    // 12px for wool, 11px for minky
+  medium: 0.8,   // 16px for wool, 14px for minky
+  large: 1,      // default
+};
+
+// Size presets for padding
+const sizePadding = {
+  small: { horizontal: 10, vertical: 6 },
+  medium: { horizontal: 14, vertical: 8 },
+  large: { horizontal: 20, vertical: 12 },
+};
+
+// Context to pass texture and size down to Text components
+const ButtonTextureContext = createContext({ texture: 'wool', size: 'large' });
 
 /**
- * Text component for use inside buttons - automatically styled based on button texture
+ * Text component for use inside buttons - automatically styled based on button texture and size
  */
 export const Text = ({ style, children, ...props }) => {
-  const texture = useContext(ButtonTextureContext);
+  const { texture, size } = useContext(ButtonTextureContext);
   const baseStyle = textStyles[texture] || textStyles.wool;
+  const scale = sizeTextScale[size] || 1;
+  const scaledFontSize = Math.round(baseStyle.fontSize * scale);
   const webShadow = Platform.OS === 'web'
     ? { textShadow: '0 1px 1px rgba(255, 255, 255, 0.62)' }
     : null;
 
   return (
-    <RNText style={[baseStyle, webShadow, style]} {...props}>
+    <RNText style={[baseStyle, { fontSize: scaledFontSize }, webShadow, style]} {...props}>
       {children}
     </RNText>
   );
@@ -86,67 +103,72 @@ const ButtonBase = ({
   onPress,
   texture = 'wool',
   variant = 'primary',
+  size = 'large', // 'small', 'medium', 'large'
   disabled = false,
+  focused = false, // Selected/active state
+  overlayColor = null, // Override theme color for preview purposes
   style = {},
   contentStyle = {},
   aspectRatio,
   accessibilityLabel,
   accessibilityHint,
 }) => {
+  // Get theme colors for this variant (uses flow context automatically)
+  const themeColors = useWoolColors(variant);
+
   const bgImage = texture === 'minky' ? minkyBgImage : woolBgImage;
   const bgSize = texture === 'minky' ? '80px' : '60px';
 
   const getOverlayColor = () => {
-    if (disabled) return 'rgba(68, 71, 90, 0.21)';
-
-    switch (variant) {
-      case 'primary':
-        return 'rgba(222, 134, 223, 0.25)';
-      case 'secondary':
-        return 'rgba(179, 230, 255, 0.25)';
-      case 'purple':
-        return 'rgba(85, 60, 200, 0.27)';
-      case 'blue':
-        return 'rgba(179, 230, 255, 0.25)';
-      case 'green':
-        return 'rgba(110, 200, 130, 0.32)';
-      case 'coral':
-        return 'rgba(255, 160, 130, 0.35)';
-      case 'discord':
-      case 'blurple':
-        return 'rgba(130, 140, 255, 0.35)';
-      default:
-        return 'rgba(222, 134, 223, 0.25)';
-    }
+    // Allow explicit override for previews
+    if (overlayColor) return overlayColor;
+    if (disabled) return themeColors.inactive;
+    // Focused state only changes stitching, not overlay color
+    return themeColors.default;
   };
 
   const getBorderColor = () => {
-    switch (variant) {
-      case 'primary':
-        return 'rgba(92, 90, 88, 0.3)';
-      case 'secondary':
-        return 'rgba(179, 230, 255, 0.5)';
-      case 'purple':
-        return 'rgba(112, 68, 199, 0.4)';
-      case 'blue':
-        return 'rgba(179, 230, 255, 0.5)';
-      default:
-        return 'rgba(92, 90, 88, 0.3)';
+    // Use white stitching when focused/selected
+    if (focused) {
+      return 'rgba(255, 255, 255, 0.55)';
     }
+    // Default stitching color (matches MinkyPanel)
+    return 'rgba(92, 90, 88, 0.55)';
   };
 
   // Check if children is a string to apply default text styling
   const isTextContent = typeof children === 'string';
 
+  // Get padding based on size
+  const padding = sizePadding[size] || sizePadding.large;
+
+  // Determine if button should be auto-width (not full width)
+  const isAutoWidth = size === 'small' || size === 'medium';
+
+  // Web hover props
+  const webProps = Platform.OS === 'web' ? {
+    className: 'map-canvas-button',
+    style: [
+      styles.container,
+      isAutoWidth && styles.containerAutoWidth,
+      aspectRatio && { aspectRatio },
+      { transition: 'transform 0.1s ease' },
+      style,
+    ],
+  } : {
+    style: [
+      styles.container,
+      isAutoWidth && styles.containerAutoWidth,
+      aspectRatio && { aspectRatio },
+      style,
+    ],
+  };
+
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={[
-        styles.container,
-        aspectRatio && { aspectRatio },
-        style,
-      ]}
+      {...webProps}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || (isTextContent ? children : undefined)}
       accessibilityHint={accessibilityHint}
@@ -186,11 +208,11 @@ const ButtonBase = ({
             borderRadius={8}
             borderWidth={2}
             borderColor={getBorderColor()}
-            paddingHorizontal={isTextContent ? 20 : 12}
-            paddingVertical={isTextContent ? 12 : 12}
+            paddingHorizontal={isTextContent ? padding.horizontal : 12}
+            paddingVertical={isTextContent ? padding.vertical : 12}
             style={contentStyle}
           >
-            <ButtonTextureContext.Provider value={texture}>
+            <ButtonTextureContext.Provider value={{ texture, size }}>
               {isTextContent ? (
                 <Text>{children}</Text>
               ) : (
@@ -217,6 +239,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
+  },
+  containerAutoWidth: {
+    width: 'auto',
+    alignSelf: 'flex-start',
   },
   bgImageNative: {
     position: 'absolute',

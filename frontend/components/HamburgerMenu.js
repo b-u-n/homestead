@@ -4,18 +4,19 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import StitchedBorder from './StitchedBorder';
 import WoolButton from './WoolButton';
-import LayerSelectModal from './LayerSelectModal';
-import SoundSettingsModal from './SoundSettingsModal';
 import AuthStore from '../stores/AuthStore';
 import LayerStore from '../stores/LayerStore';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
-const HamburgerMenu = observer(({ style }) => {
+const HamburgerMenu = observer(({
+  style,
+  onShowLayerModal,
+  onShowSoundSettings,
+  onShowThemeSettings,
+}) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [showLayerModal, setShowLayerModal] = useState(false);
-  const [showSoundSettings, setShowSoundSettings] = useState(false);
   const containerRef = useRef(null);
 
   // Global click listener to close menu when clicking outside
@@ -49,16 +50,17 @@ const HamburgerMenu = observer(({ style }) => {
 
   const handleSwitchLayers = () => {
     setIsOpen(false);
-    setShowLayerModal(true);
+    onShowLayerModal?.();
   };
 
   const handleSoundSettings = () => {
     setIsOpen(false);
-    setShowSoundSettings(true);
+    onShowSoundSettings?.();
   };
 
-  const handleLayerSelected = (layer) => {
-    setShowLayerModal(false);
+  const handleThemeSettings = () => {
+    setIsOpen(false);
+    onShowThemeSettings?.();
   };
 
   const currentLayerName = LayerStore.currentLayer?.name || 'None';
@@ -94,7 +96,7 @@ const HamburgerMenu = observer(({ style }) => {
             />
           )}
           <View style={styles.hamburgerOverlay}>
-            <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)">
+            <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)" style={styles.hamburgerBorderInner}>
               <View style={styles.hamburgerLines}>
                 <View style={styles.hamburgerLine} />
                 <View style={styles.hamburgerLine} />
@@ -102,6 +104,8 @@ const HamburgerMenu = observer(({ style }) => {
               </View>
             </StitchedBorder>
           </View>
+          {/* Emboss border */}
+          <View style={styles.embossBorder} pointerEvents="none" />
         </Pressable>
 
         {/* Dropdown Menu */}
@@ -156,6 +160,14 @@ const HamburgerMenu = observer(({ style }) => {
                       style={styles.menuButton}
                     />
 
+                    {/* Theme Settings Button */}
+                    <WoolButton
+                      title="Theme Settings"
+                      onPress={handleThemeSettings}
+                      variant="purple"
+                      style={styles.menuButton}
+                    />
+
                     {/* Logout Button */}
                     {AuthStore.isAuthenticated && (
                       <WoolButton
@@ -172,19 +184,6 @@ const HamburgerMenu = observer(({ style }) => {
           </>
         )}
       </View>
-
-      {/* Layer Selection Modal */}
-      <LayerSelectModal
-        visible={showLayerModal}
-        onClose={() => setShowLayerModal(false)}
-        onLayerSelected={handleLayerSelected}
-      />
-
-      {/* Sound Settings Modal */}
-      <SoundSettingsModal
-        visible={showSoundSettings}
-        onClose={() => setShowSoundSettings(false)}
-      />
     </>
   );
 });
@@ -220,6 +219,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  hamburgerBorderInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   hamburgerLines: {
     width: 24,
     height: 20,
@@ -231,6 +234,22 @@ const styles = StyleSheet.create({
     height: 3,
     backgroundColor: '#403F3E',
     borderRadius: 2,
+  },
+  embossBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 8,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.5)',
+    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderRightColor: 'rgba(0, 0, 0, 0.15)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.15)',
   },
   backdrop: {
     position: 'fixed',

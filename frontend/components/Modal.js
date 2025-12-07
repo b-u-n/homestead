@@ -7,7 +7,9 @@ import Scroll from './Scroll';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
-const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size }) => {
+const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack }) => {
+  // Show back button if canGoBack OR if a custom back action is provided
+  const showBack = canGoBack || onCustomBack;
   const hasPlayedOpenSound = useRef(false);
 
   // Play open sounds once when modal first becomes visible
@@ -71,8 +73,8 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
               {/* Navigation buttons bar with title */}
               <View style={styles.navBar}>
                 {/* Back button or spacer */}
-                {canGoBack ? (
-                  <Pressable onPress={onBack} style={[styles.navButtonPressable, { left: 0 }]}>
+                {showBack ? (
+                  <Pressable onPress={onCustomBack || onBack} style={[backLabel ? styles.navButtonPressableWide : styles.navButtonPressable, { left: 0 }]}>
                     {/* Background texture */}
                     {Platform.OS === 'web' && (
                       <div
@@ -84,7 +86,7 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                           height: '100%',
                           backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
                           backgroundRepeat: 'repeat',
-                          backgroundSize: '15%',
+                          backgroundSize: backLabel ? '30%' : '15%',
                           borderRadius: 8,
                           pointerEvents: 'none',
                           opacity: 0.8,
@@ -99,9 +101,9 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                         resizeMode="repeat"
                       />
                     )}
-                    <View style={styles.navButtonOverlay}>
-                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)" style={styles.navButtonBorder}>
-                        <Text style={styles.navButtonText}>←</Text>
+                    <View style={styles.navButtonOverlayPurple}>
+                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(112, 68, 199, 0.4)" style={styles.navButtonBorder}>
+                        <Text style={backLabel ? styles.navButtonTextSmall : styles.navButtonText}>← {backLabel || ''}</Text>
                       </StitchedBorder>
                     </View>
                     <View style={styles.embossBorder} pointerEvents="none" />
@@ -144,8 +146,8 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                         resizeMode="repeat"
                       />
                     )}
-                    <View style={styles.navButtonOverlay}>
-                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)" style={styles.navButtonBorder}>
+                    <View style={styles.navButtonOverlayPurple}>
+                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(112, 68, 199, 0.4)" style={styles.navButtonBorder}>
                         <Text style={styles.navButtonText}>✕</Text>
                       </StitchedBorder>
                     </View>
@@ -180,10 +182,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   wrapper: {
-    width: Platform.OS === 'web' ? '80%' : '100%',
-    height: Platform.OS === 'web' ? '80%' : '100%',
-    maxWidth: Platform.OS === 'web' ? 700 : undefined,
-    maxHeight: Platform.OS === 'web' ? 600 : undefined,
+    width: Platform.OS === 'web' ? '85%' : '100%',
+    height: Platform.OS === 'web' ? '85%' : '100%',
+    maxWidth: Platform.OS === 'web' ? 840 : undefined,
+    maxHeight: Platform.OS === 'web' ? 720 : undefined,
     borderRadius: Platform.OS === 'web' ? 12 : 0,
     overflow: 'hidden',
     // 3D floating/stitched effect with layered shadows
@@ -193,6 +195,7 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 16,
     pointerEvents: 'auto',
+    alignSelf: 'center',
   },
   contentWrapper: {
     backgroundColor: 'rgba(222, 134, 223, 0.1)',
@@ -234,6 +237,18 @@ const styles = StyleSheet.create({
     elevation: 3,
     zIndex: 11,
   },
+  navButtonPressableWide: {
+    height: 40,
+    position: 'absolute',
+    borderRadius: 8,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 11,
+  },
   navButtonBgImage: {
     position: 'absolute',
     top: 0,
@@ -249,10 +264,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  navButtonOverlayPurple: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(78, 78, 188, 0.27)',
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   navButtonText: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#403F3E',
+  },
+  navButtonTextSmall: {
+    fontSize: 14,
+    fontFamily: 'Comfortaa',
+    fontWeight: '700',
+    color: '#403F3E',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   titleInNav: {
     fontSize: 24,

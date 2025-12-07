@@ -9,6 +9,7 @@ import profileStore from '../../stores/ProfileStore';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import AvatarStamp from '../AvatarStamp';
+import Heart from '../Heart';
 
 // Helper to convert hex color to rgba
 const hexToRgba = (hexColor, opacity = 0.15) => {
@@ -166,7 +167,10 @@ const RespondToPost = observer(({
                     borderInset={-1}
                     style={styles.firstBadge}
                   >
-                    <Text style={styles.firstBadgeText}>1ST</Text>
+                    <View style={styles.badgeContent}>
+                      <Heart size={12} />
+                      <Text style={styles.firstBadgeText}>First Response</Text>
+                    </View>
                   </MinkyPanel>
                 )}
                 <MinkyPanel
@@ -215,7 +219,10 @@ const RespondToPost = observer(({
             borderInset={-1}
             style={styles.heartsBadge}
           >
-            <Text style={styles.heartsBadgeText}>❤️ {post.hearts}</Text>
+            <View style={styles.badgeContent}>
+              <Heart size={12} />
+              <Text style={styles.heartsBadgeText}>{post.hearts}</Text>
+            </View>
           </MinkyPanel>
           <MinkyPanel
             borderRadius={10}
@@ -238,9 +245,10 @@ const RespondToPost = observer(({
 
         {isFirstResponse && (
           <View style={styles.rewardBox}>
-            <Text style={styles.rewardText}>
-              🎉 First response earns <Text style={styles.rewardBold}>{post.hearts} hearts!</Text>
-            </Text>
+            <Text style={styles.rewardText}>First response earns </Text>
+            <Text style={styles.rewardBold}>{post.hearts}</Text>
+            <Heart size={14} />
+            <Text style={styles.rewardText}>!</Text>
           </View>
         )}
 
@@ -314,7 +322,6 @@ const styles = StyleSheet.create({
     color: 'rgba(64, 63, 62, 0.82)',
     textAlign: 'center',
     marginBottom: 8,
-    flexShrink: 0,
     textShadowColor: 'rgba(255, 255, 255, 1)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 2,
@@ -350,6 +357,11 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
+  badgeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   postHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -376,6 +388,10 @@ const styles = StyleSheet.create({
     textShadowRadius: 1,
   },
   rewardBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
     padding: 8,
     borderRadius: 6,
     backgroundColor: 'rgba(112, 68, 199, 0.1)',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Platform, ImageBackground } from 'react-native';
 import StitchedBorder from './StitchedBorder';
+import { useMinkyColor } from '../hooks/useTheme';
 
 const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
@@ -8,12 +9,16 @@ const MinkyPanel = ({
   children,
   style = {},
   borderRadius = 20,
-  overlayColor = 'rgba(222, 134, 223, 0.25)',
+  overlayColor,
+  variant = 'primary',
   borderColor,
   padding = 20,
   paddingTop = 25,
   borderInset = 0,
 }) => {
+  // Get theme color (uses flow context automatically)
+  const effectiveColor = useMinkyColor(variant, overlayColor);
+
   return (
     <View style={[styles.container, { borderRadius }, style]}>
       {/* Background texture */}
@@ -42,7 +47,7 @@ const MinkyPanel = ({
           resizeMode="repeat"
         />
       )}
-      <View style={[styles.overlay, { backgroundColor: overlayColor, padding: 4 + borderInset }]}>
+      <View style={[styles.overlay, { backgroundColor: effectiveColor, padding: 4 + borderInset }]}>
         <StitchedBorder borderRadius={borderRadius} borderColor={borderColor} style={[styles.border, { padding, paddingTop }]}>
           {children}
         </StitchedBorder>

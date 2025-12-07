@@ -6,6 +6,7 @@ import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import profileStore from '../../stores/ProfileStore';
 import FormStore from '../../stores/FormStore';
+import Heart from '../Heart';
 
 const slotBgImage = require('../../assets/images/slot-bg-2.jpeg');
 
@@ -170,7 +171,10 @@ const BankDrop = observer(({ onComplete, onBack, canGoBack }) => {
           <View style={styles.balanceSection}>
             <View style={styles.balanceCard}>
               <Text style={styles.balanceLabel}>Active Hearts</Text>
-              <Text style={styles.balanceValue}>❤️ {hearts}/9</Text>
+              <View style={styles.balanceValueRow}>
+                <Heart size={16} />
+                <Text style={styles.balanceValue}>{hearts}/9</Text>
+              </View>
             </View>
 
             <View style={styles.balanceCard}>
@@ -299,6 +303,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#5C5A58',
     textTransform: 'uppercase',
+  },
+  balanceValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   balanceValue: {
     fontSize: 24,

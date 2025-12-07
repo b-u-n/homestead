@@ -5,6 +5,7 @@ import profileStore from '../stores/ProfileStore';
 import uxStore from '../stores/UXStore';
 import StitchedBorder from './StitchedBorder';
 import AvatarStamp from './AvatarStamp';
+import Heart from './Heart';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
@@ -77,9 +78,9 @@ const UserStatus = observer(() => {
             {/* Hearts */}
             <View style={styles.heartsContainer}>
               {profileStore.heartsArray.map((filled, index) => (
-                <Text key={index} style={styles.heart}>
-                  {filled ? '❤️' : '🤍'}
-                </Text>
+                <View key={index} style={[styles.heart, !filled && styles.heartEmpty]}>
+                  <Heart size={16} />
+                </View>
               ))}
             </View>
 
@@ -161,7 +162,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   heart: {
-    fontSize: 14,
+    // Heart image container
+  },
+  heartEmpty: {
+    opacity: 0.3,
   },
 });
 

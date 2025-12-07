@@ -4,6 +4,7 @@ import WebSocketService from '../../services/websocket';
 import ErrorStore from '../../stores/ErrorStore';
 import Scroll from '../Scroll';
 import AvatarStamp from '../AvatarStamp';
+import Heart from '../Heart';
 
 /**
  * ViewPost Drop
@@ -122,7 +123,10 @@ const ViewPost = ({
               />
               <Text style={styles.authorName}>{post.user?.name}</Text>
             </View>
-            <Text style={styles.hearts}>❤️ {post.hearts}</Text>
+            <View style={styles.heartsRow}>
+              <Heart size={16} />
+              <Text style={styles.hearts}>{post.hearts}</Text>
+            </View>
           </View>
 
           {/* Post Content */}
@@ -169,7 +173,10 @@ const ViewPost = ({
                   {/* Show badge for first responder who won the bounty */}
                   {index === 0 && post.firstResponderId && (
                     <View style={styles.bountyBadge}>
-                      <Text style={styles.bountyBadgeText}>❤️ +{post.hearts}</Text>
+                      <View style={styles.bountyBadgeContent}>
+                        <Heart size={12} />
+                        <Text style={styles.bountyBadgeText}>+{post.hearts}</Text>
+                      </View>
                     </View>
                   )}
                 </View>
@@ -260,6 +267,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
+  },
+  heartsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   hearts: {
     fontSize: 16,
@@ -357,6 +369,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#7044C7',
+  },
+  bountyBadgeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   bountyBadgeText: {
     fontSize: 11,

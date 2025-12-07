@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, ImageBackground,  } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, ImageBackground } from 'react-native';
 import Scroll from './Scroll';
 import { observer } from 'mobx-react-lite';
 import StitchedBorder from './StitchedBorder';
+import MinkyPanel from './MinkyPanel';
+import Heart from './Heart';
 import NotificationStore from '../stores/NotificationStore';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
@@ -77,50 +79,61 @@ const NotificationHeart = observer(({ style, onNotificationClick }) => {
 
   return (
     <View ref={containerRef} style={[styles.container, style]}>
-      {/* Heart Button */}
-      <Pressable onPress={() => setIsOpen(!isOpen)} style={styles.heartButton}>
-        {Platform.OS === 'web' && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '20%',
-              borderRadius: 8,
-              pointerEvents: 'none',
-              opacity: 0.8,
-            }}
-          />
-        )}
-        {Platform.OS !== 'web' && (
-          <ImageBackground
-            source={buttonBgImage}
-            style={styles.buttonBgImage}
-            imageStyle={{ opacity: 0.8, borderRadius: 8 }}
-            resizeMode="repeat"
-          />
-        )}
-        <View style={styles.heartOverlay}>
-          <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)">
-            <View style={styles.heartIconContainer}>
-              <Text style={styles.heartIcon}>❤️</Text>
-            </View>
-          </StitchedBorder>
-        </View>
+      {/* Heart Button Wrapper - allows badge overflow */}
+      <View style={styles.buttonWrapper}>
+        <Pressable onPress={() => setIsOpen(!isOpen)} style={styles.heartButton}>
+          {Platform.OS === 'web' && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '20%',
+                borderRadius: 8,
+                pointerEvents: 'none',
+                opacity: 0.8,
+              }}
+            />
+          )}
+          {Platform.OS !== 'web' && (
+            <ImageBackground
+              source={buttonBgImage}
+              style={styles.buttonBgImage}
+              imageStyle={{ opacity: 0.8, borderRadius: 8 }}
+              resizeMode="repeat"
+            />
+          )}
+          <View style={styles.heartOverlay}>
+            <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)">
+              <View style={styles.heartIconContainer}>
+                <Heart size={24} />
+              </View>
+            </StitchedBorder>
+          </View>
+          {/* Emboss border */}
+          <View style={styles.embossBorder} pointerEvents="none" />
+        </Pressable>
 
-        {/* Unread Badge */}
+        {/* Unread Badge - outside button for no clipping */}
         {NotificationStore.unreadCount > 0 && (
-          <View style={styles.badge}>
+          <MinkyPanel
+            borderRadius={10}
+            padding={2}
+            paddingTop={2}
+            overlayColor="rgba(112, 68, 199, 0.3)"
+            borderInset={-1}
+            style={styles.badge}
+          >
             <Text style={styles.badgeText}>
               {NotificationStore.unreadCount > 9 ? '9+' : NotificationStore.unreadCount}
             </Text>
-          </View>
+          </MinkyPanel>
         )}
-      </Pressable>
+      </View>
 
       {/* Dropdown Panel */}
       {isOpen && (
@@ -192,7 +205,7 @@ const NotificationHeart = observer(({ style, onNotificationClick }) => {
                                 }}
                               />
                             ) : (
-                              <Text style={styles.avatarPlaceholder}>❤️</Text>
+                              <Heart size={24} />
                             )}
                           </View>
 
@@ -232,6 +245,10 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 1000,
   },
+  buttonWrapper: {
+    position: 'relative',
+    overflow: 'visible',
+  },
   heartButton: {
     width: 50,
     height: 50,
@@ -259,32 +276,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heartIconContainer: {
-    width: 32,
-    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 6,
+    marginTop: 2,
   },
   heartIcon: {
     fontSize: 20,
   },
+  embossBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 8,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.5)',
+    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderRightColor: 'rgba(0, 0, 0, 0.15)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.15)',
+  },
   badge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#7044C7',
-    borderRadius: 10,
+    top: -6,
+    right: -6,
+    zIndex: 10,
     minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: '#403F3E',
     fontSize: 11,
     fontWeight: 'bold',
+    fontFamily: 'Comfortaa',
+    textAlign: 'center',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   backdrop: {
     position: 'fixed',

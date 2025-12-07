@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
+import Heart from '../Heart';
 
 /**
  * ResponseConfirmation Drop (Overlay)
@@ -41,9 +42,11 @@ const ResponseConfirmation = observer(({
             <Text style={styles.heartsText}>
               You earned {heartsAwarded} {heartsAwarded === 1 ? 'heart' : 'hearts'}!
             </Text>
-            <Text style={styles.heartsEmoji}>
-              {'❤️'.repeat(Math.min(heartsAwarded, 5))}
-            </Text>
+            <View style={styles.heartsRow}>
+              {Array.from({ length: Math.min(heartsAwarded, 5) }).map((_, i) => (
+                <Heart key={i} size={24} />
+              ))}
+            </View>
           </View>
         )}
       </MinkyPanel>
@@ -88,8 +91,9 @@ const styles = StyleSheet.create({
     color: '#7044C7',
     textAlign: 'center',
   },
-  heartsEmoji: {
-    fontSize: 24,
+  heartsRow: {
+    flexDirection: 'row',
+    gap: 4,
   },
 });
 

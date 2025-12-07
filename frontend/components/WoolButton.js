@@ -25,7 +25,10 @@ const WoolButton = ({
   title, // Deprecated: use children instead
   onPress,
   variant = 'primary',
+  size = 'large', // 'small', 'medium', 'large'
   disabled = false,
+  focused = false, // Selected/active state
+  overlayColor = null, // Override theme color for preview purposes
   style = {},
   contentStyle = {},
   aspectRatio,
@@ -37,7 +40,10 @@ const WoolButton = ({
       texture="wool"
       onPress={onPress}
       variant={variant}
+      size={size}
       disabled={disabled}
+      focused={focused}
+      overlayColor={overlayColor}
       style={style}
       contentStyle={contentStyle}
       aspectRatio={aspectRatio}

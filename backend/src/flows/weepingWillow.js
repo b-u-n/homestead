@@ -36,20 +36,7 @@ module.exports = {
       handler: async (data, context) => {
         const { filter, sort } = data;
 
-        // Build query
-        let query = {};
-
-        if (filter === 'unresponded') {
-          query['responses.0'] = { $exists: false }; // No responses
-        } else if (filter === 'new') {
-          // Posts created in last 7 days
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          query.createdAt = { $gte: weekAgo };
-        }
-        // 'popular' doesn't need a query filter, just sort by hearts
-
-        // Build sort
+        // Build sort - no filtering, all posts shown
         let sortObj = { createdAt: -1 }; // Default: newest first
 
         if (sort === 'value-asc') {
@@ -60,9 +47,28 @@ module.exports = {
           sortObj = { createdAt: 1 };
         } else if (sort === 'date-desc') {
           sortObj = { createdAt: -1 };
+        } else if (sort === 'unresponded') {
+          // Special sort: unresponded posts first, then by date
+          // We'll handle this with aggregation
+          const posts = await WeepingWillowPost.aggregate([
+            {
+              $addFields: {
+                hasResponses: { $gt: [{ $size: { $ifNull: ['$responses', []] } }, 0] }
+              }
+            },
+            {
+              $sort: { hasResponses: 1, createdAt: -1 } // false (0) comes before true (1)
+            },
+            { $limit: 50 }
+          ]);
+
+          return {
+            success: true,
+            data: posts
+          };
         }
 
-        const posts = await WeepingWillowPost.find(query)
+        const posts = await WeepingWillowPost.find({})
           .sort(sortObj)
           .limit(50)
           .lean();

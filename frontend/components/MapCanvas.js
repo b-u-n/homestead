@@ -14,9 +14,13 @@ import NotificationHeart from './NotificationHeart';
 import WishingWell from './WishingWell';
 import WeepingWillow from './WeepingWillow';
 import FlowEngine from './FlowEngine';
+import LayerSelectModal from './LayerSelectModal';
+import SoundSettingsModal from './SoundSettingsModal';
+import ThemeSettingsModal from './ThemeSettingsModal';
 import heartsFlow from '../flows/heartsFlow';
 import CharacterIcon, { isPointInCharacter } from './CharacterIcon';
 import EmoteMenu, { getClickedEmote } from './EmoteMenu';
+import { EMOTES, drawEmote, measureEmote } from '../config/emotes';
 import WebSocketService from '../services/websocket';
 // Import sections
 import townSquare from '../locations/sections/town-square';
@@ -71,6 +75,9 @@ const MapCanvas = ({ location }) => {
   const [weepingWillowParams, setWeepingWillowParams] = useState({});
   const [isBankFlowOpen, setIsBankFlowOpen] = useState(false);
   const [isEmoteMenuOpen, setIsEmoteMenuOpen] = useState(false);
+  const [isLayerModalOpen, setIsLayerModalOpen] = useState(false);
+  const [isSoundSettingsOpen, setIsSoundSettingsOpen] = useState(false);
+  const [isThemeSettingsOpen, setIsThemeSettingsOpen] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(null);
   const [avatarImages, setAvatarImages] = useState({});
   const [canvasWidth, setCanvasWidth] = useState(1200);
@@ -774,11 +781,9 @@ const MapCanvas = ({ location }) => {
           ctx.save();
           ctx.globalAlpha = opacity;
 
-          // Measure emote text
+          // Measure emote (text or image)
           const emoteFontSize = 20 * avatarSizeMultiplier;
-          ctx.font = `${emoteFontSize}px Arial`;
-          const metrics = ctx.measureText(player.emote);
-          const textWidth = metrics.width;
+          const textWidth = measureEmote(ctx, player.emote, emoteFontSize);
 
           // Expression bubble dimensions (offset scaled)
           const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
@@ -843,11 +848,8 @@ const MapCanvas = ({ location }) => {
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Draw emote text (centered in the bubble)
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = '#000';
-          ctx.fillText(player.emote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2);
+          // Draw emote (centered in the bubble)
+          drawEmote(ctx, player.emote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2, emoteFontSize);
           ctx.restore();
         }
 
@@ -953,11 +955,9 @@ const MapCanvas = ({ location }) => {
         ctx.save();
         ctx.globalAlpha = opacity;
 
-        // Measure emote text
+        // Measure emote (text or image)
         const emoteFontSize = 20 * avatarSizeMultiplier;
-        ctx.font = `${emoteFontSize}px Arial`;
-        const metrics = ctx.measureText(characterStore.activeEmote);
-        const textWidth = metrics.width;
+        const textWidth = measureEmote(ctx, characterStore.activeEmote, emoteFontSize);
 
         // Expression bubble dimensions (offset scaled)
         const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
@@ -1022,11 +1022,8 @@ const MapCanvas = ({ location }) => {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Draw emote text (centered in the bubble)
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#000';
-        ctx.fillText(characterStore.activeEmote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2);
+        // Draw emote (centered in the bubble)
+        drawEmote(ctx, characterStore.activeEmote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2, emoteFontSize);
         ctx.restore();
       }
 
@@ -1049,14 +1046,9 @@ const MapCanvas = ({ location }) => {
 
     // Draw emote menu if open
     if (isEmoteMenuOpen && characterPosition) {
-      const numEmotes = 12;
+      const numEmotes = EMOTES.length;
       const radius = 160 * avatarSizeMultiplier;
       const angleStep = (Math.PI * 2) / numEmotes;
-      const emotes = [
-        '😊', '😂', '😍', '😎',
-        '🤔', '😢', '😠', '🎉',
-        '👍', '👋', '❤️', '🔥'
-      ];
 
       // Draw semi-transparent background circle
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
@@ -1067,7 +1059,7 @@ const MapCanvas = ({ location }) => {
       // Draw separator lines between emotes (not going to center)
       ctx.strokeStyle = 'rgba(92, 90, 88, 0.2)';
       ctx.lineWidth = 1;
-      emotes.forEach((_, index) => {
+      EMOTES.forEach((_, index) => {
         const angle = angleStep * index - Math.PI / 2;
         const startX = characterPosition.x + Math.cos(angle) * 80 * avatarSizeMultiplier;
         const startY = characterPosition.y + Math.sin(angle) * 80 * avatarSizeMultiplier;
@@ -1081,21 +1073,15 @@ const MapCanvas = ({ location }) => {
       });
 
       // Draw each emote (offset by half angle step to be between lines)
-      ctx.save();
       const emoteFontSize = 32 * avatarSizeMultiplier;
-      ctx.font = `${emoteFontSize}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#000';
-      emotes.forEach((emote, index) => {
+      EMOTES.forEach((emote, index) => {
         const angle = angleStep * index + angleStep / 2 - Math.PI / 2; // Offset by half step
         const emoteX = characterPosition.x + Math.cos(angle) * radius;
         const emoteY = characterPosition.y + Math.sin(angle) * radius;
 
-        // Draw emote text (no background)
-        ctx.fillText(emote, emoteX, emoteY);
+        // Use centralized emote drawing (handles images vs text)
+        drawEmote(ctx, emote, emoteX, emoteY, emoteFontSize);
       });
-      ctx.restore();
     }
   };
 
@@ -1402,7 +1388,11 @@ const MapCanvas = ({ location }) => {
         <UserStatus />
         <View style={[styles.menuContainer, uxStore.shouldScaleUI && { transform: 'scale(0.8)', transformOrigin: 'top right' }]}>
           <NotificationHeart style={{ marginRight: 10 }} onNotificationClick={handleNotificationClick} />
-          <HamburgerMenu />
+          <HamburgerMenu
+            onShowLayerModal={() => setIsLayerModalOpen(true)}
+            onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
+            onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
+          />
         </View>
         {inventoryStore.isOpen && (
           <View style={styles.inventoryPanel}>
@@ -1452,6 +1442,19 @@ const MapCanvas = ({ location }) => {
           flowDefinition={heartsFlow}
           visible={isBankFlowOpen}
           onClose={() => setIsBankFlowOpen(false)}
+        />
+        <LayerSelectModal
+          visible={isLayerModalOpen}
+          onClose={() => setIsLayerModalOpen(false)}
+          onLayerSelected={() => setIsLayerModalOpen(false)}
+        />
+        <SoundSettingsModal
+          visible={isSoundSettingsOpen}
+          onClose={() => setIsSoundSettingsOpen(false)}
+        />
+        <ThemeSettingsModal
+          visible={isThemeSettingsOpen}
+          onClose={() => setIsThemeSettingsOpen(false)}
         />
       </View>
     );

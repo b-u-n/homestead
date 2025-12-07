@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Platform, ImageBackground } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import profileStore from '../../stores/ProfileStore';
 import FormStore from '../../stores/FormStore';
-import StitchedBorder from '../StitchedBorder';
-
-const buttonBgImage = require('../../assets/images/button-bg.png');
+import MinkyPanel from '../MinkyPanel';
+import WoolButton from '../WoolButton';
+import Heart from '../Heart';
 
 /**
  * CreatePost Drop
@@ -91,139 +91,106 @@ const CreatePost = observer(({
 
   return (
     <View style={styles.container}>
-      {/* Explanation */}
-      <View style={styles.explanationBox}>
+      <MinkyPanel
+        borderRadius={10}
+        padding={16}
+        paddingTop={16}
+        overlayColor="rgba(112, 68, 199, 0.2)"
+      >
+        {/* Explanation */}
         <Text style={styles.explanationText}>
           {isFreePost ? (
-            `Share a positive message with the community! Other users can respond and you can tip them hearts if their response resonates with you.\n\nNo guaranteed responses, but we do our best to get through them all. Responding to others first tends to help. <3`
+            `Share a positive message with the community! Other users can respond and you can tip them hearts if their response resonates with you.`
           ) : (
-            `When you feel like you just need to talk, that's what we're here for. <3\n\nShare what's on your mind. Other users can respond to earn the hearts you offer. We'll do our best to get through them all.\n\nResponding to others first is the fastest way to get your own post noticed. <3`
+            `When you feel like you just need to talk, that's what we're here for. Share what's on your mind. Other users can respond to earn the hearts you offer.`
           )}
         </Text>
-      </View>
 
-      {/* Heart Selector (only for paid posts - weeping willow) */}
-      {!isFreePost && (
-        <View style={styles.heartSelectorContainer}>
-          <Text style={styles.label}>HEART BOUNTY</Text>
-          <View style={styles.heartSelector}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
-              const isSelected = heartNum <= hearts;
-              const isAvailable = heartNum <= availableHearts;
+        {/* Heart Selector (only for paid posts - weeping willow) */}
+        {!isFreePost && (
+          <View style={styles.heartSelectorContainer}>
+            <Text style={styles.label}>HEART BOUNTY</Text>
+            <View style={styles.heartSelector}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
+                const isSelected = heartNum <= hearts;
+                const isAvailable = heartNum <= availableHearts;
 
-              // Determine heart appearance
-              let heartStyle = {};
-              if (!isAvailable) {
-                // Black/unavailable - use very low opacity and grayscale filter
-                heartStyle = { opacity: 0.2 };
-              } else if (isSelected) {
-                // Red/selected - full color
-                heartStyle = { opacity: 1 };
-              } else {
-                // White/available - medium opacity to appear lighter
-                heartStyle = { opacity: 0.4 };
-              }
+                let heartStyle = {};
+                if (!isAvailable) {
+                  heartStyle = { opacity: 0.2 };
+                } else if (isSelected) {
+                  heartStyle = { opacity: 1 };
+                } else {
+                  heartStyle = { opacity: 0.4 };
+                }
 
-              return (
-                <Pressable
-                  key={heartNum}
-                  onPress={() => {
-                    if (heartNum <= availableHearts) {
-                      setHearts(heartNum);
-                    }
-                  }}
-                  disabled={heartNum > availableHearts}
-                  style={styles.heartIcon}
-                >
-                  <Text style={[styles.heartEmoji, heartStyle]}>❤️</Text>
-                </Pressable>
-              );
-            })}
+                return (
+                  <Pressable
+                    key={heartNum}
+                    onPress={() => {
+                      if (heartNum <= availableHearts) {
+                        setHearts(heartNum);
+                      }
+                    }}
+                    disabled={heartNum > availableHearts}
+                    style={[styles.heartIcon, heartStyle]}
+                  >
+                    <Heart size={28} />
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={styles.heartHelpRow}>
+              <Text style={styles.heartHelp}>Heart bounty for responders: {hearts}</Text>
+              <Heart size={14} />
+            </View>
           </View>
-          <Text style={styles.heartHelp}>
-            Heart bounty for responders: {hearts} ❤️
-          </Text>
+        )}
+
+        {/* Content Input */}
+        <View style={styles.inputContainer}>
+          {Platform.OS === 'web' ? (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
+              maxLength={500}
+              style={{
+                fontFamily: 'Comfortaa',
+                fontSize: 14,
+                padding: 10,
+                borderRadius: 8,
+                border: '1px solid rgba(92, 90, 88, 0.3)',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                outline: 'none',
+                resize: 'none',
+                flex: 1,
+                minHeight: 120,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
+              }}
+            />
+          ) : (
+            <TextInput
+              value={content}
+              onChangeText={setContent}
+              placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
+              multiline
+              maxLength={500}
+              style={styles.textInput}
+            />
+          )}
+          <Text style={styles.charCount}>{content.length}/500</Text>
         </View>
-      )}
 
-      {/* Content Input */}
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>YOUR WISH</Text>
-        {Platform.OS === 'web' ? (
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Share a hopeful wish or positive message..."
-            maxLength={500}
-            style={{
-              ...styles.textInput,
-              fontFamily: 'Comfortaa',
-              resize: 'vertical',
-              border: '2px solid rgba(92, 90, 88, 0.3)',
-              outline: 'none',
-              minHeight: 200,
-            }}
-          />
-        ) : (
-          <TextInput
-            value={content}
-            onChangeText={setContent}
-            placeholder="Share a hopeful wish or positive message..."
-            multiline
-            maxLength={500}
-            style={[styles.textInput, { minHeight: 200 }]}
-          />
-        )}
-        <Text style={styles.charCount}>{content.length}/500</Text>
-      </View>
-
-      {/* Submit Button */}
-      <Pressable
-        style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-        onPress={handleSubmit}
-        disabled={isSubmitting}
-      >
-        {/* Background texture */}
-        {Platform.OS === 'web' && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '40%',
-              borderRadius: 8,
-              pointerEvents: 'none',
-              opacity: 0.8,
-            }}
-          />
-        )}
-        {Platform.OS !== 'web' && (
-          <ImageBackground
-            source={buttonBgImage}
-            style={styles.buttonBgImage}
-            imageStyle={{ opacity: 0.8, borderRadius: 6 }}
-            resizeMode="repeat"
-          />
-        )}
-        <View style={styles.submitButtonOverlay}>
-          <StitchedBorder paddingHorizontal={26} paddingVertical={11}>
-            <Text style={styles.submitButtonText}>
-              {isSubmitting ? 'POSTING...' : 'POST WISH'}
-            </Text>
-          </StitchedBorder>
-        </View>
-      </Pressable>
-
-      {/* Back Button */}
-      {canGoBack && (
-        <Pressable style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← CANCEL</Text>
-        </Pressable>
-      )}
+        {/* Submit Button */}
+        <WoolButton
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          variant="purple"
+        >
+          {isSubmitting ? 'POSTING...' : (isFreePost ? 'POST WISH' : 'ASK FOR HELP')}
+        </WoolButton>
+      </MinkyPanel>
     </View>
   );
 });
@@ -231,126 +198,85 @@ const CreatePost = observer(({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 20,
-  },
-  explanationBox: {
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(179, 230, 255, 0.5)',
-    backgroundColor: 'rgba(179, 230, 255, 0.1)',
   },
   explanationText: {
     fontSize: 13,
     fontFamily: 'Comfortaa',
+    fontWeight: '600',
     color: '#403F3E',
     lineHeight: 20,
-  },
-  explanationBold: {
-    fontWeight: '700',
+    marginBottom: 16,
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   heartSelectorContainer: {
-    gap: 10,
+    gap: 8,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   heartSelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    gap: 8,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(112, 68, 199, 0.2)',
-    backgroundColor: 'rgba(112, 68, 199, 0.05)',
+    gap: 4,
   },
   heartIcon: {
-    padding: 4,
+    padding: 2,
   },
-  heartEmoji: {
-    fontSize: 32,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+  heartHelpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
   },
   heartHelp: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Comfortaa',
-    color: '#5C5A58',
+    fontWeight: '600',
+    color: 'rgba(64, 63, 62, 0.85)',
     textAlign: 'center',
+    textShadowColor: 'rgba(255, 255, 255, 0.24)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
   },
   inputContainer: {
-    gap: 10,
+    flex: 1,
+    gap: 4,
+    marginBottom: 12,
   },
   textInput: {
-    padding: 12,
+    flex: 1,
+    padding: 10,
     borderRadius: 8,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: 'rgba(92, 90, 88, 0.3)',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     fontSize: 14,
     fontFamily: 'Comfortaa',
     color: '#403F3E',
     textAlignVertical: 'top',
-  },
-  charCount: {
-    fontSize: 12,
-    fontFamily: 'Comfortaa',
-    color: '#5C5A58',
-    textAlign: 'right',
-  },
-  submitButton: {
-    position: 'relative',
-    borderRadius: 8,
-    overflow: 'hidden',
+    minHeight: 120,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
   },
-  buttonBgImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-  },
-  submitButtonOverlay: {
-    width: '100%',
-    backgroundColor: 'rgba(112, 68, 199, 0.25)',
-    padding: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    fontSize: 16,
+  charCount: {
+    fontSize: 10,
     fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#403F3E',
-  },
-  backButton: {
-    padding: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: 'rgba(92, 90, 88, 0.3)',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 14,
-    fontFamily: 'Comfortaa',
-    fontWeight: '600',
     color: '#5C5A58',
+    textAlign: 'right',
   },
 });
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, Modal as RNModal } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import profileStore from '../stores/ProfileStore';
+import Heart from './Heart';
 
 /**
  * HeartPaymentModal
@@ -68,7 +69,10 @@ const HeartPaymentModal = observer(({ visible, onClose, onComplete, paymentInfo 
                 <Text style={[styles.sourceButtonText, source === 'active' && styles.sourceButtonTextActive]}>
                   Active Hearts
                 </Text>
-                <Text style={styles.sourceBalance}>❤️ {activeHearts}/9</Text>
+                <View style={styles.sourceBalanceRow}>
+                  <Heart size={14} />
+                  <Text style={styles.sourceBalance}>{activeHearts}/9</Text>
+                </View>
               </Pressable>
 
               <Pressable
@@ -109,16 +113,18 @@ const HeartPaymentModal = observer(({ visible, onClose, onComplete, paymentInfo 
                       }
                     }}
                     disabled={heartNum > availableHearts}
-                    style={styles.heartIcon}
+                    style={[styles.heartIcon, heartStyle]}
                   >
-                    <Text style={[styles.heartEmoji, heartStyle]}>❤️</Text>
+                    <Heart size={28} />
                   </Pressable>
                 );
               })}
             </View>
-            <Text style={styles.amountText}>
-              Sending {amount} ❤️ from {source === 'active' ? 'Active Hearts' : 'Bank'}
-            </Text>
+            <View style={styles.amountTextRow}>
+              <Text style={styles.amountText}>Sending {amount}</Text>
+              <Heart size={14} />
+              <Text style={styles.amountText}>from {source === 'active' ? 'Active Hearts' : 'Bank'}</Text>
+            </View>
           </View>
 
           {/* Confirm Button */}
@@ -127,7 +133,10 @@ const HeartPaymentModal = observer(({ visible, onClose, onComplete, paymentInfo 
             onPress={handleConfirm}
             disabled={amount < 1 || amount > maxAmount}
           >
-            <Text style={styles.confirmButtonText}>SEND {amount} ❤️</Text>
+            <View style={styles.confirmButtonContent}>
+              <Text style={styles.confirmButtonText}>SEND {amount}</Text>
+              <Heart size={16} />
+            </View>
           </Pressable>
 
           {/* Cancel Button */}
@@ -234,6 +243,11 @@ const styles = StyleSheet.create({
     color: '#7044C7',
     fontWeight: '700',
   },
+  sourceBalanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   sourceBalance: {
     fontSize: 16,
     fontFamily: 'Comfortaa',
@@ -254,11 +268,11 @@ const styles = StyleSheet.create({
   heartIcon: {
     padding: 4,
   },
-  heartEmoji: {
-    fontSize: 32,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+  amountTextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
   },
   amountText: {
     fontSize: 13,
@@ -277,6 +291,11 @@ const styles = StyleSheet.create({
   },
   confirmButtonDisabled: {
     opacity: 0.5,
+  },
+  confirmButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   confirmButtonText: {
     fontSize: 16,

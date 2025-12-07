@@ -1,11 +1,5 @@
 import React from 'react';
-
-// Standard emote list (12 emotes in a circle)
-const EMOTES = [
-  '😊', '😂', '😍', '😎',
-  '🤔', '😢', '😠', '🎉',
-  '👍', '👋', '❤️', '🔥'
-];
+import { EMOTES, drawEmote } from '../config/emotes';
 
 const EmoteMenu = ({ centerX, centerY, radius = 160, onEmoteSelect, onClose }) => {
   const drawEmoteMenu = (ctx) => {
@@ -40,12 +34,8 @@ const EmoteMenu = ({ centerX, centerY, radius = 160, onEmoteSelect, onClose }) =
       const emoteX = centerX + Math.cos(angle) * radius;
       const emoteY = centerY + Math.sin(angle) * radius;
 
-      // Draw emote text (no background)
-      ctx.font = '32px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#000';
-      ctx.fillText(emote, emoteX, emoteY);
+      // Use centralized emote drawing (handles images vs text)
+      drawEmote(ctx, emote, emoteX, emoteY, 32);
     });
   };
 

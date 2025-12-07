@@ -1,54 +1,35 @@
-import WeepingWillowLanding from '../components/drops/WeepingWillowLanding';
 import PostsList from '../components/drops/PostsList';
 import CreateWeepingWillowPost from '../components/drops/CreateWeepingWillowPost';
-import PostConfirmation from '../components/drops/PostConfirmation';
 import RespondToPost from '../components/drops/RespondToPost';
-import ViewPost from '../components/drops/ViewPost';
 
 /**
  * Weeping Willow "Help Wanted" Flow Definition
  *
  * Navigation flow:
- * landing -> list -> respond -> list
- * landing -> create -> confirmation -> list
+ * list (landing) -> respond (view/reply to post)
+ * list -> create -> list
  *
- * Depth 0: Main modal (landing, list, create, confirmation, respond)
+ * Only 3 drops:
+ * 1. list - Landing page with posts, defaults to unresponded/oldest
+ * 2. create - Form to create a new help request
+ * 3. respond - View post and reply form
  */
 export const weepingWillowFlow = {
   name: 'weepingWillow',
   title: 'Help Wanted',
-  startAt: 'weepingWillow:landing',
+  startAt: 'weepingWillow:list',
 
   drops: {
-    'weepingWillow:landing': {
-      component: WeepingWillowLanding,
-      depth: 0,
-      next: [
-        {
-          when: (output) => output.action === 'view',
-          goto: 'weepingWillow:list'
-        },
-        {
-          when: (output) => output.action === 'create',
-          goto: 'weepingWillow:create'
-        }
-      ]
-    },
-
     'weepingWillow:list': {
       component: PostsList,
       depth: 0,
       next: [
         {
-          when: (output) => output.action === 'back',
-          goto: 'weepingWillow:landing'
-        },
-        {
           when: (output) => output.action === 'create',
           goto: 'weepingWillow:create'
         },
         {
-          when: (output) => output.action === 'respond',
+          when: (output) => output.action === 'viewPost',
           goto: 'weepingWillow:respond'
         }
       ]
@@ -60,26 +41,11 @@ export const weepingWillowFlow = {
       next: [
         {
           when: (output) => output.action === 'back',
-          goto: 'weepingWillow:landing'
-        },
-        {
-          when: (output) => output.action === 'submitted',
-          goto: 'weepingWillow:confirmation'
-        }
-      ]
-    },
-
-    'weepingWillow:confirmation': {
-      component: PostConfirmation,
-      depth: 0,
-      next: [
-        {
-          when: (output) => output.action === 'list',
           goto: 'weepingWillow:list'
         },
         {
-          when: (output) => output.action === 'done',
-          goto: null // Close the flow
+          when: (output) => output.action === 'submitted',
+          goto: 'weepingWillow:list'
         }
       ]
     },
@@ -87,6 +53,7 @@ export const weepingWillowFlow = {
     'weepingWillow:respond': {
       component: RespondToPost,
       depth: 0,
+      backLabel: 'Help Board',
       next: [
         {
           when: (output) => output.action === 'back',
@@ -95,17 +62,14 @@ export const weepingWillowFlow = {
       ]
     },
 
-    // ViewPost - for deep linking from notifications
+    // Alias for deep linking from notifications
     'weepingWillow:viewPost': {
-      component: ViewPost,
+      component: RespondToPost,
       depth: 0,
+      backLabel: 'Help Board',
       next: [
         {
-          when: (output) => output.action === 'respond',
-          goto: 'weepingWillow:respond'
-        },
-        {
-          when: (output) => output.action === 'list',
+          when: (output) => output.action === 'back',
           goto: 'weepingWillow:list'
         }
       ]

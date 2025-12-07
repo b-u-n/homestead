@@ -84,6 +84,41 @@ const accountSchema = new mongoose.Schema({
     default: new Map()
   },
 
+  // Theme settings for customizing UI colors
+  // Stores global settings and per-flow overrides
+  themeSettings: {
+    // Global settings
+    globalSettings: {
+      minkyColor: { type: String, default: null },
+      woolColors: {
+        type: Map,
+        of: {
+          default: { type: String },
+          selected: { type: String },
+          hover: { type: String },
+        },
+        default: new Map()
+      }
+    },
+    // Per-flow settings: flowName -> { enabled, minkyColor, woolColors }
+    flowSettings: {
+      type: Map,
+      of: {
+        enabled: { type: Boolean, default: false },
+        minkyColor: { type: String },
+        woolColors: {
+          type: Map,
+          of: {
+            default: { type: String },
+            selected: { type: String },
+            hover: { type: String },
+          }
+        }
+      },
+      default: new Map()
+    }
+  },
+
   // Active notifications (max 10, overflow goes to Notification collection as history)
   activeNotifications: [{
     notificationId: {

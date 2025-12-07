@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Modal from './Modal';
+import { FlowContext } from '../contexts/FlowContext';
+import SoundManager from '../services/SoundManager';
 
 /**
  * FlowEngine - A declarative workflow/navigation system
@@ -107,6 +109,9 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
 
     const nextDepth = nextDrop.depth ?? 0;
 
+    // Play navigation sound
+    SoundManager.play('nextPage');
+
     if (nextDepth > fromDepth) {
       // DEEPER: Open new modal on top
       setDropsByDepth(prev => ({ ...prev, [nextDepth]: nextDropId }));
@@ -153,6 +158,8 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
         const newHistory = history.slice(0, -1);
         const previousDropId = newHistory[newHistory.length - 1];
         setDropsByDepth(prevDrops => ({ ...prevDrops, [depth]: previousDropId }));
+        // Play navigation sound
+        SoundManager.play('nextPage');
         return { ...prev, [depth]: newHistory };
 
       } else if (depth > 0) {
@@ -224,6 +231,19 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
           ...accumulatedData
         };
 
+        // Custom back handler for drops with backLabel
+        const customBackHandler = drop.backLabel ? () => {
+          // Navigate to the list drop
+          const listDropId = `${flowDefinition.name}:list`;
+          setDropsByDepth(prev => ({ ...prev, [depth]: listDropId }));
+          setHistoryByDepth(prev => ({
+            ...prev,
+            [depth]: [...prev[depth], listDropId]
+          }));
+          // Play navigation sound
+          SoundManager.play('nextPage');
+        } : undefined;
+
         return (
           <Modal
             key={depth}
@@ -236,20 +256,24 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             title={drop.title || flowDefinition.title}
             size={drop.size}
             additionalOpenSound={depth === 0 ? flowDefinition.additionalOpenSound : undefined}
+            backLabel={drop.backLabel}
+            onCustomBack={customBackHandler}
           >
-            <View style={styles.container}>
-              <DropComponent
-                input={dropInput}
-                context={context}
-                updateContext={updateContext}
-                accumulatedData={accumulatedData}
-                onComplete={(output) => handleDropComplete(output, depth)}
-                onBack={() => goBackAtDepth(depth)}
-                canGoBack={history.length > 1}
-                flowName={flowDefinition.name}
-                dropId={dropId}
-              />
-            </View>
+            <FlowContext.Provider value={{ flowName: flowDefinition.name, dropId }}>
+              <View style={styles.container}>
+                <DropComponent
+                  input={dropInput}
+                  context={context}
+                  updateContext={updateContext}
+                  accumulatedData={accumulatedData}
+                  onComplete={(output) => handleDropComplete(output, depth)}
+                  onBack={() => goBackAtDepth(depth)}
+                  canGoBack={history.length > 1}
+                  flowName={flowDefinition.name}
+                  dropId={dropId}
+                />
+              </View>
+            </FlowContext.Provider>
           </Modal>
         );
       })}
@@ -264,3 +288,6 @@ const styles = StyleSheet.create({
 });
 
 export default FlowEngine;
+
+// Re-export FlowContext for backwards compatibility
+export { FlowContext } from '../contexts/FlowContext';

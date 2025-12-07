@@ -5,6 +5,7 @@ import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import HeartPaymentModal from '../HeartPaymentModal';
+import Heart from '../Heart';
 
 /**
  * TippablePostsList Drop
@@ -129,7 +130,10 @@ const TippablePostsList = ({
             <View key={post._id} style={styles.postCard}>
               <View style={styles.postHeader}>
                 <Text style={styles.authorName}>{post.user?.name}</Text>
-                <Text style={styles.tipCount}>❤️ {post.totalTips || 0}</Text>
+                <View style={styles.tipCountRow}>
+                  <Heart size={14} />
+                  <Text style={styles.tipCount}>{post.totalTips || 0}</Text>
+                </View>
               </View>
 
               <Text style={styles.postContent}>{post.content}</Text>
@@ -142,7 +146,10 @@ const TippablePostsList = ({
                   style={styles.tipButton}
                   onPress={() => handleTipPress(post)}
                 >
-                  <Text style={styles.tipButtonText}>TIP ❤️</Text>
+                  <View style={styles.tipButtonContent}>
+                    <Text style={styles.tipButtonText}>TIP</Text>
+                    <Heart size={14} />
+                  </View>
                 </Pressable>
               </View>
             </View>
@@ -264,6 +271,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#7044C7',
   },
+  tipCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   tipCount: {
     fontSize: 16,
     fontFamily: 'Comfortaa',
@@ -294,6 +306,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E63946',
     backgroundColor: 'rgba(230, 57, 70, 0.1)',
+  },
+  tipButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   tipButtonText: {
     fontSize: 12,

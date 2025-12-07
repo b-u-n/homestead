@@ -8,6 +8,7 @@ import StitchedBorder from './StitchedBorder';
 import sounds from '../config/sounds';
 import SoundSettingsStore from '../stores/SoundSettingsStore';
 import SoundManager from '../services/SoundManager';
+import AuthStore from '../stores/AuthStore';
 
 // Human-readable names for sounds
 const SOUND_DISPLAY_NAMES = {
@@ -34,6 +35,21 @@ const SOUND_CATEGORIES = {
 const SoundSettingsModal = observer(({ visible, onClose }) => {
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [localSettings, setLocalSettings] = useState({});
+  const [showedNoAccountWarning, setShowedNoAccountWarning] = useState(false);
+
+  // Show warning once when modal opens and user is not authenticated
+  const showNoAccountWarning = visible && !AuthStore.isAuthenticated && !showedNoAccountWarning;
+
+  // Reset the warning flag when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setShowedNoAccountWarning(false);
+    }
+  }, [visible]);
+
+  const handleDismissWarning = () => {
+    setShowedNoAccountWarning(true);
+  };
 
   // Initialize local settings from store
   useEffect(() => {
@@ -202,10 +218,19 @@ const SoundSettingsModal = observer(({ visible, onClose }) => {
       visible={visible}
       onClose={onClose}
       title="Sound Settings"
-      modalSize={{ width: '90%', maxWidth: 450, height: '80%', maxHeight: 600 }}
+      zIndex={5000}
     >
       <Scroll style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
+          {showNoAccountWarning && (
+            <Pressable style={styles.warningBanner} onPress={handleDismissWarning}>
+              <Text style={styles.warningText}>
+                You're not logged in. Settings will only be saved locally and won't sync across devices.
+              </Text>
+              <Text style={styles.warningDismiss}>Tap to dismiss</Text>
+            </Pressable>
+          )}
+
           <Text style={styles.description}>
             Adjust volume levels and toggle sounds on or off. Changes are saved automatically.
           </Text>
@@ -242,6 +267,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     opacity: 0.7,
+  },
+  warningBanner: {
+    backgroundColor: 'rgba(255, 180, 100, 0.3)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(200, 140, 60, 0.4)',
+  },
+  warningText: {
+    fontFamily: 'Comfortaa',
+    fontSize: 12,
+    color: '#5C4A30',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  warningDismiss: {
+    fontFamily: 'Comfortaa',
+    fontSize: 10,
+    color: '#5C4A30',
+    textAlign: 'center',
+    marginTop: 6,
+    opacity: 0.7,
+    fontStyle: 'italic',
   },
   category: {
     marginBottom: 15,

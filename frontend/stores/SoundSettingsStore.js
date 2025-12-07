@@ -125,12 +125,16 @@ class SoundSettingsStore {
 
   /**
    * Sync a single sound setting to server
+   * Silently fails if not authenticated - settings will still be saved locally
    */
   async syncSoundToServer(soundKey, settings) {
     return new Promise((resolve, reject) => {
       WebSocketService.socket.emit('soundSettings:update', { soundKey, settings }, (response) => {
         if (response.success) {
           resolve(response.settings);
+        } else if (response.error === 'Not authenticated') {
+          // Silently resolve - local storage still works
+          resolve(settings);
         } else {
           reject(new Error(response.error));
         }
