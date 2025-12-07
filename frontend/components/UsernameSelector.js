@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet,  } from 'react-native';
+import Scroll from './Scroll';
 import { observer } from 'mobx-react-lite';
 import { generateUsername, getWordArrays, createCustomUsername } from '../utils/username';
 
@@ -42,7 +43,7 @@ const UsernameSelector = observer(({ onUsernameSelect, initialUsername = null })
   const renderWordSelector = (title, words, selected, onSelect) => (
     <View style={styles.selectorContainer}>
       <Text style={styles.selectorTitle}>{title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.wordScroll}>
+      <Scroll horizontal showsHorizontalScrollIndicator={false} style={styles.wordScroll}>
         {words.map((word) => (
           <TouchableOpacity
             key={word}
@@ -54,7 +55,7 @@ const UsernameSelector = observer(({ onUsernameSelect, initialUsername = null })
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </Scroll>
     </View>
   );
 

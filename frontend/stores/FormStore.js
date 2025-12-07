@@ -5,17 +5,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /**
  * FormStore - Manages form state with automatic persistence
  * Saves and rehydrates form data across app sessions
+ *
+ * Form keys can be:
+ * - Static: 'bankDrop', 'avatarGeneration'
+ * - Scoped by flow: 'weepingWillow:newPost', 'wishingWell:newPost'
+ * - Scoped by post ID: 'response:${postId}'
  */
 class FormStore {
   // Form data keyed by form name
+  // Static forms with known defaults
   forms = {
-    createPost: {
-      content: '',
-      hearts: 1,
-    },
-    respondToPost: {
-      content: '',
-    },
     bankDrop: {
       amount: '1',
     },
@@ -26,6 +25,10 @@ class FormStore {
       avatarOptions: [],
     },
   };
+
+  // Dynamic forms (responses, new posts) stored separately
+  // Key format: 'response:${postId}' or '${flowName}:newPost'
+  dynamicForms = {};
 
   constructor() {
     makeAutoObservable(this);
@@ -38,10 +41,24 @@ class FormStore {
   }
 
   /**
+   * Check if a form key is dynamic (response or newPost)
+   */
+  isDynamicForm(formName) {
+    return formName.startsWith('response:') || formName.endsWith(':newPost');
+  }
+
+  /**
    * Set field value for a specific form
    */
   setField(formName, fieldName, value) {
-    if (this.forms[formName]) {
+    if (this.isDynamicForm(formName)) {
+      // Dynamic form - create if doesn't exist
+      if (!this.dynamicForms[formName]) {
+        this.dynamicForms[formName] = {};
+      }
+      this.dynamicForms[formName][fieldName] = value;
+      this.persistDynamic();
+    } else if (this.forms[formName]) {
       this.forms[formName][fieldName] = value;
     }
   }
@@ -50,6 +67,9 @@ class FormStore {
    * Get field value for a specific form
    */
   getField(formName, fieldName) {
+    if (this.isDynamicForm(formName)) {
+      return this.dynamicForms[formName]?.[fieldName];
+    }
     return this.forms[formName]?.[fieldName];
   }
 
@@ -57,9 +77,14 @@ class FormStore {
    * Reset a specific form to defaults
    */
   resetForm(formName) {
+    if (this.isDynamicForm(formName)) {
+      // Delete the dynamic form entry entirely
+      delete this.dynamicForms[formName];
+      this.persistDynamic();
+      return;
+    }
+
     const defaults = {
-      createPost: { content: '', hearts: 1 },
-      respondToPost: { content: '' },
       bankDrop: { amount: '1' },
       avatarGeneration: {
         selectedColor: '#B3E6FF',
@@ -76,7 +101,7 @@ class FormStore {
   }
 
   /**
-   * Persist form data to storage
+   * Persist static form data to storage
    */
   async persist(formName) {
     try {
@@ -102,9 +127,28 @@ class FormStore {
   }
 
   /**
+   * Persist all dynamic forms to storage
+   */
+  async persistDynamic() {
+    try {
+      const data = JSON.stringify(this.dynamicForms);
+      const key = '@homestead:dynamicForms';
+
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, data);
+      } else if (Platform.OS !== 'web') {
+        await AsyncStorage.setItem(key, data);
+      }
+    } catch (error) {
+      console.error('Error persisting dynamic forms:', error);
+    }
+  }
+
+  /**
    * Rehydrate all forms from storage
    */
   async rehydrate() {
+    // Rehydrate static forms
     const formNames = Object.keys(this.forms);
 
     for (const formName of formNames) {
@@ -133,6 +177,24 @@ class FormStore {
         console.error(`Error rehydrating form ${formName}:`, error);
       }
     }
+
+    // Rehydrate dynamic forms
+    try {
+      const key = '@homestead:dynamicForms';
+      let data;
+
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        data = localStorage.getItem(key);
+      } else if (Platform.OS !== 'web') {
+        data = await AsyncStorage.getItem(key);
+      }
+
+      if (data) {
+        this.dynamicForms = JSON.parse(data);
+      }
+    } catch (error) {
+      console.error('Error rehydrating dynamic forms:', error);
+    }
   }
 
   /**
@@ -140,6 +202,7 @@ class FormStore {
    * Automatically persists when form data changes
    */
   setupAutoSave() {
+    // Static forms
     const formNames = Object.keys(this.forms);
 
     formNames.forEach((formName) => {
@@ -151,6 +214,15 @@ class FormStore {
         { delay: 500 } // Debounce by 500ms
       );
     });
+
+    // Dynamic forms - watch the whole object
+    reaction(
+      () => JSON.stringify(this.dynamicForms),
+      () => {
+        this.persistDynamic();
+      },
+      { delay: 500 } // Debounce by 500ms
+    );
   }
 }
 

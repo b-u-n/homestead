@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import Scroll from '../Scroll';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
@@ -123,7 +124,7 @@ const TippablePostsList = ({
       ) : posts.length === 0 ? (
         <Text style={styles.emptyText}>No posts yet. Be the first to share!</Text>
       ) : (
-        <ScrollView style={styles.postsList}>
+        <Scroll style={styles.postsList}>
           {posts.map((post) => (
             <View key={post._id} style={styles.postCard}>
               <View style={styles.postHeader}>
@@ -146,7 +147,7 @@ const TippablePostsList = ({
               </View>
             </View>
           ))}
-        </ScrollView>
+        </Scroll>
       )}
 
       {/* Create Post Button */}

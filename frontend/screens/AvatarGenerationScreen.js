@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, ImageBackground, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, ImageBackground,  } from 'react-native';
+import Scroll from '../components/Scroll';
 import { observer } from 'mobx-react-lite';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import VaporwaveButton from '../components/VaporwaveButton';
+import WoolButton from '../components/WoolButton';
 import StitchedBorder from '../components/StitchedBorder';
 import MinkyPanel from '../components/MinkyPanel';
 import KnittedLoader from '../components/KnittedLoader';
@@ -291,7 +292,7 @@ const AvatarGenerationScreen = observer(() => {
   };
 
   return (
-    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+    <Scroll style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
       <View style={styles.content}>
           <View style={styles.headerContainer}>
           <Text
@@ -499,7 +500,7 @@ const AvatarGenerationScreen = observer(() => {
           )}
 
               <View style={styles.buttonContainer}>
-            <VaporwaveButton
+            <WoolButton
               title={isGenerating ? 'Generating...' : (avatarOptions.length > 0 ? 'Generate New Options' : 'Generate Avatars')}
               onPress={generateAvatars}
               variant="secondary"
@@ -524,7 +525,7 @@ const AvatarGenerationScreen = observer(() => {
 
             <View style={styles.navigationButtons}>
               {selectedAvatar ? (
-                <VaporwaveButton
+                <WoolButton
                   title="Continue to Homestead"
                   onPress={handleContinue}
                   variant="secondary"
@@ -546,7 +547,7 @@ const AvatarGenerationScreen = observer(() => {
             </View>
         </MinkyPanel>
       </View>
-    </ScrollView>
+    </Scroll>
   );
 });
 

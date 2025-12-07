@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import Scroll from '../components/Scroll';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import RoomStore from '../stores/RoomStore';
 import WebSocketService from '../services/websocket';
 import KnapsackIcon from '../components/KnapsackIcon';
-import VaporwaveButton from '../components/VaporwaveButton';
+import WoolButton from '../components/WoolButton';
 
 const TownMapScreen = observer(() => {
   const router = useRouter();
@@ -38,7 +39,7 @@ const TownMapScreen = observer(() => {
       <Text style={styles.title}>Town Map</Text>
       <Text style={styles.subtitle}>Choose a room to explore</Text>
       
-      <ScrollView style={styles.roomList}>
+      <Scroll style={styles.roomList}>
         {rooms.map((room) => (
           <TouchableOpacity
             key={room.id}
@@ -49,7 +50,7 @@ const TownMapScreen = observer(() => {
             <Text style={styles.roomType}>{room.type}</Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </Scroll>
 
       <TouchableOpacity style={styles.createButton} onPress={handleCreateRoom}>
         <Text style={styles.createButtonText}>+ Create New Room</Text>

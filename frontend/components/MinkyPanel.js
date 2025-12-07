@@ -9,6 +9,7 @@ const MinkyPanel = ({
   style = {},
   borderRadius = 20,
   overlayColor = 'rgba(222, 134, 223, 0.25)',
+  borderColor,
   padding = 20,
   paddingTop = 25,
 }) => {
@@ -41,7 +42,7 @@ const MinkyPanel = ({
         />
       )}
       <View style={[styles.overlay, { backgroundColor: overlayColor }]}>
-        <StitchedBorder borderRadius={borderRadius} style={[styles.border, { padding, paddingTop }]}>
+        <StitchedBorder borderRadius={borderRadius} borderColor={borderColor} style={[styles.border, { padding, paddingTop }]}>
           {children}
         </StitchedBorder>
       </View>

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Alert, Linking, Image, Platform } from 'react-n
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import VaporwaveButton from '../components/VaporwaveButton';
+import WoolButton from '../components/WoolButton';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import AuthStore from '../stores/AuthStore';
@@ -265,7 +265,7 @@ const OnboardingScreen = observer(() => {
         />
 
         <View style={styles.buttonContainer}>
-          <VaporwaveButton
+          <WoolButton
             title={isLoading ? 'Connecting...' : 'Google Sign-in'}
             onPress={handleGoogleSignIn}
             disabled={isLoading}
@@ -275,7 +275,7 @@ const OnboardingScreen = observer(() => {
             accessibilityHint="Authenticate with your Google account to save progress"
           />
 
-          <VaporwaveButton
+          <WoolButton
             title={isLoading ? 'Connecting...' : 'Discord Sign-in'}
             onPress={handleDiscordSignIn}
             disabled={isLoading}
@@ -285,7 +285,7 @@ const OnboardingScreen = observer(() => {
             accessibilityHint="Authenticate with your Discord account to save progress"
           />
 
-          <VaporwaveButton
+          <WoolButton
             title="Skip & Explore"
             onPress={handleSkipForNow}
             variant="candy"

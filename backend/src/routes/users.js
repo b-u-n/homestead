@@ -46,8 +46,9 @@ module.exports = (socket, io) => {
         avatarData: account.userData?.avatarData,
         energy: 100, // TODO: Get from account or default
         maxEnergy: 100,
-        hearts: 9,
+        hearts: account.hearts ?? 9,
         maxHearts: 9,
+        heartBank: account.heartBank ?? 0,
         currentStatus: account.currentStatus || ''
       };
 

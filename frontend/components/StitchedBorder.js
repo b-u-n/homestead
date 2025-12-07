@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Colors } from '../constants/colors';
 
 /**
  * Reusable component for the internal stitched/dashed border pattern
@@ -41,8 +40,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
 

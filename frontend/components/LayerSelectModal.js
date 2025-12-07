@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Modal from './Modal';
-import VaporwaveButton from './VaporwaveButton';
+import WoolButton from './WoolButton';
 import WebSocketService from '../services/websocket';
 import LayerStore from '../stores/LayerStore';
 
@@ -78,7 +78,7 @@ const LayerSelectModal = observer(({ visible, onClose, onLayerSelected }) => {
         ) : error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
-            <VaporwaveButton
+            <WoolButton
               title="Retry"
               onPress={loadLayers}
               variant="secondary"
@@ -88,7 +88,7 @@ const LayerSelectModal = observer(({ visible, onClose, onLayerSelected }) => {
         ) : (
           <View style={styles.layerList}>
             {layers.map((layer) => (
-              <VaporwaveButton
+              <WoolButton
                 key={layer._id}
                 title={joiningLayerId === layer._id ? "Joining..." : `${layer.name} (${getPlayerCountText(layer.playerCount)})`}
                 onPress={() => handleSelectLayer(layer._id)}

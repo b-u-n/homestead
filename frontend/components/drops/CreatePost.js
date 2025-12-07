@@ -26,14 +26,15 @@ const CreatePost = observer(({
   const flowName = context?.flowName || 'wishingWell';
   const isFreePost = flowName === 'wishingWell'; // Wishing well posts are free
 
-  // Get persisted form state
-  const content = FormStore.getField('createPost', 'content') || '';
-  const hearts = FormStore.getField('createPost', 'hearts') || 1;
+  // Get persisted form state scoped to this flow's new post
+  const formKey = `${flowName}:newPost`;
+  const content = FormStore.getField(formKey, 'content') || '';
+  const hearts = FormStore.getField(formKey, 'hearts') || 1;
   const availableHearts = profileStore.hearts || 0;
 
   // Setters that update FormStore
-  const setContent = (value) => FormStore.setField('createPost', 'content', value);
-  const setHearts = (value) => FormStore.setField('createPost', 'hearts', value);
+  const setContent = (value) => FormStore.setField(formKey, 'content', value);
+  const setHearts = (value) => FormStore.setField(formKey, 'hearts', value);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -73,7 +74,7 @@ const CreatePost = observer(({
 
       if (result.success) {
         // Reset form on successful submission
-        FormStore.resetForm('createPost');
+        FormStore.resetForm(formKey);
 
         // Success! Navigate to list
         onComplete({ action: 'submitted' });

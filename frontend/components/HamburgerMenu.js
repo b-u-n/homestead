@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, ImageBackground } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import StitchedBorder from './StitchedBorder';
-import VaporwaveButton from './VaporwaveButton';
+import WoolButton from './WoolButton';
 import LayerSelectModal from './LayerSelectModal';
 import SoundSettingsModal from './SoundSettingsModal';
 import AuthStore from '../stores/AuthStore';
@@ -16,6 +16,29 @@ const HamburgerMenu = observer(({ style }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showLayerModal, setShowLayerModal] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const containerRef = useRef(null);
+
+  // Global click listener to close menu when clicking outside
+  useEffect(() => {
+    if (!isOpen || Platform.OS !== 'web') return;
+
+    const handleClickOutside = (event) => {
+      // Check if click is outside the container
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    // Add listener with slight delay to avoid catching the opening click
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleLogout = () => {
     setIsOpen(false);
@@ -42,7 +65,7 @@ const HamburgerMenu = observer(({ style }) => {
 
   return (
     <>
-      <View style={[styles.container, style]}>
+      <View ref={containerRef} style={[styles.container, style]}>
         {/* Hamburger Button */}
         <Pressable onPress={() => setIsOpen(!isOpen)} style={styles.hamburgerButton}>
           {Platform.OS === 'web' && (
@@ -84,8 +107,10 @@ const HamburgerMenu = observer(({ style }) => {
         {/* Dropdown Menu */}
         {isOpen && (
           <>
-            {/* Backdrop */}
-            <Pressable style={styles.backdrop} onPress={() => setIsOpen(false)} />
+            {/* Backdrop for native platforms */}
+            {Platform.OS !== 'web' && (
+              <Pressable style={styles.backdrop} onPress={() => setIsOpen(false)} />
+            )}
 
             {/* Menu */}
             <View style={styles.menu}>
@@ -116,7 +141,7 @@ const HamburgerMenu = observer(({ style }) => {
                     </View>
 
                     {/* Switch Layers Button */}
-                    <VaporwaveButton
+                    <WoolButton
                       title="Switch Layers"
                       onPress={handleSwitchLayers}
                       variant="secondary"
@@ -124,7 +149,7 @@ const HamburgerMenu = observer(({ style }) => {
                     />
 
                     {/* Sound Settings Button */}
-                    <VaporwaveButton
+                    <WoolButton
                       title="Sound Settings"
                       onPress={handleSoundSettings}
                       variant="blue"
@@ -133,7 +158,7 @@ const HamburgerMenu = observer(({ style }) => {
 
                     {/* Logout Button */}
                     {AuthStore.isAuthenticated && (
-                      <VaporwaveButton
+                      <WoolButton
                         title="Logout"
                         onPress={handleLogout}
                         variant="coral"
@@ -213,7 +238,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
+    width: '100vw',
+    height: '100vh',
+    zIndex: 9998,
+    backgroundColor: 'transparent',
   },
   menu: {
     position: 'absolute',
@@ -227,7 +255,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    zIndex: 1001,
+    zIndex: 9999,
   },
   menuOverlay: {
     backgroundColor: 'rgba(222, 134, 223, 0.15)',

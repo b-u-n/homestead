@@ -94,6 +94,7 @@ module.exports = {
           authorSessionId: sessionId,
           authorName: account.userData?.username || 'Anonymous',
           authorAvatar: account.userData?.avatar || null,
+          authorColor: account.userData?.avatarData?.color || null,
           responses: [],
           tips: [],
           totalTips: 0,
@@ -161,6 +162,7 @@ module.exports = {
           responderSessionId: sessionId,
           responderName: responder.userData?.username || 'Anonymous',
           responderAvatar: responder.userData?.avatar || null,
+          responderColor: responder.userData?.avatarData?.color || null,
           createdAt: new Date()
         };
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, Switch, Pressable, Platform } from 'react-native';
+import Scroll from './Scroll';
 import { observer } from 'mobx-react-lite';
 import Modal from './Modal';
-import VaporwaveButton from './VaporwaveButton';
+import WoolButton from './WoolButton';
 import StitchedBorder from './StitchedBorder';
 import sounds from '../config/sounds';
 import SoundSettingsStore from '../stores/SoundSettingsStore';
@@ -203,7 +204,7 @@ const SoundSettingsModal = observer(({ visible, onClose }) => {
       title="Sound Settings"
       modalSize={{ width: '90%', maxWidth: 450, height: '80%', maxHeight: 600 }}
     >
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <Scroll style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <Text style={styles.description}>
             Adjust volume levels and toggle sounds on or off. Changes are saved automatically.
@@ -214,7 +215,7 @@ const SoundSettingsModal = observer(({ visible, onClose }) => {
           )}
 
           <View style={styles.footer}>
-            <VaporwaveButton
+            <WoolButton
               title="Reset All to Default"
               onPress={handleResetAll}
               variant="coral"
@@ -222,7 +223,7 @@ const SoundSettingsModal = observer(({ visible, onClose }) => {
             />
           </View>
         </View>
-      </ScrollView>
+      </Scroll>
     </Modal>
   );
 });

@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, Pressable, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable, ImageBackground } from 'react-native';
 import StitchedBorder from './StitchedBorder';
 import TiledBackground from './TiledBackground';
 import SoundManager from '../services/SoundManager';
+import Scroll from './Scroll';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
-const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true }) => {
+const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size }) => {
   const hasPlayedOpenSound = useRef(false);
 
   // Play open sounds once when modal first becomes visible
@@ -41,15 +42,32 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
     }
   };
 
+  // Size presets for overlay modals
+  const sizePresets = {
+    small: { maxWidth: 350, maxHeight: 320 },
+    medium: { maxWidth: 450, maxHeight: 450 },
+    large: { maxWidth: 550, maxHeight: 550 },
+  };
+
   // Use custom size if provided, otherwise use defaults
-  const wrapperStyle = modalSize ? [styles.wrapper, modalSize] : styles.wrapper;
+  const wrapperStyle = [
+    styles.wrapper,
+    modalSize,
+    size && sizePresets[size],
+    { zIndex: zIndex + 1 }
+  ].filter(Boolean);
+
+  const overlayStyle = [
+    styles.overlay,
+    { zIndex }
+  ];
 
   return (
-    <Pressable style={styles.overlay} onPress={handleOverlayPress}>
+    <Pressable style={overlayStyle} onPress={handleOverlayPress}>
       <View style={wrapperStyle}>
         <TiledBackground>
           <View style={styles.contentWrapper}>
-            <StitchedBorder borderRadius={12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.container}>
+            <StitchedBorder borderRadius={12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.containerBorder}>
               {/* Navigation buttons bar with title */}
               <View style={styles.navBar}>
                 {/* Back button or spacer */}
@@ -82,7 +100,7 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                       />
                     )}
                     <View style={styles.navButtonOverlay}>
-                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)">
+                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)" style={styles.navButtonBorder}>
                         <Text style={styles.navButtonText}>←</Text>
                       </StitchedBorder>
                     </View>
@@ -126,7 +144,7 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                       />
                     )}
                     <View style={styles.navButtonOverlay}>
-                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)">
+                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(92, 90, 88, 0.3)" style={styles.navButtonBorder}>
                         <Text style={styles.navButtonText}>✕</Text>
                       </StitchedBorder>
                     </View>
@@ -137,9 +155,9 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
               </View>
 
               {/* Content */}
-              <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+              <Scroll style={styles.content} contentContainerStyle={styles.contentContainer}>
                 {children}
-              </ScrollView>
+              </Scroll>
             </StitchedBorder>
           </View>
         </TiledBackground>
@@ -155,7 +173,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 2000,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
@@ -173,7 +190,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 24,
     elevation: 16,
-    zIndex: 2001,
     pointerEvents: 'auto',
   },
   contentWrapper: {
@@ -181,9 +197,12 @@ const styles = StyleSheet.create({
     padding: 4,
     flex: 1,
   },
-  container: {
-    flex: 1,
+  containerBorder: {
     padding: 20,
+  },
+  navButtonBorder: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   navBar: {
     flexDirection: 'row',
@@ -192,6 +211,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     minHeight: 50,
     width: '100%',
+    zIndex: 10,
   },
   navButtonSpacer: {
     width: 50,
@@ -210,6 +230,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
+    zIndex: 11,
   },
   navButtonBgImage: {
     position: 'absolute',
@@ -244,8 +265,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingBottom: 20,
   },
 });
 

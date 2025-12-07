@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, ImageBackground, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Platform, ImageBackground,  } from 'react-native';
+import Scroll from '../components/Scroll';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import VaporwaveButton from '../components/VaporwaveButton';
+import WoolButton from '../components/WoolButton';
 import SlotMachine from '../components/SlotMachine';
 import StitchedBorder from '../components/StitchedBorder';
 import { Colors } from '../constants/colors';
@@ -98,7 +99,7 @@ const UsernameCreationScreen = observer(() => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <Scroll style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.content}>
           <View style={styles.headerContainer}>
             <Text
@@ -194,7 +195,7 @@ const UsernameCreationScreen = observer(() => {
         </View>
 
           <View style={styles.buttonContainer}>
-            <VaporwaveButton
+            <WoolButton
               title={isSpinning ? "Spinning..." : "Randomize"}
               onPress={handleRandomize}
               variant="accent"
@@ -202,7 +203,7 @@ const UsernameCreationScreen = observer(() => {
               disabled={isSpinning}
             />
 
-            <VaporwaveButton
+            <WoolButton
               title="Continue to Avatar"
               onPress={handleContinue}
               variant="primary"
@@ -210,7 +211,7 @@ const UsernameCreationScreen = observer(() => {
             />
           </View>
         </View>
-    </ScrollView>
+    </Scroll>
   );
 });
 

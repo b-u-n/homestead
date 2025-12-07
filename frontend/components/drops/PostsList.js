@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import WebSocketService from '../../services/websocket';
 import ErrorStore from '../../stores/ErrorStore';
+import Scroll from '../Scroll';
+import AvatarStamp from '../AvatarStamp';
 
 /**
  * PostsList Drop
@@ -53,14 +55,11 @@ const PostsList = ({
         sort
       });
 
-      if (result.success) {
-        setPosts(result.data);
-      } else {
-        ErrorStore.addError(result.error || 'Failed to load posts');
-      }
+      // emit() returns response.data directly on success
+      setPosts(result || []);
     } catch (error) {
       console.error('Error loading posts:', error);
-      ErrorStore.addError('Failed to load posts');
+      ErrorStore.addError(error.message || 'Failed to load posts');
     } finally {
       setLoading(false);
     }
@@ -90,13 +89,12 @@ const PostsList = ({
         {/* Post Header */}
         <View style={styles.postHeader}>
           <View style={styles.authorInfo}>
-            {post.authorAvatar ? (
-              <Image source={{ uri: post.authorAvatar }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>?</Text>
-              </View>
-            )}
+            <AvatarStamp
+              avatarUrl={post.authorAvatar}
+              avatarColor={post.authorColor}
+              size={32}
+              borderRadius={5}
+            />
             <Text style={styles.authorName}>{post.authorName}</Text>
           </View>
           <Text style={styles.hearts}>❤️ {post.hearts}</Text>
@@ -167,7 +165,7 @@ const PostsList = ({
     <View style={styles.container}>
       {/* Filters */}
       <View style={styles.filtersContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <Scroll horizontal>
           <View style={styles.filterButtons}>
             {['all', 'new', 'unresponded'].map((f) => (
               <Pressable
@@ -181,13 +179,13 @@ const PostsList = ({
               </Pressable>
             ))}
           </View>
-        </ScrollView>
+        </Scroll>
       </View>
 
       {/* Sort */}
       <View style={styles.sortContainer}>
         <Text style={styles.sortLabel}>Sort by:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <Scroll horizontal>
           <View style={styles.sortButtons}>
             {[
               { value: 'date-desc', label: 'Newest' },
@@ -206,19 +204,23 @@ const PostsList = ({
               </Pressable>
             ))}
           </View>
-        </ScrollView>
+        </Scroll>
       </View>
 
       {/* Posts List */}
-      <ScrollView style={styles.postsList} showsVerticalScrollIndicator={false}>
+      <Scroll style={styles.postsList}>
         {loading ? (
-          <Text style={styles.loadingText}>Loading wishes...</Text>
+          <Text style={styles.loadingText}>Loading posts...</Text>
         ) : posts.length === 0 ? (
-          <Text style={styles.emptyText}>No wishes found. Be the first to make one!</Text>
+          <Text style={styles.emptyText}>
+            {context?.flowName === 'weepingWillow'
+              ? 'No help requests found. Be the first to ask for help!'
+              : 'No wishes found. Be the first to make one!'}
+          </Text>
         ) : (
           posts.map(renderPost)
         )}
-      </ScrollView>
+      </Scroll>
 
       {/* Create Post Button */}
       <Pressable
@@ -227,13 +229,6 @@ const PostsList = ({
       >
         <Text style={styles.createButtonText}>+ CREATE POST</Text>
       </Pressable>
-
-      {/* Back Button */}
-      {canGoBack && (
-        <Pressable style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← BACK</Text>
-        </Pressable>
-      )}
     </View>
   );
 };
@@ -487,21 +482,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#7044C7',
-  },
-  backButton: {
-    padding: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: 'rgba(92, 90, 88, 0.3)',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  backButtonText: {
-    fontSize: 14,
-    fontFamily: 'Comfortaa',
-    fontWeight: '600',
-    color: '#5C5A58',
   },
 });
 

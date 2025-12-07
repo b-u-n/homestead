@@ -77,11 +77,13 @@ const flowEngine = require('./utils/FlowEngine');
 const wishingWellFlow = require('./flows/wishingWell');
 const weepingWillowFlow = require('./flows/weepingWillow');
 const heartsFlow = require('./flows/hearts');
+const notificationsFlow = require('./flows/notifications');
 
 // Register flows
 flowEngine.registerFlow(wishingWellFlow);
 flowEngine.registerFlow(weepingWillowFlow);
 flowEngine.registerFlow(heartsFlow);
+flowEngine.registerFlow(notificationsFlow);
 
 // Socket connection handling
 io.on('connection', (socket) => {
@@ -100,6 +102,7 @@ io.on('connection', (socket) => {
   flowEngine.setupFlow(socket, io, 'wishingWell');
   flowEngine.setupFlow(socket, io, 'weepingWillow');
   flowEngine.setupFlow(socket, io, 'hearts');
+  flowEngine.setupFlow(socket, io, 'notifications');
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);

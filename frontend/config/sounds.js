@@ -14,7 +14,17 @@
 // - duration: sound duration in ms (used to prevent overlap for looping sounds)
 
 export const sounds = {
+  error: {
+    file: require('../assets/sounds/error.mp3'),
+    volume: 0.7,
+  },
   emote: {
+    file: require('../assets/sounds/notification.mp3'),
+    volume: 0.6,
+    fade: true,
+    fadeDuration: 24,
+  },
+  notification: {
     file: require('../assets/sounds/notification.mp3'),
     volume: 0.6,
     fade: true,

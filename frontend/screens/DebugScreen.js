@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList,  } from 'react-native';
+import Scroll from '../components/Scroll';
 import GradientBackground from '../components/GradientBackground';
-import VaporwaveButton from '../components/VaporwaveButton';
+import WoolButton from '../components/WoolButton';
 import { Colors } from '../constants/colors';
 
 const DebugScreen = ({ navigation }) => {
@@ -21,19 +22,19 @@ const DebugScreen = ({ navigation }) => {
       {/* Dedicated scroll window test */}
       <View style={styles.scrollTestContainer}>
         <Text style={styles.testTitle}>Scroll Test Window</Text>
-        <ScrollView style={styles.scrollTestWindow}>
+        <Scroll style={styles.scrollTestWindow}>
           {Array.from({ length: 50 }, (_, i) => (
             <View key={i} style={styles.scrollTestItem}>
               <Text style={styles.scrollTestItemText}>Scroll Test Item {i + 1}</Text>
             </View>
           ))}
-        </ScrollView>
+        </Scroll>
       </View>
     </View>
   );
   
   const renderFooter = () => (
-    <VaporwaveButton
+    <WoolButton
       title="Back to Avatar"
       onPress={() => navigation.goBack()}
       variant="primary"
@@ -43,7 +44,7 @@ const DebugScreen = ({ navigation }) => {
   
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollTestWindow}>
+      <Scroll style={styles.scrollTestWindow}>
         <View style={styles.content}>
           <Text style={styles.title}>Debug Screen</Text>
           <Text style={styles.subtitle}>Testing scrolling functionality</Text>
@@ -54,14 +55,14 @@ const DebugScreen = ({ navigation }) => {
             </View>
           ))}
           
-          <VaporwaveButton
+          <WoolButton
             title="Back to Avatar"
             onPress={() => navigation.goBack()}
             variant="primary"
             style={styles.backButton}
           />
         </View>
-      </ScrollView>
+      </Scroll>
     </View>
   );
 };

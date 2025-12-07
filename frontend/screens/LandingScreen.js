@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import GradientBackground from '../components/GradientBackground';
-import VaporwaveButton from '../components/VaporwaveButton';
+import WoolButton from '../components/WoolButton';
 import { Colors } from '../constants/colors';
 
 const LandingScreen = observer(({ navigation }) => {
@@ -27,8 +27,8 @@ const LandingScreen = observer(({ navigation }) => {
           Explore virtual spaces, create your own rooms, and connect with others
         </Text>
         
-        <VaporwaveButton 
-          title="Get Started" 
+        <WoolButton
+          title="Get Started"
           onPress={handleGetStarted}
           variant="primary"
           style={styles.button}

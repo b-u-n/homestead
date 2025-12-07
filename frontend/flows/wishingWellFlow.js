@@ -82,11 +82,11 @@ export const wishingWellFlow = {
         postId: 'string' // From previous drop
       },
       output: {
-        action: 'back' | 'submitted'
+        action: 'back'
       },
       next: [
         {
-          when: true, // Always go back to list
+          when: (output) => output.action === 'back',
           goto: 'wishingWell:list'
         }
       ]

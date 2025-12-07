@@ -8,8 +8,9 @@ import profileStore from '../stores/ProfileStore';
 import characterStore from '../stores/CharacterStore';
 import AuthStore from '../stores/AuthStore';
 import UserStatus from './UserStatus';
-import VaporwaveButton from './VaporwaveButton';
+import WoolButton from './WoolButton';
 import HamburgerMenu from './HamburgerMenu';
+import NotificationHeart from './NotificationHeart';
 import WishingWell from './WishingWell';
 import WeepingWillow from './WeepingWillow';
 import FlowEngine from './FlowEngine';
@@ -66,6 +67,8 @@ const MapCanvas = ({ location }) => {
   const [loadedImages, setLoadedImages] = useState({});
   const [isWishingWellOpen, setIsWishingWellOpen] = useState(false);
   const [isWeepingWillowOpen, setIsWeepingWillowOpen] = useState(false);
+  const [weepingWillowStartAt, setWeepingWillowStartAt] = useState(null);
+  const [weepingWillowParams, setWeepingWillowParams] = useState({});
   const [isBankFlowOpen, setIsBankFlowOpen] = useState(false);
   const [isEmoteMenuOpen, setIsEmoteMenuOpen] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(null);
@@ -1336,6 +1339,22 @@ const MapCanvas = ({ location }) => {
     inventoryStore.toggleInventory();
   };
 
+  const handleNotificationClick = (notification, nav) => {
+    if (nav && nav.flow === 'weepingWillow') {
+      setWeepingWillowStartAt(nav.dropId);
+      setWeepingWillowParams(nav.params || {});
+      setIsWeepingWillowOpen(true);
+    }
+    // Add other flows here as needed
+  };
+
+  const handleWeepingWillowClose = () => {
+    setIsWeepingWillowOpen(false);
+    // Reset deep link state
+    setWeepingWillowStartAt(null);
+    setWeepingWillowParams({});
+  };
+
 
   if (Platform.OS === 'web') {
     // Container style with rotation when in portrait
@@ -1356,7 +1375,7 @@ const MapCanvas = ({ location }) => {
     return (
       <View style={containerStyle}>
         <style>{`
-          button:hover {
+          .map-canvas-button:hover {
             transform: scale(1.06) !important;
           }
         `}</style>
@@ -1382,6 +1401,7 @@ const MapCanvas = ({ location }) => {
         )}
         <UserStatus />
         <View style={[styles.menuContainer, uxStore.shouldScaleUI && { transform: 'scale(0.8)', transformOrigin: 'top right' }]}>
+          <NotificationHeart style={{ marginRight: 10 }} onNotificationClick={handleNotificationClick} />
           <HamburgerMenu />
         </View>
         {inventoryStore.isOpen && (
@@ -1424,7 +1444,9 @@ const MapCanvas = ({ location }) => {
         />
         <WeepingWillow
           visible={isWeepingWillowOpen}
-          onClose={() => setIsWeepingWillowOpen(false)}
+          onClose={handleWeepingWillowClose}
+          startAt={weepingWillowStartAt}
+          initialParams={weepingWillowParams}
         />
         <FlowEngine
           flowDefinition={heartsFlow}
@@ -1466,6 +1488,8 @@ const styles = StyleSheet.create({
     top: 20,
     right: 30,
     zIndex: 100,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   knapsackContainer: {
     position: 'absolute',

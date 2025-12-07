@@ -84,6 +84,48 @@ const accountSchema = new mongoose.Schema({
     default: new Map()
   },
 
+  // Active notifications (max 10, overflow goes to Notification collection as history)
+  activeNotifications: [{
+    notificationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Notification',
+      required: true
+    },
+    type: {
+      type: String,
+      required: true
+    },
+    message: {
+      type: String,
+      required: true,
+      maxlength: 200
+    },
+    navigation: {
+      flow: String,
+      dropId: String,
+      params: {
+        type: Map,
+        of: mongoose.Schema.Types.Mixed
+      }
+    },
+    actor: {
+      accountId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Account'
+      },
+      name: String,
+      avatar: String
+    },
+    read: {
+      type: Boolean,
+      default: false
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+
   // Hearts system
   hearts: {
     type: Number,

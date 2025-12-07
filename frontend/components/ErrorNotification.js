@@ -1,13 +1,14 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, Pressable, StyleSheet, Animated, Platform, ImageBackground } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { Colors } from '../constants/colors';
+import StitchedBorder from './StitchedBorder';
+
+const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
 const ErrorNotification = observer(({ error, onDismiss, index = 0 }) => {
-  const slideAnim = new Animated.Value(300);
+  const slideAnim = useRef(new Animated.Value(300)).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: 0,
       duration: 300,
@@ -26,34 +27,61 @@ const ErrorNotification = observer(({ error, onDismiss, index = 0 }) => {
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
-        styles.container, 
-        { 
+        styles.container,
+        {
           transform: [{ translateX: slideAnim }],
-          bottom: 20 + (index * 90)
+          bottom: 20 + (index * 80)
         }
       ]}
     >
-      <LinearGradient
-        colors={['rgba(180, 50, 50, 0.9)', 'rgba(120, 30, 30, 0.8)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        <View style={styles.content}>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.message}>{error.message}</Text>
-          <TouchableOpacity style={styles.dismissButton} onPress={handleDismiss}>
-            <LinearGradient
-              colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
-              style={styles.dismissGradient}
-            >
-              <Text style={styles.dismissText}>✕</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+      <Pressable onPress={handleDismiss} style={styles.pressable}>
+        {/* Background texture */}
+        {Platform.OS === 'web' && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundImage: `url(${typeof slotBgImage === 'string' ? slotBgImage : slotBgImage.default || slotBgImage.uri || slotBgImage})`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '60%',
+              borderRadius: 12,
+              pointerEvents: 'none',
+              opacity: 0.4,
+            }}
+          />
+        )}
+        {Platform.OS !== 'web' && (
+          <ImageBackground
+            source={slotBgImage}
+            style={styles.bgImage}
+            imageStyle={styles.bgImageStyle}
+            resizeMode="repeat"
+          />
+        )}
+
+        {/* Red overlay */}
+        <View style={styles.overlay}>
+          <StitchedBorder
+            borderRadius={10}
+            borderWidth={2}
+            borderColor="rgba(255, 120, 120, 0.6)"
+            style={styles.stitchedContent}
+          >
+            <View style={styles.content}>
+              <Text style={styles.errorIcon}>⚠️</Text>
+              <Text style={styles.message} numberOfLines={3}>{error.message}</Text>
+              <View style={styles.dismissHint}>
+                <Text style={styles.dismissText}>✕</Text>
+              </View>
+            </View>
+          </StitchedBorder>
         </View>
-      </LinearGradient>
+      </Pressable>
     </Animated.View>
   );
 });
@@ -61,66 +89,68 @@ const ErrorNotification = observer(({ error, onDismiss, index = 0 }) => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    right: 20,
-    left: 20,
+    right: 16,
+    left: 16,
     zIndex: 1000,
   },
-  gradient: {
-    borderRadius: 15,
-    shadowColor: Colors.error,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+  pressable: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#ff3333',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
-    borderWidth: 1,
-    borderColor: Colors.vaporwave.pink,
+  },
+  bgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
+  bgImageStyle: {
+    opacity: 0.4,
+    borderRadius: 12,
+  },
+  overlay: {
+    backgroundColor: 'rgba(160, 40, 40, 0.88)',
+    padding: 4,
+  },
+  stitchedContent: {
+    flex: 0,
+    padding: 12,
   },
   content: {
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 10,
   },
   errorIcon: {
     fontSize: 20,
-    marginRight: 12,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   message: {
-    color: Colors.text.primary,
-    fontSize: 14,
-    fontWeight: '600',
     flex: 1,
-    marginRight: 12,
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    color: '#ffffff',
+    fontSize: 14,
+    fontFamily: 'Comfortaa',
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  dismissButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  dismissGradient: {
-    width: '100%',
-    height: '100%',
+  dismissHint: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
   },
   dismissText: {
-    color: Colors.text.primary,
-    fontSize: 16,
+    color: '#ffffff',
+    fontSize: 14,
     fontWeight: '700',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
 });
 

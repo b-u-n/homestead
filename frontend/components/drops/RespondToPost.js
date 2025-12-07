@@ -1,13 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Platform, Image, ImageBackground } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput, Platform, ScrollView } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import FormStore from '../../stores/FormStore';
-import StitchedBorder from '../StitchedBorder';
+import profileStore from '../../stores/ProfileStore';
+import MinkyPanel from '../MinkyPanel';
+import WoolButton from '../WoolButton';
+import AvatarStamp from '../AvatarStamp';
 
-const buttonBgImage = require('../../assets/images/button-bg.png');
+// Helper to convert hex color to rgba
+const hexToRgba = (hexColor, opacity = 0.15) => {
+  if (!hexColor) return `rgba(112, 68, 199, ${opacity})`;
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
 
 /**
  * RespondToPost Drop
@@ -23,12 +34,15 @@ const RespondToPost = observer(({
   const [post, setPost] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const responsesScrollRef = useRef(null);
 
-  // Get persisted form state
-  const content = FormStore.getField('respondToPost', 'content') || '';
-  const setContent = (value) => FormStore.setField('respondToPost', 'content', value);
+  const flowName = context?.flowName || 'wishingWell';
+  const postId = input[`${flowName}:list`]?.postId || input['wishingWell:list']?.postId || input['weepingWillow:list']?.postId || input.postId;
 
-  const postId = input['wishingWell:list']?.postId || input.postId;
+  // Get persisted form state scoped to this specific post
+  const formKey = `response:${postId}`;
+  const content = FormStore.getField(formKey, 'content') || '';
+  const setContent = (value) => FormStore.setField(formKey, 'content', value);
 
   useEffect(() => {
     loadPost();
@@ -41,21 +55,16 @@ const RespondToPost = observer(({
     }
 
     try {
-      // Get all posts and find the one we need
-      const flowName = context?.flowName || 'wishingWell';
-      const result = await WebSocketService.emit(`${flowName}:posts:get`, {});
-
-      if (result.success) {
-        const foundPost = result.data.find(p => p._id === postId);
-        if (foundPost) {
-          setPost(foundPost);
-        } else {
-          ErrorStore.addError('Post not found');
-        }
+      const posts = await WebSocketService.emit(`${flowName}:posts:get`, {});
+      const foundPost = (posts || []).find(p => p._id === postId);
+      if (foundPost) {
+        setPost(foundPost);
+      } else {
+        ErrorStore.addError('Post not found');
       }
     } catch (error) {
       console.error('Error loading post:', error);
-      ErrorStore.addError('Failed to load post');
+      ErrorStore.addError(error.message || 'Failed to load post');
     } finally {
       setLoading(false);
     }
@@ -87,18 +96,24 @@ const RespondToPost = observer(({
         content: content.trim()
       });
 
-      if (result.success) {
-        // Reset form on successful submission
-        FormStore.resetForm('respondToPost');
-
-        // Success! Go back to list
-        onComplete({ action: 'submitted' });
-      } else {
-        ErrorStore.addError(result.error || 'Failed to submit response');
+      if (result.hearts !== undefined) {
+        profileStore.setHearts(result.hearts);
       }
+      if (result.heartBank !== undefined) {
+        profileStore.setHeartBank(result.heartBank);
+      }
+
+      FormStore.resetForm(formKey);
+      await loadPost();
+
+      setTimeout(() => {
+        if (responsesScrollRef.current) {
+          responsesScrollRef.current.scrollToEnd({ animated: true });
+        }
+      }, 100);
     } catch (error) {
       console.error('Error submitting response:', error);
-      ErrorStore.addError('Failed to submit response');
+      ErrorStore.addError(error.message || 'Failed to submit response');
     } finally {
       setIsSubmitting(false);
     }
@@ -125,283 +140,286 @@ const RespondToPost = observer(({
     );
   }
 
-  const isFirstResponse = !post.firstResponderSessionId;
+  const isFirstResponse = !post.firstResponderId;
+  const responses = post.responses || [];
 
   return (
     <View style={styles.container}>
-      {/* Original Post */}
-      <View style={styles.originalPost}>
-        <Text style={styles.sectionTitle}>RESPONDING TO:</Text>
+      {/* LEFT PANEL - Responses list with independent scroll */}
+      <View style={styles.leftPanel}>
+        <Text style={styles.panelTitle}>Responses</Text>
+        <ScrollView
+          ref={responsesScrollRef}
+          style={styles.responsesScroll}
+          contentContainerStyle={styles.responsesContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {responses.length > 0 ? (
+            responses.map((response, index) => (
+              <MinkyPanel
+                key={response._id || index}
+                borderRadius={8}
+                padding={0}
+                paddingTop={0}
+                overlayColor={hexToRgba(response.responderColor, 0.15)}
+                borderColor={hexToRgba(response.responderColor, 0.5)}
+                style={styles.responseCard}
+              >
+                <View style={styles.responseInner}>
+                  <AvatarStamp
+                    avatarUrl={response.responderAvatar}
+                    avatarColor={response.responderColor}
+                    size={56}
+                    borderRadius={6}
+                  />
+                  <View style={styles.responseContent}>
+                    <View style={styles.responseHeader}>
+                      <Text style={styles.responseAuthor}>{response.responderName}</Text>
+                      {index === 0 && <Text style={styles.firstBadge}>1ST</Text>}
+                    </View>
+                    <Text style={styles.responseText}>{response.content}</Text>
+                  </View>
+                </View>
+              </MinkyPanel>
+            ))
+          ) : (
+            <MinkyPanel
+              borderRadius={8}
+              padding={20}
+              paddingTop={20}
+              overlayColor="rgba(112, 68, 199, 0.1)"
+            >
+              <Text style={styles.emptyText}>Be the first to help!</Text>
+            </MinkyPanel>
+          )}
+        </ScrollView>
+      </View>
 
-        <View style={styles.postCard}>
+      {/* RIGHT PANEL - Original post and response form */}
+      <View style={styles.rightPanel}>
+        <MinkyPanel
+          borderRadius={10}
+          padding={12}
+          paddingTop={12}
+          overlayColor={hexToRgba(post.authorColor, 0.2)}
+          borderColor={hexToRgba(post.authorColor, 0.5)}
+        >
           <View style={styles.postHeader}>
             <View style={styles.authorInfo}>
-              {post.authorAvatar ? (
-                <Image source={{ uri: post.authorAvatar }} style={styles.avatar} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>?</Text>
-                </View>
-              )}
+              <AvatarStamp
+                avatarUrl={post.authorAvatar}
+                avatarColor={post.authorColor}
+                size={48}
+                borderRadius={6}
+              />
               <Text style={styles.authorName}>{post.authorName}</Text>
             </View>
             <Text style={styles.hearts}>❤️ {post.hearts}</Text>
           </View>
-
           <Text style={styles.postContent}>{post.content}</Text>
-        </View>
+        </MinkyPanel>
 
-        {/* Reward Info */}
         {isFirstResponse && (
           <View style={styles.rewardBox}>
             <Text style={styles.rewardText}>
-              🎉 <Text style={styles.rewardBold}>Be the first to respond</Text> and earn <Text style={styles.rewardBold}>{post.hearts} hearts!</Text>
+              🎉 First response earns <Text style={styles.rewardBold}>{post.hearts} hearts!</Text>
             </Text>
           </View>
         )}
-      </View>
 
-      {/* Response Input */}
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>YOUR RESPONSE</Text>
-        {Platform.OS === 'web' ? (
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write a thoughtful response..."
-            maxLength={500}
-            style={{
-              ...styles.textInput,
-              fontFamily: 'Comfortaa',
-              resize: 'vertical',
-              border: '2px solid rgba(92, 90, 88, 0.3)',
-              outline: 'none',
-              minHeight: 150,
-            }}
-          />
-        ) : (
-          <TextInput
-            value={content}
-            onChangeText={setContent}
-            placeholder="Write a thoughtful response..."
-            multiline
-            maxLength={500}
-            style={[styles.textInput, { minHeight: 150 }]}
-          />
-        )}
-        <Text style={styles.charCount}>{content.length}/500</Text>
-      </View>
-
-      {/* Submit Button */}
-      <Pressable
-        style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-        onPress={handleSubmit}
-        disabled={isSubmitting}
-      >
-        {/* Background texture */}
-        {Platform.OS === 'web' && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '40%',
-              borderRadius: 8,
-              pointerEvents: 'none',
-              opacity: 0.8,
-            }}
-          />
-        )}
-        {Platform.OS !== 'web' && (
-          <ImageBackground
-            source={buttonBgImage}
-            style={styles.buttonBgImage}
-            imageStyle={{ opacity: 0.8, borderRadius: 6 }}
-            resizeMode="repeat"
-          />
-        )}
-        <View style={styles.submitButtonOverlay}>
-          <StitchedBorder paddingHorizontal={26} paddingVertical={11}>
-            <Text style={styles.submitButtonText}>
-              {isSubmitting ? 'SENDING...' : 'SEND RESPONSE'}
-            </Text>
-          </StitchedBorder>
+        <View style={styles.inputContainer}>
+          {Platform.OS === 'web' ? (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write a thoughtful response..."
+              maxLength={500}
+              style={{
+                fontFamily: 'Comfortaa',
+                fontSize: 14,
+                padding: 10,
+                borderRadius: 8,
+                border: '1px solid rgba(92, 90, 88, 0.3)',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                outline: 'none',
+                resize: 'none',
+                flex: 1,
+                minHeight: 60,
+              }}
+            />
+          ) : (
+            <TextInput
+              value={content}
+              onChangeText={setContent}
+              placeholder="Write a thoughtful response..."
+              multiline
+              maxLength={500}
+              style={styles.textInput}
+            />
+          )}
+          <Text style={styles.charCount}>{content.length}/500</Text>
         </View>
-      </Pressable>
 
-      {/* Back Button */}
-      {canGoBack && (
-        <Pressable style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← CANCEL</Text>
-        </Pressable>
-      )}
+        <WoolButton
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          variant="purple"
+        >
+          {isSubmitting ? 'SENDING...' : 'SEND RESPONSE'}
+        </WoolButton>
+      </View>
     </View>
   );
 });
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    gap: 20,
-  },
-  originalPost: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
     gap: 15,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#403F3E',
+  leftPanel: {
+    flex: 1,
   },
-  postCard: {
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(179, 230, 255, 0.5)',
-    backgroundColor: 'rgba(179, 230, 255, 0.15)',
+  rightPanel: {
+    flex: 1,
     gap: 10,
+  },
+  panelTitle: {
+    fontSize: 18,
+    fontFamily: 'ChubbyTrail',
+    color: '#403F3E',
+    textAlign: 'center',
+    marginBottom: 8,
+    flexShrink: 0,
+  },
+  responsesScroll: {
+    flex: 1,
+  },
+  responsesContent: {
+    gap: 10,
+    paddingBottom: 4,
   },
   postHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
   authorInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  avatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(112, 68, 199, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#7044C7',
+    gap: 8,
   },
   authorName: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
   },
   hearts: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
   },
   postContent: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Comfortaa',
     color: '#403F3E',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   rewardBox: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(112, 68, 199, 0.5)',
+    padding: 8,
+    borderRadius: 6,
     backgroundColor: 'rgba(112, 68, 199, 0.1)',
+    flexShrink: 0,
   },
   rewardText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Comfortaa',
     color: '#403F3E',
     textAlign: 'center',
-    lineHeight: 20,
   },
   rewardBold: {
     fontWeight: '700',
     color: '#7044C7',
   },
   inputContainer: {
-    gap: 10,
-  },
-  label: {
-    fontSize: 14,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#403F3E',
+    flex: 1,
+    gap: 4,
   },
   textInput: {
-    padding: 12,
+    flex: 1,
+    padding: 10,
     borderRadius: 8,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: 'rgba(92, 90, 88, 0.3)',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Comfortaa',
     color: '#403F3E',
     textAlignVertical: 'top',
+    minHeight: 60,
   },
   charCount: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Comfortaa',
     color: '#5C5A58',
     textAlign: 'right',
+    flexShrink: 0,
   },
-  submitButton: {
-    position: 'relative',
-    borderRadius: 8,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
+  emptyText: {
+    fontSize: 13,
+    fontFamily: 'Comfortaa',
+    color: '#5C5A58',
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
-  buttonBgImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
+  responseCard: {
+    marginBottom: 0,
   },
-  submitButtonOverlay: {
-    width: '100%',
-    backgroundColor: 'rgba(112, 68, 199, 0.25)',
-    padding: 4,
-    alignItems: 'center',
+  responseInner: {
+    flexDirection: 'row',
+    padding: 10,
+    gap: 10,
+  },
+  responseContent: {
+    flex: 1,
     justifyContent: 'center',
   },
-  submitButtonDisabled: {
-    opacity: 0.5,
+  responseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
   },
-  submitButtonText: {
-    fontSize: 16,
+  responseAuthor: {
+    fontSize: 14,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
+    flex: 1,
   },
-  backButton: {
-    padding: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: 'rgba(92, 90, 88, 0.3)',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
+  firstBadge: {
+    fontSize: 10,
+    fontFamily: 'Comfortaa',
+    fontWeight: '700',
+    color: '#fff',
+    backgroundColor: '#7044C7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
   },
-  backButtonText: {
+  responseText: {
     fontSize: 14,
     fontFamily: 'Comfortaa',
-    fontWeight: '600',
-    color: '#5C5A58',
+    color: '#403F3E',
+    lineHeight: 20,
   },
   loadingText: {
     fontSize: 14,

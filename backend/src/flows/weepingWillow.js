@@ -1,5 +1,6 @@
 const WeepingWillowPost = require('../models/WeepingWillowPost');
 const Account = require('../models/Account');
+const { createNotification } = require('./notifications');
 
 /**
  * Weeping Willow "Help Wanted" Flow
@@ -108,9 +109,10 @@ module.exports = {
         const post = new WeepingWillowPost({
           content: content.trim(),
           hearts,
-          authorSessionId: sessionId,
+          authorId: account._id,
           authorName: account.userData?.username || 'Anonymous',
           authorAvatar: account.userData?.avatar || null,
+          authorColor: account.userData?.avatarData?.color || null,
           responses: [],
           createdAt: new Date()
         });
@@ -125,7 +127,11 @@ module.exports = {
         return {
           success: true,
           message: 'Your request has been posted!',
-          data: post
+          data: {
+            post,
+            hearts: account.hearts,
+            heartBank: account.heartBank
+          }
         };
       }
     },
@@ -166,17 +172,19 @@ module.exports = {
           return { success: false, error: 'Account not found' };
         }
 
-        // Check if user is trying to respond to their own post
-        if (post.authorSessionId === sessionId) {
-          return { success: false, error: 'You cannot respond to your own post' };
+        // Check if user is the most recent responder (can't respond twice in a row)
+        const lastResponse = post.responses.length > 0 ? post.responses[post.responses.length - 1] : null;
+        if (lastResponse && lastResponse.responderId.equals(responder._id)) {
+          return { success: false, error: 'You cannot respond twice in a row. Wait for someone else to respond first.' };
         }
 
         // Add response
         const response = {
           content: content.trim(),
-          responderSessionId: sessionId,
+          responderId: responder._id,
           responderName: responder.userData?.username || 'Anonymous',
           responderAvatar: responder.userData?.avatar || null,
+          responderColor: responder.userData?.avatarData?.color || null,
           createdAt: new Date()
         };
 
@@ -184,8 +192,8 @@ module.exports = {
 
         // If this is the first response, award hearts
         let heartsAwarded = 0;
-        if (!post.firstResponderSessionId) {
-          post.firstResponderSessionId = sessionId;
+        if (!post.firstResponderId) {
+          post.firstResponderId = responder._id;
 
           // Award hearts to responder
           heartsAwarded = post.hearts;
@@ -206,6 +214,27 @@ module.exports = {
           postId: post._id
         });
 
+        // Create notification for the post author
+        const notificationMessage = heartsAwarded > 0
+          ? `${responder.userData?.username || 'Someone'} responded to your help request and earned ${heartsAwarded} hearts!`
+          : `${responder.userData?.username || 'Someone'} responded to your help request`;
+
+        await createNotification(context.io, {
+          recipientId: post.authorId,
+          type: 'weepingWillow:response',
+          message: notificationMessage,
+          navigation: {
+            flow: 'weepingWillow',
+            dropId: 'weepingWillow:viewPost',
+            params: new Map([['postId', post._id.toString()]])
+          },
+          actor: {
+            accountId: responder._id,
+            name: responder.userData?.username || 'Anonymous',
+            avatar: responder.userData?.avatar || null
+          }
+        });
+
         return {
           success: true,
           message: heartsAwarded > 0
@@ -213,7 +242,9 @@ module.exports = {
             : 'Response added!',
           data: {
             post,
-            heartsAwarded
+            heartsAwarded,
+            hearts: responder.hearts,
+            heartBank: responder.heartBank
           }
         };
       }

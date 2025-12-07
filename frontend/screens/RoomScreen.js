@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import Scroll from '../components/Scroll';
 import { observer } from 'mobx-react-lite';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import RoomStore from '../stores/RoomStore';

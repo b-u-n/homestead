@@ -22,11 +22,12 @@ const CreateWishingWellPost = observer(({
 
   const flowName = context?.flowName || 'wishingWell';
 
-  // Get persisted form state
-  const content = FormStore.getField('createPost', 'content') || '';
+  // Get persisted form state scoped to this flow's new post
+  const formKey = `${flowName}:newPost`;
+  const content = FormStore.getField(formKey, 'content') || '';
 
   // Setter that updates FormStore
-  const setContent = (value) => FormStore.setField('createPost', 'content', value);
+  const setContent = (value) => FormStore.setField(formKey, 'content', value);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -56,7 +57,7 @@ const CreateWishingWellPost = observer(({
 
       if (result.success) {
         // Reset form on successful submission
-        FormStore.resetForm('createPost');
+        FormStore.resetForm(formKey);
 
         // Success! Navigate to list
         onComplete({ action: 'submitted' });

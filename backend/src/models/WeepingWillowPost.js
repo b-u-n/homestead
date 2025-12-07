@@ -6,8 +6,9 @@ const responseSchema = new mongoose.Schema({
     required: true,
     maxlength: 500
   },
-  responderSessionId: {
-    type: String,
+  responderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
     required: true
   },
   responderName: {
@@ -34,8 +35,9 @@ const weepingWillowPostSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  authorSessionId: {
-    type: String,
+  authorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
     required: true,
     index: true
   },
@@ -47,8 +49,9 @@ const weepingWillowPostSchema = new mongoose.Schema({
     type: String
   },
   responses: [responseSchema],
-  firstResponderSessionId: {
-    type: String,
+  firstResponderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
     default: null
   },
   createdAt: {

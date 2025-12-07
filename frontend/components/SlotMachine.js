@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Animated, PanResponder, Platform, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Animated, PanResponder, Platform, ImageBackground } from 'react-native';
+import Scroll from './Scroll';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
@@ -283,7 +284,7 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
                   }
                 })}
               >
-              <ScrollView
+              <Scroll
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
           snapToInterval={ITEM_HEIGHT}
@@ -338,7 +339,7 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
           {!isSpinning && <View style={styles.paddingItem} />}
           {!isSpinning && <View style={styles.paddingItem} />}
           {!isSpinning && <View style={styles.paddingItem} />}
-        </ScrollView>
+        </Scroll>
               </View>
             </StitchedBorder>
           </View>

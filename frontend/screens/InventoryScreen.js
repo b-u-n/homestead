@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import Scroll from '../components/Scroll';
 import { observer } from 'mobx-react-lite';
 import InventoryStore from '../stores/InventoryStore';
 import ErrorStore from '../stores/ErrorStore';
@@ -111,7 +112,7 @@ const InventoryScreen = observer(({ navigation }) => {
       </View>
 
       <View style={styles.tabContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <Scroll horizontal showsHorizontalScrollIndicator={false}>
           {tabs.map((tab) => (
             <TouchableOpacity
               key={tab.id}
@@ -124,14 +125,14 @@ const InventoryScreen = observer(({ navigation }) => {
               </Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </Scroll>
       </View>
 
-      <ScrollView style={styles.inventoryContainer} contentContainerStyle={styles.inventoryContent}>
+      <Scroll style={styles.inventoryContainer} contentContainerStyle={styles.inventoryContent}>
         <View style={styles.inventoryGrid}>
           {renderInventoryGrid()}
         </View>
-      </ScrollView>
+      </Scroll>
 
       {InventoryStore.isEmpty && (
         <View style={styles.emptyState}>

@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import profileStore from '../stores/ProfileStore';
 import uxStore from '../stores/UXStore';
 import StitchedBorder from './StitchedBorder';
+import AvatarStamp from './AvatarStamp';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
@@ -46,15 +47,12 @@ const UserStatus = observer(() => {
       <View style={styles.overlay}>
         <StitchedBorder borderRadius={12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.container}>
           {/* Avatar */}
-          <View style={styles.avatarContainer}>
-            {profileStore.avatarUrl ? (
-              <Image source={{ uri: profileStore.avatarUrl }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarPlaceholderText}>?</Text>
-              </View>
-            )}
-          </View>
+          <AvatarStamp
+            avatarUrl={profileStore.avatarUrl}
+            avatarColor={profileStore.avatarColor}
+            size={56}
+            borderRadius={8}
+          />
 
           {/* Stats panel */}
           <View style={styles.statsPanel}>
@@ -127,29 +125,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 16,
     minWidth: 280,
-  },
-  avatarContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(92, 90, 88, 0.55)',
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-  },
-  avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    backgroundColor: 'rgba(222, 134, 223, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarPlaceholderText: {
-    fontSize: 24,
-    color: '#5C5A58',
   },
   statsPanel: {
     flex: 1,
