@@ -104,6 +104,7 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                         <Text style={styles.navButtonText}>←</Text>
                       </StitchedBorder>
                     </View>
+                    <View style={styles.embossBorder} pointerEvents="none" />
                   </Pressable>
                 ) : (
                   <View style={styles.navButtonSpacer} />
@@ -148,6 +149,7 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
                         <Text style={styles.navButtonText}>✕</Text>
                       </StitchedBorder>
                     </View>
+                    <View style={styles.embossBorder} pointerEvents="none" />
                   </Pressable>
                 ) : (
                   <View style={styles.navButtonSpacer} />
@@ -255,16 +257,38 @@ const styles = StyleSheet.create({
   titleInNav: {
     fontSize: 24,
     fontFamily: 'ChubbyTrail',
-    color: '#403F3E',
+    fontWeight: '600',
+    color: 'rgba(64, 63, 62, 0.82)',
     textAlign: 'center',
     width: '100%',
     paddingHorizontal: 60, // Make room for buttons on both sides
+    textShadowColor: 'rgba(255, 255, 255, 1)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 2,
   },
   content: {
     flex: 1,
+    overflow: 'visible',
   },
   contentContainer: {
     flexGrow: 1,
+    paddingBottom: 8,
+  },
+  embossBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 8,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.5)',
+    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderRightColor: 'rgba(0, 0, 0, 0.15)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.15)',
   },
 });
 

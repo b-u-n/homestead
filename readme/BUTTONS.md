@@ -79,8 +79,18 @@ import MinkyButton, { Text } from '../components/MinkyButton';
 ```
 
 The `Text` component reads the texture from context, so it automatically uses the right font:
-- **wool**: NeedleworkGood, with text shadow
-- **minky**: Comfortaa, clean look
+- **wool**: NeedleworkGood font
+- **minky**: Comfortaa font
+
+Both textures now use a **white emboss text shadow** for better readability on colored backgrounds:
+
+```js
+textShadowColor: 'rgba(255, 255, 255, 0.62)',
+textShadowOffset: { width: 0, height: 1 },
+textShadowRadius: 1,
+```
+
+This creates a subtle raised/embossed look that improves contrast on the textured button backgrounds.
 
 You can still override styles if needed:
 

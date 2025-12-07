@@ -1,21 +1,32 @@
 const mongoose = require('mongoose');
 
+const userSchema = new mongoose.Schema({
+  id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  avatar: {
+    type: String
+  },
+  color: {
+    type: String
+  }
+}, { _id: false });
+
 const responseSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
     maxlength: 500
   },
-  responderSessionId: {
-    type: String,
+  user: {
+    type: userSchema,
     required: true
-  },
-  responderName: {
-    type: String,
-    required: true
-  },
-  responderAvatar: {
-    type: String
   },
   createdAt: {
     type: Date,
@@ -29,16 +40,9 @@ const tipSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  tipperSessionId: {
-    type: String,
+  user: {
+    type: userSchema,
     required: true
-  },
-  tipperName: {
-    type: String,
-    required: true
-  },
-  tipperAvatar: {
-    type: String
   },
   createdAt: {
     type: Date,
@@ -52,17 +56,9 @@ const wishingWellPostSchema = new mongoose.Schema({
     required: true,
     maxlength: 500
   },
-  authorSessionId: {
-    type: String,
-    required: true,
-    index: true
-  },
-  authorName: {
-    type: String,
+  user: {
+    type: userSchema,
     required: true
-  },
-  authorAvatar: {
-    type: String
   },
   responses: [responseSchema],
   tips: [tipSchema],
@@ -82,5 +78,6 @@ const wishingWellPostSchema = new mongoose.Schema({
 wishingWellPostSchema.index({ createdAt: -1 }); // Sort by newest
 wishingWellPostSchema.index({ totalTips: -1 }); // Sort by value
 wishingWellPostSchema.index({ 'responses.0': 1 }); // Filter by has responses
+wishingWellPostSchema.index({ 'user.id': 1 }); // Find posts by user
 
 module.exports = mongoose.model('WishingWellPost', wishingWellPostSchema);

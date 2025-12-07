@@ -1,22 +1,32 @@
 const mongoose = require('mongoose');
 
+const userSchema = new mongoose.Schema({
+  id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  avatar: {
+    type: String
+  },
+  color: {
+    type: String
+  }
+}, { _id: false });
+
 const responseSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
     maxlength: 500
   },
-  responderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Account',
+  user: {
+    type: userSchema,
     required: true
-  },
-  responderName: {
-    type: String,
-    required: true
-  },
-  responderAvatar: {
-    type: String
   },
   createdAt: {
     type: Date,
@@ -35,18 +45,9 @@ const weepingWillowPostSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  authorId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Account',
-    required: true,
-    index: true
-  },
-  authorName: {
-    type: String,
+  user: {
+    type: userSchema,
     required: true
-  },
-  authorAvatar: {
-    type: String
   },
   responses: [responseSchema],
   firstResponderId: {
@@ -65,5 +66,6 @@ const weepingWillowPostSchema = new mongoose.Schema({
 weepingWillowPostSchema.index({ createdAt: -1 }); // Sort by newest
 weepingWillowPostSchema.index({ hearts: -1 }); // Sort by value
 weepingWillowPostSchema.index({ 'responses.0': 1 }); // Filter by has responses
+weepingWillowPostSchema.index({ 'user.id': 1 }); // Find posts by user
 
 module.exports = mongoose.model('WeepingWillowPost', weepingWillowPostSchema);

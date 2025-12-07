@@ -128,7 +128,7 @@ const TippablePostsList = ({
           {posts.map((post) => (
             <View key={post._id} style={styles.postCard}>
               <View style={styles.postHeader}>
-                <Text style={styles.authorName}>{post.authorName}</Text>
+                <Text style={styles.authorName}>{post.user?.name}</Text>
                 <Text style={styles.tipCount}>❤️ {post.totalTips || 0}</Text>
               </View>
 
@@ -171,7 +171,7 @@ const TippablePostsList = ({
         }}
         onComplete={handlePaymentComplete}
         paymentInfo={{
-          recipient: selectedPost?.authorName,
+          recipient: selectedPost?.user?.name,
           purpose: 'Tip for post'
         }}
       />

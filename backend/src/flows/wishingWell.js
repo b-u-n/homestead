@@ -2,6 +2,19 @@ const WishingWellPost = require('../models/WishingWellPost');
 const Account = require('../models/Account');
 
 /**
+ * Build a user object from an Account document
+ * See readme/ARCHITECTURE.md for the user object pattern
+ */
+function buildUserObject(account) {
+  return {
+    id: account._id,
+    name: account.userData?.username || 'Anonymous',
+    avatar: account.userData?.avatar || null,
+    color: account.userData?.avatarData?.variables?.color || null
+  };
+}
+
+/**
  * Wishing Well Flow
  * Handles post creation, viewing, and responses
  */
@@ -88,13 +101,10 @@ module.exports = {
           return { success: false, error: 'Account not found' };
         }
 
-        // Create post (FREE - no hearts required)
+        // Create post with user object (FREE - no hearts required)
         const post = new WishingWellPost({
           content: content.trim(),
-          authorSessionId: sessionId,
-          authorName: account.userData?.username || 'Anonymous',
-          authorAvatar: account.userData?.avatar || null,
-          authorColor: account.userData?.avatarData?.color || null,
+          user: buildUserObject(account),
           responses: [],
           tips: [],
           totalTips: 0,
@@ -152,17 +162,14 @@ module.exports = {
         }
 
         // Check if user is trying to respond to their own post
-        if (post.authorSessionId === sessionId) {
+        if (post.user.id.equals(responder._id)) {
           return { success: false, error: 'You cannot respond to your own post' };
         }
 
-        // Add response
+        // Add response with user object
         const response = {
           content: content.trim(),
-          responderSessionId: sessionId,
-          responderName: responder.userData?.username || 'Anonymous',
-          responderAvatar: responder.userData?.avatar || null,
-          responderColor: responder.userData?.avatarData?.color || null,
+          user: buildUserObject(responder),
           createdAt: new Date()
         };
 
@@ -223,7 +230,7 @@ module.exports = {
         }
 
         // Check if user is trying to tip their own post
-        if (post.authorSessionId === sessionId) {
+        if (post.user.id.equals(tipper._id)) {
           return { success: false, error: 'You cannot tip your own post' };
         }
 
@@ -246,8 +253,8 @@ module.exports = {
           tipper.heartBank -= amount;
         }
 
-        // Get author account
-        const author = await Account.findOne({ 'activeSessions.sessionId': post.authorSessionId });
+        // Get author account by user.id
+        const author = await Account.findById(post.user.id);
 
         if (!author) {
           return { success: false, error: 'Post author not found' };
@@ -265,12 +272,10 @@ module.exports = {
         await tipper.save();
         await author.save();
 
-        // Add tip to post
+        // Add tip to post with user object
         const tip = {
           amount,
-          tipperSessionId: sessionId,
-          tipperName: tipper.userData?.username || 'Anonymous',
-          tipperAvatar: tipper.userData?.avatar || null,
+          user: buildUserObject(tipper),
           createdAt: new Date()
         };
 
@@ -285,7 +290,7 @@ module.exports = {
 
         return {
           success: true,
-          message: `Tipped ${amount} hearts to ${post.authorName}!`,
+          message: `Tipped ${amount} hearts to ${post.user.name}!`,
           data: {
             post,
             tipperBalance: {

@@ -3,6 +3,19 @@ const Account = require('../models/Account');
 const { createNotification } = require('./notifications');
 
 /**
+ * Build a user object from an Account document
+ * See readme/ARCHITECTURE.md for the user object pattern
+ */
+function buildUserObject(account) {
+  return {
+    id: account._id,
+    name: account.userData?.username || 'Anonymous',
+    avatar: account.userData?.avatar || null,
+    color: account.userData?.avatarData?.variables?.color || null
+  };
+}
+
+/**
  * Weeping Willow "Help Wanted" Flow
  * Handles post creation, viewing, and responses
  */
@@ -105,14 +118,11 @@ module.exports = {
         account.hearts -= hearts;
         await account.save();
 
-        // Create post
+        // Create post with user object
         const post = new WeepingWillowPost({
           content: content.trim(),
           hearts,
-          authorId: account._id,
-          authorName: account.userData?.username || 'Anonymous',
-          authorAvatar: account.userData?.avatar || null,
-          authorColor: account.userData?.avatarData?.color || null,
+          user: buildUserObject(account),
           responses: [],
           createdAt: new Date()
         });
@@ -174,17 +184,14 @@ module.exports = {
 
         // Check if user is the most recent responder (can't respond twice in a row)
         const lastResponse = post.responses.length > 0 ? post.responses[post.responses.length - 1] : null;
-        if (lastResponse && lastResponse.responderId.equals(responder._id)) {
+        if (lastResponse && lastResponse.user.id.equals(responder._id)) {
           return { success: false, error: 'You cannot respond twice in a row. Wait for someone else to respond first.' };
         }
 
-        // Add response
+        // Add response with user object
         const response = {
           content: content.trim(),
-          responderId: responder._id,
-          responderName: responder.userData?.username || 'Anonymous',
-          responderAvatar: responder.userData?.avatar || null,
-          responderColor: responder.userData?.avatarData?.color || null,
+          user: buildUserObject(responder),
           createdAt: new Date()
         };
 
@@ -220,7 +227,7 @@ module.exports = {
           : `${responder.userData?.username || 'Someone'} responded to your help request`;
 
         await createNotification(context.io, {
-          recipientId: post.authorId,
+          recipientId: post.user.id,
           type: 'weepingWillow:response',
           message: notificationMessage,
           navigation: {

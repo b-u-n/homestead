@@ -33,78 +33,82 @@ const AvatarStamp = ({
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  const borderColor = getBorderColor(avatarColor, 0.7);
-  const innerBorderRadius = Math.max(borderRadius - 2, 2);
+  const borderColor = getBorderColor(avatarColor, 0.6);
 
   return (
     <View
       style={[
-        styles.outerContainer,
+        styles.container,
         {
-          width: size + 4,
-          height: size + 4,
-          borderRadius: borderRadius + 2,
-          borderColor: borderColor,
+          width: size,
+          height: size,
+          borderRadius: borderRadius,
         },
         style,
       ]}
     >
+      {avatarUrl ? (
+        <Image
+          source={{ uri: avatarUrl }}
+          style={[
+            styles.avatar,
+            {
+              width: size,
+              height: size,
+              borderRadius: borderRadius,
+            },
+          ]}
+        />
+      ) : (
+        <View
+          style={[
+            styles.placeholder,
+            {
+              width: size,
+              height: size,
+              borderRadius: borderRadius,
+            },
+          ]}
+        >
+          <Text style={[styles.placeholderText, { fontSize: size * 0.4 }]}>?</Text>
+        </View>
+      )}
+      {/* Embossed highlight border */}
       <View
         style={[
-          styles.innerContainer,
+          styles.highlightBorder,
           {
-            width: size,
-            height: size,
             borderRadius: borderRadius,
+          },
+        ]}
+        pointerEvents="none"
+      />
+      {/* Inner stitched border overlay */}
+      <View
+        style={[
+          styles.innerBorder,
+          {
+            borderRadius: borderRadius - 2,
             borderColor: borderColor,
           },
         ]}
-      >
-        {avatarUrl ? (
-          <Image
-            source={{ uri: avatarUrl }}
-            style={[
-              styles.avatar,
-              {
-                width: size - 4,
-                height: size - 4,
-                borderRadius: innerBorderRadius,
-              },
-            ]}
-          />
-        ) : (
-          <View
-            style={[
-              styles.placeholder,
-              {
-                width: size - 4,
-                height: size - 4,
-                borderRadius: innerBorderRadius,
-              },
-            ]}
-          >
-            <Text style={[styles.placeholderText, { fontSize: size * 0.4 }]}>?</Text>
-          </View>
-        )}
-      </View>
+        pointerEvents="none"
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  outerContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  innerContainer: {
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
+  container: {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    // Drop shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
   },
   avatar: {
     resizeMode: 'cover',
@@ -118,6 +122,31 @@ const styles = StyleSheet.create({
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: 'rgba(92, 90, 88, 0.4)',
+  },
+  innerBorder: {
+    position: 'absolute',
+    top: -0.5,
+    left: -0.5,
+    right: -0.5,
+    bottom: -0.5,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+  },
+  // Top-left highlight for embossed effect
+  highlightBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.5)',
+    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderRightColor: 'rgba(0, 0, 0, 0.15)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.15)',
   },
 });
 

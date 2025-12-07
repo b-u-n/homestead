@@ -156,38 +156,47 @@ const RespondToPost = observer(({
         >
           {responses.length > 0 ? (
             responses.map((response, index) => (
-              <MinkyPanel
-                key={response._id || index}
-                borderRadius={8}
-                padding={0}
-                paddingTop={0}
-                overlayColor={hexToRgba(response.responderColor, 0.15)}
-                borderColor={hexToRgba(response.responderColor, 0.5)}
-                style={styles.responseCard}
-              >
-                <View style={styles.responseInner}>
-                  <AvatarStamp
-                    avatarUrl={response.responderAvatar}
-                    avatarColor={response.responderColor}
-                    size={56}
+              <View key={response._id || index} style={styles.responseCardWrapper}>
+                {index === 0 && (
+                  <MinkyPanel
                     borderRadius={6}
-                  />
-                  <View style={styles.responseContent}>
-                    <View style={styles.responseHeader}>
-                      <Text style={styles.responseAuthor}>{response.responderName}</Text>
-                      {index === 0 && <Text style={styles.firstBadge}>1ST</Text>}
+                    padding={4}
+                    paddingTop={4}
+                    overlayColor="rgba(112, 68, 199, 0.2)"
+                    borderInset={-1}
+                    style={styles.firstBadge}
+                  >
+                    <Text style={styles.firstBadgeText}>1ST</Text>
+                  </MinkyPanel>
+                )}
+                <MinkyPanel
+                  borderRadius={8}
+                  padding={0}
+                  paddingTop={0}
+                  overlayColor="rgba(112, 68, 199, 0.2)"
+                  style={styles.responseCard}
+                >
+                  <View style={styles.responseInner}>
+                    <AvatarStamp
+                      avatarUrl={response.user?.avatar}
+                      avatarColor="#7044C7"
+                      size={56}
+                      borderRadius={6}
+                    />
+                    <View style={styles.responseContent}>
+                      <Text style={styles.responseAuthor}>{response.user?.name}</Text>
+                      <Text style={styles.responseText}>{response.content}</Text>
                     </View>
-                    <Text style={styles.responseText}>{response.content}</Text>
                   </View>
-                </View>
-              </MinkyPanel>
+                </MinkyPanel>
+              </View>
             ))
           ) : (
             <MinkyPanel
               borderRadius={8}
               padding={20}
               paddingTop={20}
-              overlayColor="rgba(112, 68, 199, 0.1)"
+              overlayColor="rgba(112, 68, 199, 0.2)"
             >
               <Text style={styles.emptyText}>Be the first to help!</Text>
             </MinkyPanel>
@@ -197,27 +206,35 @@ const RespondToPost = observer(({
 
       {/* RIGHT PANEL - Original post and response form */}
       <View style={styles.rightPanel}>
-        <MinkyPanel
-          borderRadius={10}
-          padding={12}
-          paddingTop={12}
-          overlayColor={hexToRgba(post.authorColor, 0.2)}
-          borderColor={hexToRgba(post.authorColor, 0.5)}
-        >
-          <View style={styles.postHeader}>
-            <View style={styles.authorInfo}>
+        <View style={styles.postCardWrapper}>
+          <MinkyPanel
+            borderRadius={6}
+            padding={4}
+            paddingTop={4}
+            overlayColor="rgba(112, 68, 199, 0.2)"
+            borderInset={-1}
+            style={styles.heartsBadge}
+          >
+            <Text style={styles.heartsBadgeText}>❤️ {post.hearts}</Text>
+          </MinkyPanel>
+          <MinkyPanel
+            borderRadius={10}
+            padding={12}
+            paddingTop={12}
+            overlayColor="rgba(112, 68, 199, 0.2)"
+          >
+            <View style={styles.postHeader}>
               <AvatarStamp
-                avatarUrl={post.authorAvatar}
-                avatarColor={post.authorColor}
+                avatarUrl={post.user?.avatar}
+                avatarColor="#7044C7"
                 size={48}
                 borderRadius={6}
               />
-              <Text style={styles.authorName}>{post.authorName}</Text>
+              <Text style={styles.authorName}>{post.user?.name}</Text>
             </View>
-            <Text style={styles.hearts}>❤️ {post.hearts}</Text>
-          </View>
-          <Text style={styles.postContent}>{post.content}</Text>
-        </MinkyPanel>
+            <Text style={styles.postContent}>{post.content}</Text>
+          </MinkyPanel>
+        </View>
 
         {isFirstResponse && (
           <View style={styles.rewardBox}>
@@ -245,6 +262,7 @@ const RespondToPost = observer(({
                 resize: 'none',
                 flex: 1,
                 minHeight: 60,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
               }}
             />
           ) : (
@@ -292,10 +310,14 @@ const styles = StyleSheet.create({
   panelTitle: {
     fontSize: 18,
     fontFamily: 'ChubbyTrail',
-    color: '#403F3E',
+    fontWeight: '600',
+    color: 'rgba(64, 63, 62, 0.82)',
     textAlign: 'center',
     marginBottom: 8,
     flexShrink: 0,
+    textShadowColor: 'rgba(255, 255, 255, 1)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 2,
   },
   responsesScroll: {
     flex: 1,
@@ -303,35 +325,55 @@ const styles = StyleSheet.create({
   responsesContent: {
     gap: 10,
     paddingBottom: 4,
+    paddingTop: 8,
+    paddingRight: 8,
+    overflow: 'visible',
+  },
+  postCardWrapper: {
+    position: 'relative',
+    overflow: 'visible',
+    marginTop: 8,
+    marginRight: 8,
+  },
+  heartsBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    zIndex: 10,
+  },
+  heartsBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Comfortaa',
+    fontWeight: '700',
+    color: '#403F3E',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   postHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  authorInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
   authorName: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
-  },
-  hearts: {
-    fontSize: 15,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#403F3E',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   postContent: {
     fontSize: 15,
     fontFamily: 'Comfortaa',
+    fontWeight: '700',
     color: '#403F3E',
     lineHeight: 22,
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   rewardBox: {
     padding: 8,
@@ -365,6 +407,12 @@ const styles = StyleSheet.create({
     color: '#403F3E',
     textAlignVertical: 'top',
     minHeight: 60,
+    // Emboss effect
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
   },
   charCount: {
     fontSize: 10,
@@ -392,34 +440,50 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  responseHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  responseAuthor: {
-    fontSize: 14,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#403F3E',
-    flex: 1,
+  responseCardWrapper: {
+    position: 'relative',
+    overflow: 'visible',
+    marginTop: 8,
+    marginRight: 8,
   },
   firstBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    zIndex: 10,
+  },
+  firstBadgeText: {
     fontSize: 10,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
-    color: '#fff',
-    backgroundColor: '#7044C7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 3,
+    color: '#403F3E',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  responseAuthor: {
+    fontSize: 15,
+    fontFamily: 'Comfortaa',
+    fontWeight: '700',
+    color: '#403F3E',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(64, 63, 62, 0.3)',
+    borderStyle: 'dashed',
+    paddingBottom: 4,
+    marginBottom: 4,
   },
   responseText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Comfortaa',
+    fontWeight: '700',
     color: '#403F3E',
-    lineHeight: 20,
+    lineHeight: 22,
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   loadingText: {
     fontSize: 14,

@@ -115,12 +115,12 @@ const ViewPost = ({
           <View style={styles.postHeader}>
             <View style={styles.authorInfo}>
               <AvatarStamp
-                avatarUrl={post.authorAvatar}
-                avatarColor={post.authorColor}
+                avatarUrl={post.user?.avatar}
+                avatarColor={post.user?.color}
                 size={40}
                 borderRadius={6}
               />
-              <Text style={styles.authorName}>{post.authorName}</Text>
+              <Text style={styles.authorName}>{post.user?.name}</Text>
             </View>
             <Text style={styles.hearts}>❤️ {post.hearts}</Text>
           </View>
@@ -152,13 +152,13 @@ const ViewPost = ({
               <View key={index} style={styles.response}>
                 <View style={styles.responseHeader}>
                   <AvatarStamp
-                    avatarUrl={response.responderAvatar}
-                    avatarColor={response.responderColor}
+                    avatarUrl={response.user?.avatar}
+                    avatarColor={response.user?.color}
                     size={32}
                     borderRadius={5}
                   />
                   <View style={styles.responseInfo}>
-                    <Text style={styles.responderName}>{response.responderName}</Text>
+                    <Text style={styles.responderName}>{response.user?.name}</Text>
                     <Text style={styles.responseDate}>
                       {new Date(response.createdAt).toLocaleDateString('en-US', {
                         month: 'short',

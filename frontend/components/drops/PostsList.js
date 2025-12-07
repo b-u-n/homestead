@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import WebSocketService from '../../services/websocket';
 import ErrorStore from '../../stores/ErrorStore';
 import Scroll from '../Scroll';
@@ -90,12 +90,12 @@ const PostsList = ({
         <View style={styles.postHeader}>
           <View style={styles.authorInfo}>
             <AvatarStamp
-              avatarUrl={post.authorAvatar}
-              avatarColor={post.authorColor}
+              avatarUrl={post.user?.avatar}
+              avatarColor={post.user?.color}
               size={32}
               borderRadius={5}
             />
-            <Text style={styles.authorName}>{post.authorName}</Text>
+            <Text style={styles.authorName}>{post.user?.name}</Text>
           </View>
           <Text style={styles.hearts}>❤️ {post.hearts}</Text>
         </View>
@@ -126,14 +126,13 @@ const PostsList = ({
               post.responses.map((response, index) => (
                 <View key={index} style={styles.response}>
                   <View style={styles.responseHeader}>
-                    {response.responderAvatar ? (
-                      <Image source={{ uri: response.responderAvatar }} style={styles.responseAvatar} />
-                    ) : (
-                      <View style={styles.responseAvatarPlaceholder}>
-                        <Text style={styles.responseAvatarText}>?</Text>
-                      </View>
-                    )}
-                    <Text style={styles.responderName}>{response.responderName}</Text>
+                    <AvatarStamp
+                      avatarUrl={response.user?.avatar}
+                      avatarColor={response.user?.color}
+                      size={24}
+                      borderRadius={4}
+                    />
+                    <Text style={styles.responderName}>{response.user?.name}</Text>
                   </View>
                   <Text style={styles.responseContent}>{response.content}</Text>
                   <Text style={styles.responseDate}>

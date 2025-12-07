@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { TouchableOpacity, Text as RNText, View, StyleSheet, ImageBackground, Platform } from 'react-native';
+import { Pressable, Text as RNText, View, StyleSheet, ImageBackground, Platform } from 'react-native';
 import StitchedBorder from './StitchedBorder';
 import { Typography } from '../constants/typography';
 
@@ -12,12 +12,12 @@ const textStyles = {
     fontFamily: Typography.fonts.needleworkGood,
     fontSize: 20,
     fontWeight: 'bold',
-    color: 'rgba(69, 67, 64, 0.55)',
+    color: '#403F3E',
     textAlign: 'center',
     letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.36)',
-    textShadowOffset: { width: 0, height: -1 },
-    textShadowRadius: 0,
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   minky: {
     fontFamily: Typography.fonts.body,
@@ -25,6 +25,9 @@ const textStyles = {
     fontWeight: '700',
     color: '#403F3E',
     textAlign: 'center',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
 };
 
@@ -37,8 +40,8 @@ const ButtonTextureContext = createContext('wool');
 export const Text = ({ style, children, ...props }) => {
   const texture = useContext(ButtonTextureContext);
   const baseStyle = textStyles[texture] || textStyles.wool;
-  const webShadow = texture === 'wool' && Platform.OS === 'web'
-    ? { textShadow: '0 -1px 0 rgba(0, 0, 0, 0.36)' }
+  const webShadow = Platform.OS === 'web'
+    ? { textShadow: '0 1px 1px rgba(255, 255, 255, 0.62)' }
     : null;
 
   return (
@@ -102,7 +105,7 @@ const ButtonBase = ({
       case 'secondary':
         return 'rgba(179, 230, 255, 0.25)';
       case 'purple':
-        return 'rgba(112, 68, 199, 0.2)';
+        return 'rgba(85, 60, 200, 0.27)';
       case 'blue':
         return 'rgba(179, 230, 255, 0.25)';
       case 'green':
@@ -136,7 +139,7 @@ const ButtonBase = ({
   const isTextContent = typeof children === 'string';
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={disabled}
       style={[
@@ -144,13 +147,12 @@ const ButtonBase = ({
         aspectRatio && { aspectRatio },
         style,
       ]}
-      activeOpacity={0.8}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || (isTextContent ? children : undefined)}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
     >
-      <View style={[styles.backgroundWrapper, { opacity: disabled ? 0.5 : 1 }]}>
+      <View style={{ opacity: disabled ? 0.5 : 1, position: 'relative' }}>
         {/* Background texture */}
         {Platform.OS === 'web' && (
           <div
@@ -197,8 +199,10 @@ const ButtonBase = ({
             </ButtonTextureContext.Provider>
           </StitchedBorder>
         </View>
+        {/* Emboss highlight/shadow border */}
+        <View style={styles.embossBorder} pointerEvents="none" />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
@@ -207,18 +211,12 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 8,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  backgroundWrapper: {
     position: 'relative',
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
   },
   bgImageNative: {
     position: 'absolute',
@@ -237,6 +235,22 @@ const styles = StyleSheet.create({
     padding: 4,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  embossBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 8,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.5)',
+    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderRightColor: 'rgba(0, 0, 0, 0.15)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.15)',
   },
 });
 

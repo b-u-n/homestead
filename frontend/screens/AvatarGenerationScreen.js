@@ -244,6 +244,15 @@ const AvatarGenerationScreen = observer(() => {
       });
 
       // Create or update user with account and avatar
+      // Ensure avatarData always has variables.color from the selected color
+      const avatarDataWithColor = {
+        ...selectedAvatar,
+        variables: {
+          ...selectedAvatar.variables,
+          color: selectedColor
+        }
+      };
+
       const response = await fetch(`${domain()}/api/accounts/save-user-avatar`, {
         method: 'POST',
         headers: {
@@ -254,7 +263,7 @@ const AvatarGenerationScreen = observer(() => {
           sessionId,
           username: username,
           avatarUrl: selectedAvatar.imageUrl,
-          avatarData: selectedAvatar
+          avatarData: avatarDataWithColor
         })
       });
 
