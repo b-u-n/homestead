@@ -5,9 +5,13 @@ const BASELINE_WIDTH = 1920;
 const BASELINE_HEIGHT = 1080;
 
 class UXStore {
-  // Screen dimensions
+  // Screen dimensions (scaled canvas size)
   screenWidth = BASELINE_WIDTH;
   screenHeight = BASELINE_HEIGHT;
+
+  // Full screen dimensions after rotation (before aspect ratio scaling)
+  fullWidth = BASELINE_WIDTH;
+  fullHeight = BASELINE_HEIGHT;
 
   // Whether device is in portrait mode (needs rotation)
   isPortrait = false;
@@ -17,6 +21,10 @@ class UXStore {
 
   // Render scale relative to 1080p baseline
   renderScale = 1;
+
+  // Letterbox dimensions (unused space due to aspect ratio)
+  letterboxWidth = 0;
+  letterboxHeight = 0;
 
   constructor() {
     makeAutoObservable(this);
@@ -33,17 +41,32 @@ class UXStore {
     const effectiveWidth = portrait ? height : width;
     const effectiveHeight = portrait ? width : height;
 
-    // Calculate scale based on 1080p baseline (uniform scale to maintain aspect ratio)
-    const scaleX = effectiveWidth / BASELINE_WIDTH;
-    const scaleY = effectiveHeight / BASELINE_HEIGHT;
-    this.renderScale = Math.min(scaleX, scaleY);
-
-    // Scale canvas dimensions uniformly to maintain 16:9 aspect ratio
-    this.screenWidth = BASELINE_WIDTH * this.renderScale;
-    this.screenHeight = BASELINE_HEIGHT * this.renderScale;
+    // Store full screen dimensions
+    this.fullWidth = effectiveWidth;
+    this.fullHeight = effectiveHeight;
 
     // Mobile if smaller dimension < 768
     this.isMobile = Math.min(width, height) < 768;
+
+    // Calculate scale based on 1080p baseline
+    const scaleX = effectiveWidth / BASELINE_WIDTH;
+    const scaleY = effectiveHeight / BASELINE_HEIGHT;
+
+    if (portrait) {
+      // Mobile portrait: maintain aspect ratio (uniform scale) to allow for side panel
+      this.renderScale = Math.min(scaleX, scaleY);
+      this.screenWidth = BASELINE_WIDTH * this.renderScale;
+      this.screenHeight = BASELINE_HEIGHT * this.renderScale;
+      this.letterboxWidth = effectiveWidth - this.screenWidth;
+      this.letterboxHeight = effectiveHeight - this.screenHeight;
+    } else {
+      // Desktop/landscape: fill the full window (no letterboxing)
+      this.renderScale = Math.min(scaleX, scaleY); // Still track for UI scaling purposes
+      this.screenWidth = effectiveWidth;
+      this.screenHeight = effectiveHeight;
+      this.letterboxWidth = 0;
+      this.letterboxHeight = 0;
+    }
   }
 
   // Check if we should apply mobile UI scaling (scale < 0.8)

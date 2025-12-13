@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Platform, ScrollView } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import profileStore from '../../stores/ProfileStore';
 import FormStore from '../../stores/FormStore';
+import uxStore from '../../stores/UXStore';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import Heart from '../Heart';
@@ -89,108 +90,129 @@ const CreatePost = observer(({
     }
   };
 
+  const isMobile = uxStore.isMobile || uxStore.isPortrait;
+
+  const formContent = (
+    <MinkyPanel
+      borderRadius={10}
+      padding={isMobile ? 12 : 16}
+      paddingTop={isMobile ? 12 : 16}
+      overlayColor="rgba(112, 68, 199, 0.2)"
+    >
+      {/* Explanation */}
+      <Text style={[styles.explanationText, isMobile && { fontSize: 12, lineHeight: 18 }]}>
+        {isFreePost ? (
+          `Share a positive message with the community! Other users can respond and you can tip them hearts if their response resonates with you.`
+        ) : (
+          `When you feel like you just need to talk, that's what we're here for. Share what's on your mind. Other users can respond to earn the hearts you offer.`
+        )}
+      </Text>
+
+      {/* Heart Selector (only for paid posts - weeping willow) */}
+      {!isFreePost && (
+        <View style={styles.heartSelectorContainer}>
+          <Text style={styles.label}>HEART BOUNTY</Text>
+          <View style={styles.heartSelector}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
+              const isSelected = heartNum <= hearts;
+              const isAvailable = heartNum <= availableHearts;
+
+              let heartStyle = {};
+              if (!isAvailable) {
+                heartStyle = { opacity: 0.2 };
+              } else if (isSelected) {
+                heartStyle = { opacity: 1 };
+              } else {
+                heartStyle = { opacity: 0.4 };
+              }
+
+              return (
+                <Pressable
+                  key={heartNum}
+                  onPress={() => {
+                    if (heartNum <= availableHearts) {
+                      setHearts(heartNum);
+                    }
+                  }}
+                  disabled={heartNum > availableHearts}
+                  style={[styles.heartIcon, heartStyle]}
+                >
+                  <Heart size={isMobile ? 24 : 28} />
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={styles.heartHelpRow}>
+            <Text style={styles.heartHelp}>Heart bounty for responders: {hearts}</Text>
+            <Heart size={14} />
+          </View>
+        </View>
+      )}
+
+      {/* Content Input */}
+      <View style={[styles.inputContainer, isMobile && { flex: 0 }]}>
+        {Platform.OS === 'web' ? (
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
+            maxLength={500}
+            style={{
+              fontFamily: 'Comfortaa',
+              fontSize: isMobile ? 13 : 14,
+              padding: 10,
+              borderRadius: 8,
+              border: '1px solid rgba(92, 90, 88, 0.3)',
+              backgroundColor: 'rgba(255, 255, 255, 0.5)',
+              outline: 'none',
+              resize: 'none',
+              width: '100%',
+              minHeight: isMobile ? 100 : 120,
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
+            }}
+          />
+        ) : (
+          <TextInput
+            value={content}
+            onChangeText={setContent}
+            placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
+            multiline
+            maxLength={500}
+            style={styles.textInput}
+          />
+        )}
+        <Text style={styles.charCount}>{content.length}/500</Text>
+      </View>
+
+      {/* Submit Button */}
+      <WoolButton
+        onPress={handleSubmit}
+        disabled={isSubmitting}
+        variant="purple"
+      >
+        {isSubmitting ? 'POSTING...' : (isFreePost ? 'POST WISH' : 'ASK FOR HELP')}
+      </WoolButton>
+    </MinkyPanel>
+  );
+
+  // Mobile: wrap in ScrollView for proper scrolling
+  if (isMobile) {
+    return (
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {formContent}
+      </ScrollView>
+    );
+  }
+
+  // Desktop: simple container
   return (
     <View style={styles.container}>
-      <MinkyPanel
-        borderRadius={10}
-        padding={16}
-        paddingTop={16}
-        overlayColor="rgba(112, 68, 199, 0.2)"
-      >
-        {/* Explanation */}
-        <Text style={styles.explanationText}>
-          {isFreePost ? (
-            `Share a positive message with the community! Other users can respond and you can tip them hearts if their response resonates with you.`
-          ) : (
-            `When you feel like you just need to talk, that's what we're here for. Share what's on your mind. Other users can respond to earn the hearts you offer.`
-          )}
-        </Text>
-
-        {/* Heart Selector (only for paid posts - weeping willow) */}
-        {!isFreePost && (
-          <View style={styles.heartSelectorContainer}>
-            <Text style={styles.label}>HEART BOUNTY</Text>
-            <View style={styles.heartSelector}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
-                const isSelected = heartNum <= hearts;
-                const isAvailable = heartNum <= availableHearts;
-
-                let heartStyle = {};
-                if (!isAvailable) {
-                  heartStyle = { opacity: 0.2 };
-                } else if (isSelected) {
-                  heartStyle = { opacity: 1 };
-                } else {
-                  heartStyle = { opacity: 0.4 };
-                }
-
-                return (
-                  <Pressable
-                    key={heartNum}
-                    onPress={() => {
-                      if (heartNum <= availableHearts) {
-                        setHearts(heartNum);
-                      }
-                    }}
-                    disabled={heartNum > availableHearts}
-                    style={[styles.heartIcon, heartStyle]}
-                  >
-                    <Heart size={28} />
-                  </Pressable>
-                );
-              })}
-            </View>
-            <View style={styles.heartHelpRow}>
-              <Text style={styles.heartHelp}>Heart bounty for responders: {hearts}</Text>
-              <Heart size={14} />
-            </View>
-          </View>
-        )}
-
-        {/* Content Input */}
-        <View style={styles.inputContainer}>
-          {Platform.OS === 'web' ? (
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
-              maxLength={500}
-              style={{
-                fontFamily: 'Comfortaa',
-                fontSize: 14,
-                padding: 10,
-                borderRadius: 8,
-                border: '1px solid rgba(92, 90, 88, 0.3)',
-                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                outline: 'none',
-                resize: 'none',
-                flex: 1,
-                minHeight: 120,
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
-              }}
-            />
-          ) : (
-            <TextInput
-              value={content}
-              onChangeText={setContent}
-              placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
-              multiline
-              maxLength={500}
-              style={styles.textInput}
-            />
-          )}
-          <Text style={styles.charCount}>{content.length}/500</Text>
-        </View>
-
-        {/* Submit Button */}
-        <WoolButton
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-          variant="purple"
-        >
-          {isSubmitting ? 'POSTING...' : (isFreePost ? 'POST WISH' : 'ASK FOR HELP')}
-        </WoolButton>
-      </MinkyPanel>
+      {formContent}
     </View>
   );
 });
@@ -198,6 +220,10 @@ const CreatePost = observer(({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   explanationText: {
     fontSize: 13,

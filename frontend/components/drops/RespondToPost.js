@@ -6,6 +6,7 @@ import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import FormStore from '../../stores/FormStore';
 import profileStore from '../../stores/ProfileStore';
+import uxStore from '../../stores/UXStore';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import AvatarStamp from '../AvatarStamp';
@@ -143,7 +144,177 @@ const RespondToPost = observer(({
 
   const isFirstResponse = !post.firstResponderId;
   const responses = post.responses || [];
+  const isMobile = uxStore.isMobile || uxStore.isPortrait;
 
+  // Response cards component (used in both layouts)
+  const ResponseCards = () => (
+    <>
+      {responses.length > 0 ? (
+        responses.map((response, index) => (
+          <View key={response._id || index} style={styles.responseCardWrapper}>
+            {index === 0 && (
+              <MinkyPanel
+                borderRadius={6}
+                padding={4}
+                paddingTop={4}
+                overlayColor="rgba(112, 68, 199, 0.2)"
+                borderInset={-1}
+                style={styles.firstBadge}
+              >
+                <View style={styles.badgeContent}>
+                  <Heart size={12} />
+                  <Text style={styles.firstBadgeText}>First Response</Text>
+                </View>
+              </MinkyPanel>
+            )}
+            <MinkyPanel
+              borderRadius={8}
+              padding={0}
+              paddingTop={0}
+              overlayColor="rgba(112, 68, 199, 0.2)"
+              style={styles.responseCard}
+            >
+              <View style={styles.responseInner}>
+                <AvatarStamp
+                  avatarUrl={response.user?.avatar}
+                  avatarColor="#7044C7"
+                  size={isMobile ? 40 : 56}
+                  borderRadius={6}
+                />
+                <View style={styles.responseContent}>
+                  <Text style={styles.responseAuthor}>{response.user?.name}</Text>
+                  <Text style={styles.responseText}>{response.content}</Text>
+                </View>
+              </View>
+            </MinkyPanel>
+          </View>
+        ))
+      ) : (
+        <MinkyPanel
+          borderRadius={8}
+          padding={20}
+          paddingTop={20}
+          overlayColor="rgba(112, 68, 199, 0.2)"
+        >
+          <Text style={styles.emptyText}>Be the first to help!</Text>
+        </MinkyPanel>
+      )}
+    </>
+  );
+
+  // Post card and form component (used in both layouts)
+  const PostAndForm = () => (
+    <>
+      <View style={styles.postCardWrapper}>
+        <MinkyPanel
+          borderRadius={6}
+          padding={4}
+          paddingTop={4}
+          overlayColor="rgba(112, 68, 199, 0.2)"
+          borderInset={-1}
+          style={styles.heartsBadge}
+        >
+          <View style={styles.badgeContent}>
+            <Heart size={12} />
+            <Text style={styles.heartsBadgeText}>{post.hearts}</Text>
+          </View>
+        </MinkyPanel>
+        <MinkyPanel
+          borderRadius={10}
+          padding={12}
+          paddingTop={12}
+          overlayColor="rgba(112, 68, 199, 0.2)"
+        >
+          <View style={styles.postHeader}>
+            <AvatarStamp
+              avatarUrl={post.user?.avatar}
+              avatarColor="#7044C7"
+              size={isMobile ? 36 : 48}
+              borderRadius={6}
+            />
+            <Text style={[styles.authorName, isMobile && { fontSize: 14 }]}>{post.user?.name}</Text>
+          </View>
+          <Text style={[styles.postContent, isMobile && { fontSize: 13, lineHeight: 18 }]}>{post.content}</Text>
+        </MinkyPanel>
+      </View>
+
+      {isFirstResponse && (
+        <View style={styles.rewardBox}>
+          <Text style={styles.rewardText}>First response earns </Text>
+          <Text style={styles.rewardBold}>{post.hearts}</Text>
+          <Heart size={14} />
+          <Text style={styles.rewardText}>!</Text>
+        </View>
+      )}
+
+      <View style={[styles.inputContainer, isMobile && { flex: 0 }]}>
+        {Platform.OS === 'web' ? (
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Write a thoughtful response..."
+            maxLength={500}
+            style={{
+              fontFamily: 'Comfortaa',
+              fontSize: isMobile ? 13 : 14,
+              padding: 10,
+              borderRadius: 8,
+              border: '1px solid rgba(92, 90, 88, 0.3)',
+              backgroundColor: 'rgba(255, 255, 255, 0.5)',
+              outline: 'none',
+              resize: 'none',
+              width: '100%',
+              minHeight: isMobile ? 80 : 60,
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
+            }}
+          />
+        ) : (
+          <TextInput
+            value={content}
+            onChangeText={setContent}
+            placeholder="Write a thoughtful response..."
+            multiline
+            maxLength={500}
+            style={styles.textInput}
+          />
+        )}
+        <Text style={styles.charCount}>{content.length}/500</Text>
+      </View>
+
+      <WoolButton
+        onPress={handleSubmit}
+        disabled={isSubmitting}
+        variant="purple"
+      >
+        {isSubmitting ? 'SENDING...' : 'SEND RESPONSE'}
+      </WoolButton>
+    </>
+  );
+
+  // Mobile layout - vertical with scroll
+  if (isMobile) {
+    return (
+      <ScrollView
+        style={styles.mobileContainer}
+        contentContainerStyle={styles.mobileContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Original post and form first on mobile */}
+        <View style={styles.mobileSection}>
+          <PostAndForm />
+        </View>
+
+        {/* Responses section */}
+        <View style={styles.mobileSection}>
+          <Text style={styles.panelTitle}>Responses</Text>
+          <ResponseCards />
+        </View>
+      </ScrollView>
+    );
+  }
+
+  // Desktop layout - horizontal with side-by-side panels
   return (
     <View style={styles.container}>
       {/* LEFT PANEL - Responses list with independent scroll */}
@@ -155,144 +326,13 @@ const RespondToPost = observer(({
           contentContainerStyle={styles.responsesContent}
           showsVerticalScrollIndicator={false}
         >
-          {responses.length > 0 ? (
-            responses.map((response, index) => (
-              <View key={response._id || index} style={styles.responseCardWrapper}>
-                {index === 0 && (
-                  <MinkyPanel
-                    borderRadius={6}
-                    padding={4}
-                    paddingTop={4}
-                    overlayColor="rgba(112, 68, 199, 0.2)"
-                    borderInset={-1}
-                    style={styles.firstBadge}
-                  >
-                    <View style={styles.badgeContent}>
-                      <Heart size={12} />
-                      <Text style={styles.firstBadgeText}>First Response</Text>
-                    </View>
-                  </MinkyPanel>
-                )}
-                <MinkyPanel
-                  borderRadius={8}
-                  padding={0}
-                  paddingTop={0}
-                  overlayColor="rgba(112, 68, 199, 0.2)"
-                  style={styles.responseCard}
-                >
-                  <View style={styles.responseInner}>
-                    <AvatarStamp
-                      avatarUrl={response.user?.avatar}
-                      avatarColor="#7044C7"
-                      size={56}
-                      borderRadius={6}
-                    />
-                    <View style={styles.responseContent}>
-                      <Text style={styles.responseAuthor}>{response.user?.name}</Text>
-                      <Text style={styles.responseText}>{response.content}</Text>
-                    </View>
-                  </View>
-                </MinkyPanel>
-              </View>
-            ))
-          ) : (
-            <MinkyPanel
-              borderRadius={8}
-              padding={20}
-              paddingTop={20}
-              overlayColor="rgba(112, 68, 199, 0.2)"
-            >
-              <Text style={styles.emptyText}>Be the first to help!</Text>
-            </MinkyPanel>
-          )}
+          <ResponseCards />
         </ScrollView>
       </View>
 
       {/* RIGHT PANEL - Original post and response form */}
       <View style={styles.rightPanel}>
-        <View style={styles.postCardWrapper}>
-          <MinkyPanel
-            borderRadius={6}
-            padding={4}
-            paddingTop={4}
-            overlayColor="rgba(112, 68, 199, 0.2)"
-            borderInset={-1}
-            style={styles.heartsBadge}
-          >
-            <View style={styles.badgeContent}>
-              <Heart size={12} />
-              <Text style={styles.heartsBadgeText}>{post.hearts}</Text>
-            </View>
-          </MinkyPanel>
-          <MinkyPanel
-            borderRadius={10}
-            padding={12}
-            paddingTop={12}
-            overlayColor="rgba(112, 68, 199, 0.2)"
-          >
-            <View style={styles.postHeader}>
-              <AvatarStamp
-                avatarUrl={post.user?.avatar}
-                avatarColor="#7044C7"
-                size={48}
-                borderRadius={6}
-              />
-              <Text style={styles.authorName}>{post.user?.name}</Text>
-            </View>
-            <Text style={styles.postContent}>{post.content}</Text>
-          </MinkyPanel>
-        </View>
-
-        {isFirstResponse && (
-          <View style={styles.rewardBox}>
-            <Text style={styles.rewardText}>First response earns </Text>
-            <Text style={styles.rewardBold}>{post.hearts}</Text>
-            <Heart size={14} />
-            <Text style={styles.rewardText}>!</Text>
-          </View>
-        )}
-
-        <View style={styles.inputContainer}>
-          {Platform.OS === 'web' ? (
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write a thoughtful response..."
-              maxLength={500}
-              style={{
-                fontFamily: 'Comfortaa',
-                fontSize: 14,
-                padding: 10,
-                borderRadius: 8,
-                border: '1px solid rgba(92, 90, 88, 0.3)',
-                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                outline: 'none',
-                resize: 'none',
-                flex: 1,
-                minHeight: 60,
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
-              }}
-            />
-          ) : (
-            <TextInput
-              value={content}
-              onChangeText={setContent}
-              placeholder="Write a thoughtful response..."
-              multiline
-              maxLength={500}
-              style={styles.textInput}
-            />
-          )}
-          <Text style={styles.charCount}>{content.length}/500</Text>
-        </View>
-
-        <WoolButton
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-          variant="purple"
-        >
-          {isSubmitting ? 'SENDING...' : 'SEND RESPONSE'}
-        </WoolButton>
+        <PostAndForm />
       </View>
     </View>
   );
@@ -308,6 +348,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 15,
   },
+  // Mobile styles
+  mobileContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  mobileContent: {
+    flexDirection: 'column',
+    gap: 20,
+    paddingBottom: 20,
+  },
+  mobileSection: {
+    gap: 10,
+  },
+  // Desktop styles
   leftPanel: {
     flex: 1,
   },

@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     overflow: 'hidden',
+    backgroundColor: '#E8D4C8', // Solid minky base color
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,

@@ -418,11 +418,12 @@ const MapCanvas = ({ location }) => {
 
     const imagesToLoad = {};
 
-    // Find all entities with images (including doors and navigation)
+    // Find all entities with images (including doors, navigation, and backButton)
     const allEntities = [
       ...(roomData.entities || []),
       ...(roomData.doors || []),
       ...(roomData.navigation || []),
+      ...(roomData.backButton ? [roomData.backButton] : []),
     ];
 
     allEntities.forEach(entity => {
@@ -602,9 +603,17 @@ const MapCanvas = ({ location }) => {
     const baseAvatarSize = 64;
     const avatarSize = baseAvatarSize * avatarSizeMultiplier;
 
+    // Collect debug labels to draw on top of everything
+    const debugLabels = [];
+
     // Helper function to draw a button/entity
     const drawButton = (obj) => {
       const isHovered = hoveredObject === obj.id;
+
+      // Check if this is the back/home button (for mobile scaling)
+      const isBackButton = obj.id && (obj.id.startsWith('back-') || obj.id === 'home-hearts');
+      // Scale back button 50% larger on mobile
+      const mobileBackScale = (isBackButton && uxStore.shouldScaleUI) ? 1.5 : 1;
 
       // Check if this entity has an image
       // Image may be stored under obj.image (string key) or obj.id (for direct require() results)
@@ -612,8 +621,9 @@ const MapCanvas = ({ location }) => {
       if (obj.image && loadedImages[imageKey]) {
         const img = loadedImages[imageKey];
 
-        // Calculate scale based on hover
-        const scale = isHovered ? 1.06 : 1;
+        // Calculate scale based on hover (skip for decorations) and mobile back button scale
+        const hoverScale = (isHovered && obj.type !== 'decoration') ? 1.06 : 1;
+        const scale = hoverScale * mobileBackScale;
         const scaledWidth = obj.width * scale;
         const offsetX = (scaledWidth - obj.width) / 2;
         const offsetY = (scaledWidth - obj.width) / 2;
@@ -621,24 +631,34 @@ const MapCanvas = ({ location }) => {
         // Draw the image with scaling
         ctx.drawImage(img, obj.x - offsetX, obj.y - offsetY, scaledWidth, scaledWidth);
 
-        // Draw label below the image with shadow (no box)
-        ctx.save();
-        ctx.font = '18px ChubbyTrail';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'alphabetic';
-        const labelText = obj.label.toUpperCase();
+        // If debug mode enabled at room level, collect decoration labels for later drawing on top
+        if (roomData.debugMode && obj.type === 'decoration') {
+          const labelText = obj.label.toUpperCase();
+          const centerX = obj.x + obj.width / 2;
+          const centerY = obj.y + obj.width / 2;
+          debugLabels.push({ labelText, centerX, centerY });
+        } else if (obj.showTitle !== false) {
+          // Draw normal label below the image with shadow (no box)
+          const labelText = obj.label.toUpperCase();
+          const textY = obj.y + obj.width + 24; // Position text below image
+          const textX = obj.x + obj.width / 2;
 
-        const textY = obj.y + obj.width + 24; // Position text below image
+          ctx.save();
+          ctx.font = '18px ChubbyTrail';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'alphabetic';
 
-        // Draw black shadow (offset)
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillText(labelText, obj.x + obj.width / 2 + 1, textY + 1);
+          // Draw black shadow (offset)
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+          ctx.fillText(labelText, textX + 1, textY + 1);
 
-        // Draw main text
-        ctx.fillStyle = '#403F3E';
-        ctx.fillText(labelText, obj.x + obj.width / 2, textY);
-        ctx.restore();
-      } else {
+          // Draw main text
+          ctx.fillStyle = '#403F3E';
+          ctx.fillText(labelText, textX, textY);
+          ctx.restore();
+        }
+      } else if (!obj.image) {
+        // Only draw placeholder if there's no image defined (not just waiting to load)
         // Draw button background
         ctx.fillStyle = isHovered ? 'rgba(179, 230, 255, 0.4)' : 'rgba(255, 255, 255, 0.3)';
         ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
@@ -651,41 +671,64 @@ const MapCanvas = ({ location }) => {
         ctx.setLineDash([]);
 
         // Draw label with shadow
-        ctx.save();
-        ctx.font = '20px ChubbyTrail';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'alphabetic';
-        const labelText = obj.label.toUpperCase();
+        if (obj.showTitle !== false) {
+          ctx.save();
+          ctx.font = '20px ChubbyTrail';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'alphabetic';
+          const labelText = obj.label.toUpperCase();
 
-        // Draw black shadow (offset)
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillText(labelText, obj.x + obj.width / 2 + 0.5, obj.y + obj.height / 2 + 5.5);
+          // Draw black shadow (offset)
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillText(labelText, obj.x + obj.width / 2 + 0.5, obj.y + obj.height / 2 + 5.5);
 
-        // Draw main text
-        ctx.fillStyle = '#403F3E';
-        ctx.fillText(labelText, obj.x + obj.width / 2, obj.y + obj.height / 2 + 5);
-        ctx.restore();
+          // Draw main text
+          ctx.fillStyle = '#403F3E';
+          ctx.fillText(labelText, obj.x + obj.width / 2, obj.y + obj.height / 2 + 5);
+          ctx.restore();
+        }
       }
+      // If image exists but not loaded yet, don't draw anything (wait for load)
     };
 
-    // Draw back button (for rooms)
-    if (roomData.backButton) {
-      drawButton(roomData.backButton);
-    }
+    // Collect all drawable items and sort by zIndex (lower = behind, higher = in front)
+    // Default zIndex is 0 if not specified
+    const allDrawables = [
+      ...(roomData.backButton ? [roomData.backButton] : []),
+      ...(roomData.navigation || []),
+      ...(roomData.doors || []),
+      ...(roomData.entities || []),
+    ];
 
-    // Draw navigation buttons (section-to-section)
-    if (roomData.navigation) {
-      roomData.navigation.forEach(drawButton);
-    }
+    // Sort by zIndex (ascending - lower values drawn first/behind)
+    allDrawables.sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
 
-    // Draw doors (room entrances in sections)
-    if (roomData.doors) {
-      roomData.doors.forEach(drawButton);
-    }
+    // Draw all items in z-order
+    allDrawables.forEach(drawButton);
 
-    // Draw entities (interactive objects)
-    if (roomData.entities) {
-      roomData.entities.forEach(drawButton);
+    // Draw debug labels on top of everything (centered on object)
+    if (debugLabels.length > 0) {
+      ctx.save();
+      ctx.font = '18px ChubbyTrail';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      debugLabels.forEach(({ labelText, centerX, centerY }) => {
+        const textWidth = ctx.measureText(labelText).width;
+        const padding = 6;
+        const boxHeight = 22;
+
+        // White background centered on object
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.fillRect(centerX - textWidth / 2 - padding, centerY - boxHeight / 2, textWidth + padding * 2, boxHeight);
+        // Red border
+        ctx.strokeStyle = 'rgba(200, 0, 0, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(centerX - textWidth / 2 - padding, centerY - boxHeight / 2, textWidth + padding * 2, boxHeight);
+        // Text centered
+        ctx.fillStyle = '#000';
+        ctx.fillText(labelText, centerX, centerY);
+      });
+      ctx.restore();
     }
 
     // Helper function to draw rounded rectangle
@@ -1147,18 +1190,29 @@ const MapCanvas = ({ location }) => {
       return;
     }
 
-    // Collect all clickable objects
+    // Collect all clickable objects (skip decorations - they allow movement through)
     const allObjects = [
       roomData.backButton,
       ...(roomData.navigation || []),
       ...(roomData.doors || []),
       ...(roomData.entities || [])
-    ].filter(Boolean);
+    ].filter(obj => obj && obj.type !== 'decoration');
 
     // Check if click is on an object
     let clickedObject = false;
     for (const obj of allObjects) {
-      if (x >= obj.x && x <= obj.x + obj.width && y >= obj.y && y <= obj.y + obj.height) {
+      // Check if this is the back/home button (scaled 50% larger on mobile)
+      const isBackButton = obj.id && (obj.id.startsWith('back-') || obj.id === 'home-hearts');
+      const mobileBackScale = (isBackButton && uxStore.shouldScaleUI) ? 1.5 : 1;
+      const scaledWidth = obj.width * mobileBackScale;
+      const scaledHeight = obj.height * mobileBackScale;
+      // Adjust position since scaled image is centered on original position
+      const offsetX = (scaledWidth - obj.width) / 2;
+      const offsetY = (scaledHeight - obj.height) / 2;
+      const hitX = obj.x - offsetX;
+      const hitY = obj.y - offsetY;
+
+      if (x >= hitX && x <= hitX + scaledWidth && y >= hitY && y <= hitY + scaledHeight) {
         if (obj.navigateTo) {
           // Ensure navigateTo is a string and use push for proper navigation history
           const navPath = typeof obj.navigateTo === 'string' ? obj.navigateTo : obj.navigateTo.pathname || obj.navigateTo.path;
@@ -1169,7 +1223,7 @@ const MapCanvas = ({ location }) => {
           setIsWishingWellOpen(true);
         } else if (obj.flow === 'weepingWillow') {
           setIsWeepingWillowOpen(true);
-        } else if (obj.action === 'openBankModal') {
+        } else if (obj.flow === 'bank' || obj.action === 'openBankModal') {
           setIsBankFlowOpen(true);
         } else if (obj.description) {
           alert(obj.description); // TODO: Replace with modal
@@ -1223,17 +1277,27 @@ const MapCanvas = ({ location }) => {
 
     let foundHover = null;
 
-    // Collect all hoverable objects
+    // Collect all hoverable objects (skip decorations)
     const allObjects = [
       roomData.backButton,
       ...(roomData.navigation || []),
       ...(roomData.doors || []),
       ...(roomData.entities || [])
-    ].filter(Boolean);
+    ].filter(obj => obj && obj.type !== 'decoration');
 
     // Check if mouse is over an object
     for (const obj of allObjects) {
-      if (x >= obj.x && x <= obj.x + obj.width && y >= obj.y && y <= obj.y + obj.height) {
+      // Check if this is the back/home button (scaled 50% larger on mobile)
+      const isBackButton = obj.id && (obj.id.startsWith('back-') || obj.id === 'home-hearts');
+      const mobileBackScale = (isBackButton && uxStore.shouldScaleUI) ? 1.5 : 1;
+      const scaledWidth = obj.width * mobileBackScale;
+      const scaledHeight = obj.height * mobileBackScale;
+      const offsetX = (scaledWidth - obj.width) / 2;
+      const offsetY = (scaledHeight - obj.height) / 2;
+      const hitX = obj.x - offsetX;
+      const hitY = obj.y - offsetY;
+
+      if (x >= hitX && x <= hitX + scaledWidth && y >= hitY && y <= hitY + scaledHeight) {
         foundHover = obj.id;
         canvas.style.cursor = 'pointer';
         break;
@@ -1343,57 +1407,85 @@ const MapCanvas = ({ location }) => {
 
 
   if (Platform.OS === 'web') {
+    // Check if we have a meaningful side panel (letterbox > 60px)
+    const hasSidePanel = uxStore.isPortrait && uxStore.letterboxWidth > 60;
+
     // Container style with rotation when in portrait
-    // canvasWidth/canvasHeight are already swapped when isPortrait is true
-    // So canvasWidth = screen height, canvasHeight = screen width
+    // Use full screen dimensions when we have a side panel
     const containerStyle = uxStore.isPortrait ? {
       position: 'fixed',
       top: 0,
       left: 0,
-      width: canvasWidth,   // This is the taller dimension (screen height)
+      width: hasSidePanel ? uxStore.fullWidth : canvasWidth,
       height: canvasHeight, // This is the shorter dimension (screen width)
       transform: `rotate(90deg) translateY(-${canvasHeight}px)`,
       transformOrigin: 'top left',
       backgroundColor: 'transparent',
       zIndex: 1,
-    } : styles.container;
+      display: 'flex',
+      flexDirection: 'row',
+    } : {
+      // Desktop: container matches canvas size exactly (no extra space)
+      ...styles.container,
+      width: canvasWidth,
+      height: canvasHeight,
+    };
 
-    return (
-      <View style={containerStyle}>
-        <style>{`
-          .map-canvas-button:hover {
-            transform: scale(1.06) !important;
-          }
-        `}</style>
-        <canvas
-          ref={canvasRef}
-          width={BASELINE_WIDTH}
-          height={BASELINE_HEIGHT}
-          onClick={handleCanvasClick}
-          onMouseMove={handleCanvasMouseMove}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            display: 'block',
-            background: 'transparent',
-            width: canvasWidth,
-            height: canvasHeight,
-          }}
-        />
-        {roomData && (
+    // Side panel style for mobile letterbox area (only used when hasSidePanel)
+    const sidePanelStyle = hasSidePanel ? {
+      width: uxStore.letterboxWidth,
+      height: '100%',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      borderLeftWidth: 2,
+      borderLeftColor: 'rgba(92, 90, 88, 0.3)',
+      borderLeftStyle: 'dashed',
+      padding: 12,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      paddingTop: 20,
+    } : null;
+
+    // Shared canvas element
+    const canvasElement = (
+      <canvas
+        ref={canvasRef}
+        width={BASELINE_WIDTH}
+        height={BASELINE_HEIGHT}
+        onClick={handleCanvasClick}
+        onMouseMove={handleCanvasMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          display: 'block',
+          background: 'transparent',
+          width: canvasWidth,
+          height: canvasHeight,
+        }}
+      />
+    );
+
+    // Shared overlay elements (title, UserStatus when not in side panel, menu, inventory, knapsack)
+    const overlayElements = (
+      <>
+        {roomData && roomData.showTitle !== false && (
           <View style={[styles.titleOverlay, uxStore.shouldScaleUI && { top: 16 }]}>
             <Text style={[styles.roomTitle, uxStore.shouldScaleUI && { fontSize: 28 }]}>{roomData.name.toUpperCase()}</Text>
           </View>
         )}
-        <UserStatus />
-        <View style={[styles.menuContainer, uxStore.shouldScaleUI && { transform: 'scale(0.8)', transformOrigin: 'top right' }]}>
-          <NotificationHeart style={{ marginRight: 10 }} onNotificationClick={handleNotificationClick} />
-          <HamburgerMenu
-            onShowLayerModal={() => setIsLayerModalOpen(true)}
-            onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
-            onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
-          />
-        </View>
+        {!hasSidePanel && <UserStatus />}
+        {/* Menu container - only show on canvas when no side panel */}
+        {!hasSidePanel && (
+          <View style={[styles.menuContainer, uxStore.shouldScaleUI && { transform: 'scale(0.8)', transformOrigin: 'top right' }]}>
+            <NotificationHeart style={{ marginRight: 10 }} onNotificationClick={handleNotificationClick} />
+            <HamburgerMenu
+              onShowLayerModal={() => setIsLayerModalOpen(true)}
+              onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
+              onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
+            />
+          </View>
+        )}
         {inventoryStore.isOpen && (
           <View style={styles.inventoryPanel}>
             <View style={styles.inventoryHeader}>
@@ -1419,15 +1511,39 @@ const MapCanvas = ({ location }) => {
             </View>
           </View>
         )}
-        <View style={[styles.knapsackContainer, uxStore.shouldScaleUI && { transform: 'scale(0.7)', transformOrigin: 'bottom right' }]}>
-          <button onClick={handleKnapsackClick} style={styles.knapsackButton}>
-            <img
-              src={typeof knapsackImage === 'string' ? knapsackImage : knapsackImage.default || knapsackImage.uri || knapsackImage}
-              alt="Knapsack"
-              style={{ width: 72, height: 72, display: 'block' }}
-            />
-          </button>
-        </View>
+        {/* Knapsack - only show on canvas when no side panel */}
+        {!hasSidePanel && (
+          <View style={[styles.knapsackContainer, uxStore.shouldScaleUI && { transform: 'scale(0.7)', transformOrigin: 'bottom right' }]}>
+            <button onClick={handleKnapsackClick} style={styles.knapsackButton}>
+              <img
+                src={typeof knapsackImage === 'string' ? knapsackImage : knapsackImage.default || knapsackImage.uri || knapsackImage}
+                alt="Knapsack"
+                style={{ width: 72, height: 72, display: 'block' }}
+              />
+            </button>
+          </View>
+        )}
+      </>
+    );
+
+    // Knapsack button component for side panel
+    const knapsackButton = (
+      <button onClick={handleKnapsackClick} style={{
+        ...styles.knapsackButton,
+        width: '100%',
+        maxWidth: uxStore.letterboxWidth - 24,
+      }}>
+        <img
+          src={typeof knapsackImage === 'string' ? knapsackImage : knapsackImage.default || knapsackImage.uri || knapsackImage}
+          alt="Knapsack"
+          style={{ width: 56, height: 56, display: 'block' }}
+        />
+      </button>
+    );
+
+    // Modals (always rendered at container level)
+    const modals = (
+      <>
         <WishingWell
           visible={isWishingWellOpen}
           onClose={() => setIsWishingWellOpen(false)}
@@ -1456,6 +1572,49 @@ const MapCanvas = ({ location }) => {
           visible={isThemeSettingsOpen}
           onClose={() => setIsThemeSettingsOpen(false)}
         />
+      </>
+    );
+
+    return (
+      <View style={containerStyle}>
+        <style>{`
+          .map-canvas-button:hover {
+            transform: scale(1.06) !important;
+          }
+        `}</style>
+        {hasSidePanel ? (
+          <>
+            {/* Canvas area wrapped for flex layout */}
+            <View style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}>
+              {canvasElement}
+              {overlayElements}
+            </View>
+            {/* Side panel */}
+            <View style={sidePanelStyle}>
+              <UserStatus compact />
+              {/* Menu buttons in side panel */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                <NotificationHeart onNotificationClick={handleNotificationClick} />
+                <HamburgerMenu
+                  onShowLayerModal={() => setIsLayerModalOpen(true)}
+                  onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
+                  onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
+                />
+              </View>
+              {/* Knapsack in side panel */}
+              <View style={{ marginTop: 'auto', paddingTop: 12 }}>
+                {knapsackButton}
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            {/* Canvas and overlays directly in container (no wrapper) */}
+            {canvasElement}
+            {overlayElements}
+          </>
+        )}
+        {modals}
       </View>
     );
   }

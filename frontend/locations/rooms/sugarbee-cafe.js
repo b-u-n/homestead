@@ -17,11 +17,13 @@ export default (width, height) => ({
   backButton: {
     id: 'back-to-town-square',
     x: 20,
-    y: 180,
-    width: 180,
-    height: 50,
-    label: 'Back to Town Square',
-    navigateTo: '/homestead/explore/map/town-square'
+    y: 20,
+    width: 100,
+    height: 100,
+    label: 'Home',
+    navigateTo: '/homestead/explore/map/town-square',
+    image: require('../../assets/images/map-back-button.png'),
+    showTitle: false
   },
 
   // Edge navigation back to section

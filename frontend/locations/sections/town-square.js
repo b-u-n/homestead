@@ -2,70 +2,21 @@ export default (width, height) => ({
   name: 'Town Square',
   type: 'section',
 
-  // Navigation to other sections (edge buttons)
-  navigation: [
-    // Bottom
-    {
-      id: 'to-player-housing',
-      x: width / 2 - 250,
-      y: height - 70,
-      width: 220,
-      height: 60,
-      label: 'To Player Housing',
-      navigateTo: '/homestead/explore/map/player-housing'
-    },
+  // Heart button on homepage (same position as back button on other screens)
+  backButton: {
+    id: 'home-hearts',
+    x: 18,
+    y: 18,
+    width: 80,
+    height: 80,
+    label: 'Hearts',
+    flow: 'bank', // Opens the hearts/bank flow
+    image: require('../../assets/images/heart.png'),
+    showTitle: false
+  },
 
-    // Left (below profile)
-    {
-      id: 'to-forest-1',
-      x: 10,
-      y: 200,
-      width: 120,
-      height: 60,
-      label: 'To Forest',
-      navigateTo: '/homestead/explore/map/forest'
-    },
-    {
-      id: 'to-forest-2',
-      x: 10,
-      y: height / 2,
-      width: 120,
-      height: 60,
-      label: 'To Forest',
-      navigateTo: '/homestead/explore/map/forest'
-    },
-
-    // Top right
-    {
-      id: 'to-marketplace',
-      x: 3 * width / 4 - 100,
-      y: 10,
-      width: 200,
-      height: 60,
-      label: 'To Marketplace',
-      navigateTo: '/homestead/explore/map/marketplace'
-    },
-
-    // Right
-    {
-      id: 'to-garden-1',
-      x: width - 130,
-      y: 200,
-      width: 120,
-      height: 60,
-      label: 'To Garden',
-      navigateTo: '/homestead/explore/map/garden'
-    },
-    {
-      id: 'to-garden-2',
-      x: width - 130,
-      y: height / 2,
-      width: 120,
-      height: 60,
-      label: 'To Garden',
-      navigateTo: '/homestead/explore/map/garden'
-    },
-  ],
+  // Navigation to other sections (edge buttons) - disabled for now
+  navigation: [],
 
   // Room entrances (doors to interior spaces)
   doors: [
@@ -130,9 +81,9 @@ export default (width, height) => ({
       y: height * 0.2,
       width: 200,
       height: 240,
-      label: 'Weeping Willow',
+      label: 'Weeping Willows',
       image: 'weeping-willow.png',
-      description: 'A serene weeping willow, perfect for quiet contemplation.',
+      description: 'A serene grove of weeping willows, perfect for quiet contemplation.',
       navigateTo: '/homestead/explore/map/weeping-willow'
     }
   ]
