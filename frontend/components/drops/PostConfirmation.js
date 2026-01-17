@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
+import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * PostConfirmation Drop
@@ -31,25 +32,25 @@ const PostConfirmation = observer(({
         padding={20}
         paddingTop={20}
       >
-        <Text style={styles.title}>We hear you.</Text>
+        <Text style={[styles.title, { fontSize: FontSettingsStore.getScaledFontSize(20), color: FontSettingsStore.getFontColor('#403F3E') }]}>We hear you.</Text>
 
-        <Text style={styles.message}>
+        <Text style={[styles.message, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor('#403F3E') }]}>
           Thank you for sharing what's on your mind. We'll deliver your message to a listener when they connect.
         </Text>
 
-        <Text style={styles.message}>
+        <Text style={[styles.message, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor('#403F3E') }]}>
           Wait times can vary, but we promise someone will be there for you.
         </Text>
 
         <View style={styles.divider} />
 
-        <Text style={styles.encouragementTitle}>While you wait...</Text>
+        <Text style={[styles.encouragementTitle, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>While you wait...</Text>
 
-        <Text style={styles.message}>
+        <Text style={[styles.message, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor('#403F3E') }]}>
           Responding to others is a wonderful way to lift your spirits. When you support someone else, your post gets noticed faster too.
         </Text>
 
-        <Text style={styles.message}>
+        <Text style={[styles.message, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor('#403F3E') }]}>
           Sometimes the best way to feel better is to help someone else feel heard.
         </Text>
       </MinkyPanel>

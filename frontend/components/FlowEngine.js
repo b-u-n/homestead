@@ -251,7 +251,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             zIndex={2000 + (depth * 100)}
             onClose={() => depth === 0 ? onClose() : closeDepth(depth)}
             onBack={() => goBackAtDepth(depth)}
-            canGoBack={history.length > 1}
+            canGoBack={drop.showBack !== false && history.length > 1}
             showClose={drop.showClose !== false}
             title={drop.title || flowDefinition.title}
             size={drop.size}
@@ -268,7 +268,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
                   accumulatedData={accumulatedData}
                   onComplete={(output) => handleDropComplete(output, depth)}
                   onBack={() => goBackAtDepth(depth)}
-                  canGoBack={history.length > 1}
+                  canGoBack={drop.showBack !== false && history.length > 1}
                   flowName={flowDefinition.name}
                   dropId={dropId}
                 />

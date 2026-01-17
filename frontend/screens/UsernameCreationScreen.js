@@ -10,6 +10,7 @@ import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { getWordArrays, createCustomUsername } from '../utils/username';
 import AuthStore from '../stores/AuthStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
@@ -105,6 +106,7 @@ const UsernameCreationScreen = observer(() => {
             <Text
               style={[
                 styles.headerTitle,
+                { fontSize: FontSettingsStore.getScaledFontSize(42), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
                 Platform.OS === 'web' && {
                   textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
                 }
@@ -115,6 +117,7 @@ const UsernameCreationScreen = observer(() => {
             <Text
               style={[
                 styles.headerSubtitle,
+                { fontSize: FontSettingsStore.getScaledFontSize(18), lineHeight: FontSettingsStore.getScaledFontSize(26), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
                 Platform.OS === 'web' && {
                   textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
                 }
@@ -156,6 +159,7 @@ const UsernameCreationScreen = observer(() => {
               <Text
                 style={[
                   styles.preview,
+                  { fontSize: FontSettingsStore.getScaledFontSize(28), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDarker) },
                   Platform.OS === 'web' && {
                     textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
                   }

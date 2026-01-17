@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import ErrorStore from '../../stores/ErrorStore';
 import Scroll from '../Scroll';
 import AvatarStamp from '../AvatarStamp';
 import Heart from '../Heart';
+import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * ViewPost Drop
  * Shows a single post with all responses - used for deep linking from notifications
  */
-const ViewPost = ({
+const ViewPost = observer(({
   input,
   context,
   onComplete,
@@ -89,7 +91,7 @@ const ViewPost = ({
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading post...</Text>
+        <Text style={[styles.loadingText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>Loading post...</Text>
       </View>
     );
   }
@@ -97,9 +99,9 @@ const ViewPost = ({
   if (!post) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Post not found</Text>
+        <Text style={[styles.errorText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#FF6B6B') }]}>Post not found</Text>
         <Pressable style={styles.backButton} onPress={handleViewAll}>
-          <Text style={styles.backButtonText}>VIEW ALL POSTS</Text>
+          <Text style={[styles.backButtonText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>VIEW ALL POSTS</Text>
         </Pressable>
       </View>
     );
@@ -121,27 +123,27 @@ const ViewPost = ({
                 size={40}
                 borderRadius={6}
               />
-              <Text style={styles.authorName}>{post.user?.name}</Text>
+              <Text style={[styles.authorName, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.user?.name}</Text>
             </View>
             <View style={styles.heartsRow}>
               <Heart size={16} />
-              <Text style={styles.hearts}>{post.hearts}</Text>
+              <Text style={[styles.hearts, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.hearts}</Text>
             </View>
           </View>
 
           {/* Post Content */}
-          <Text style={styles.postContent}>{post.content}</Text>
+          <Text style={[styles.postContent, { fontSize: FontSettingsStore.getScaledFontSize(15), lineHeight: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.content}</Text>
 
           {/* Post Footer */}
           <View style={styles.postFooter}>
-            <Text style={styles.date}>
+            <Text style={[styles.date, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
               {new Date(post.createdAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
               })}
             </Text>
-            <Text style={styles.responseCount}>
+            <Text style={[styles.responseCount, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#7044C7') }]}>
               {hasResponses ? `${post.responses.length} response${post.responses.length > 1 ? 's' : ''}` : 'No responses yet'}
             </Text>
           </View>
@@ -149,7 +151,7 @@ const ViewPost = ({
 
         {/* Responses Section */}
         <View style={styles.responsesSection}>
-          <Text style={styles.responsesSectionTitle}>Responses</Text>
+          <Text style={[styles.responsesSectionTitle, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>Responses</Text>
 
           {hasResponses ? (
             post.responses.map((response, index) => (
@@ -162,8 +164,8 @@ const ViewPost = ({
                     borderRadius={5}
                   />
                   <View style={styles.responseInfo}>
-                    <Text style={styles.responderName}>{response.user?.name}</Text>
-                    <Text style={styles.responseDate}>
+                    <Text style={[styles.responderName, { fontSize: FontSettingsStore.getScaledFontSize(13), color: FontSettingsStore.getFontColor('#403F3E') }]}>{response.user?.name}</Text>
+                    <Text style={[styles.responseDate, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
                       {new Date(response.createdAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric'
@@ -175,16 +177,16 @@ const ViewPost = ({
                     <View style={styles.bountyBadge}>
                       <View style={styles.bountyBadgeContent}>
                         <Heart size={12} />
-                        <Text style={styles.bountyBadgeText}>+{post.hearts}</Text>
+                        <Text style={[styles.bountyBadgeText, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('#7044C7') }]}>+{post.hearts}</Text>
                       </View>
                     </View>
                   )}
                 </View>
-                <Text style={styles.responseContent}>{response.content}</Text>
+                <Text style={[styles.responseContent, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledFontSize(20), color: FontSettingsStore.getFontColor('#403F3E') }]}>{response.content}</Text>
               </View>
             ))
           ) : (
-            <Text style={styles.noResponses}>Be the first to respond!</Text>
+            <Text style={[styles.noResponses, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>Be the first to respond!</Text>
           )}
         </View>
       </Scroll>
@@ -192,15 +194,15 @@ const ViewPost = ({
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
         <Pressable style={styles.respondButton} onPress={handleRespond}>
-          <Text style={styles.respondButtonText}>RESPOND</Text>
+          <Text style={[styles.respondButtonText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#7044C7') }]}>RESPOND</Text>
         </Pressable>
         <Pressable style={styles.viewAllButton} onPress={handleViewAll}>
-          <Text style={styles.viewAllButtonText}>VIEW ALL POSTS</Text>
+          <Text style={[styles.viewAllButtonText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>VIEW ALL POSTS</Text>
         </Pressable>
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

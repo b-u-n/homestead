@@ -62,7 +62,7 @@ const accountSchema = new mongoose.Schema({
   // Permissions
   permissions: [{
     type: String,
-    enum: ['admin', 'moderator', 'creator']
+    enum: ['admin', 'moderator', 'creator', 'developer', 'support']
   }],
 
   // Current layer

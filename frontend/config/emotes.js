@@ -2,10 +2,13 @@
 // Maps emote values to display settings
 
 const heartImage = require('../assets/images/heart.png');
+const happyMoetImage = require('../assets/images/happy-moet.png');
+const blankMoetImage = require('../assets/images/blank-moet.png');
+const fireMoetImage = require('../assets/images/fier-moet.png');
 
 // Standard emote list
 export const EMOTES = [
-  '😊', '😂', '😍', '😎',
+  '😊', '😂', '😍', '😐',
   '🤔', '😢', '😠', '🎉',
   '👍', '👋', '❤️', '🔥'
 ];
@@ -16,9 +19,21 @@ export const EMOTE_IMAGES = {
   '❤️': {
     image: heartImage,
     // Size multiplier relative to font size
-    sizeMultiplier: 1.1,
+    sizeMultiplier: 1.32,
     // CSS filter for canvas rendering (30% more red-pink, cottagecore bright)
     filter: 'brightness(1.12) saturate(1.3) hue-rotate(-5deg)',
+  },
+  '😊': {
+    image: happyMoetImage,
+    sizeMultiplier: 1.8,
+  },
+  '😐': {
+    image: blankMoetImage,
+    sizeMultiplier: 1.5,
+  },
+  '🔥': {
+    image: fireMoetImage,
+    sizeMultiplier: 1.44,
   }
 };
 

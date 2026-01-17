@@ -5,6 +5,7 @@ import Modal from './Modal';
 import WoolButton from './WoolButton';
 import WebSocketService from '../services/websocket';
 import LayerStore from '../stores/LayerStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 const LayerSelectModal = observer(({ visible, onClose, onLayerSelected }) => {
   const [layers, setLayers] = useState([]);
@@ -66,18 +67,18 @@ const LayerSelectModal = observer(({ visible, onClose, onLayerSelected }) => {
       showClose={false}
     >
       <View style={styles.container}>
-        <Text style={styles.description}>
+        <Text style={[styles.description, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>
           Choose a layer to join. Players on different layers cannot see each other.
         </Text>
 
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#DE86DF" />
-            <Text style={styles.loadingText}>Loading layers...</Text>
+            <Text style={[styles.loadingText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>Loading layers...</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#C04040') }]}>{error}</Text>
             <WoolButton
               title="Retry"
               onPress={loadLayers}

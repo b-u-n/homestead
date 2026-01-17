@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import Heart from '../Heart';
+import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * ResponseConfirmation Drop (Overlay)
@@ -31,15 +32,15 @@ const ResponseConfirmation = observer(({
         padding={20}
         paddingTop={20}
       >
-        <Text style={styles.title}>Response Sent!</Text>
+        <Text style={[styles.title, { fontSize: FontSettingsStore.getScaledFontSize(20), color: FontSettingsStore.getFontColor('#403F3E') }]}>Response Sent!</Text>
 
-        <Text style={styles.message}>
+        <Text style={[styles.message, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor('#403F3E') }]}>
           Thank you for being there for someone. Your kindness makes a difference.
         </Text>
 
         {heartsAwarded > 0 && (
           <View style={styles.heartsContainer}>
-            <Text style={styles.heartsText}>
+            <Text style={[styles.heartsText, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#7044C7') }]}>
               You earned {heartsAwarded} {heartsAwarded === 1 ? 'heart' : 'hearts'}!
             </Text>
             <View style={styles.heartsRow}>

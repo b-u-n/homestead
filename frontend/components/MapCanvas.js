@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, StyleSheet, Platform, Text, Image } from 'react-native';
+import { View, StyleSheet, Platform, Text, Image, Pressable, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { reaction } from 'mobx';
@@ -7,16 +7,26 @@ import inventoryStore from '../stores/InventoryStore';
 import profileStore from '../stores/ProfileStore';
 import characterStore from '../stores/CharacterStore';
 import AuthStore from '../stores/AuthStore';
+import NotificationStore from '../stores/NotificationStore';
+import LayerStore from '../stores/LayerStore';
 import UserStatus from './UserStatus';
 import WoolButton from './WoolButton';
 import HamburgerMenu from './HamburgerMenu';
 import NotificationHeart from './NotificationHeart';
+import Scroll from './Scroll';
+import StitchedBorder from './StitchedBorder';
+import TiledBackground from './TiledBackground';
+import Heart from './Heart';
 import WishingWell from './WishingWell';
 import WeepingWillow from './WeepingWillow';
+import Workbook from './Workbook';
+import LibraryNav from './LibraryNav';
 import FlowEngine from './FlowEngine';
 import LayerSelectModal from './LayerSelectModal';
 import SoundSettingsModal from './SoundSettingsModal';
 import ThemeSettingsModal from './ThemeSettingsModal';
+import ReportIssueModal from './ReportIssueModal';
+import FontSettingsModal from './FontSettingsModal';
 import heartsFlow from '../flows/heartsFlow';
 import CharacterIcon, { isPointInCharacter } from './CharacterIcon';
 import EmoteMenu, { getClickedEmote } from './EmoteMenu';
@@ -33,16 +43,26 @@ import garden from '../locations/sections/garden';
 import weepingWillow from '../locations/rooms/weeping-willow';
 import sugarbeeCafe from '../locations/rooms/sugarbee-cafe';
 import bank from '../locations/rooms/bank';
+import library from '../locations/rooms/library';
+import workshopWorried from '../locations/rooms/workshop-worried';
+import workshopSad from '../locations/rooms/workshop-sad';
+import workshopAngry from '../locations/rooms/workshop-angry';
+import workshopAssertiveness from '../locations/rooms/workshop-assertiveness';
+import libraryRecovery from '../locations/rooms/library-recovery';
+import libraryBalance from '../locations/rooms/library-balance';
+import libraryConnection from '../locations/rooms/library-connection';
 
 // Import images
 const knapsackImage = require('../assets/images/knapsack.png');
 const wishingWellImage = require('../assets/images/wishing-well.png');
 const weepingWillowImage = require('../assets/images/weeping-willow.png');
+const buttonBgImage = require('../assets/images/button-bg.png');
 
 // Import sounds config and manager
 import sounds from '../config/sounds';
 import SoundManager from '../services/SoundManager';
 import uxStore, { BASELINE_WIDTH, BASELINE_HEIGHT } from '../stores/UXStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 // Helper to play emote sound
 const playEmoteSound = () => {
@@ -61,7 +81,364 @@ const LOCATIONS = {
   'weeping-willow': weepingWillow,
   'sugarbee-cafe': sugarbeeCafe,
   'bank': bank,
+  'library': library,
+  'workshop-worried': workshopWorried,
+  'workshop-sad': workshopSad,
+  'workshop-angry': workshopAngry,
+  'workshop-assertiveness': workshopAssertiveness,
+  // Library rooms
+  'library-recovery': libraryRecovery,
+  'library-balance': libraryBalance,
+  'library-connection': libraryConnection,
 };
+
+// Mobile Overlay Panel component for sidebar mode
+const MobileOverlayPanel = observer(({
+  type,
+  onClose,
+  onNotificationClick,
+  onShowLayerModal,
+  onShowSoundSettings,
+  onShowThemeSettings,
+  onShowFontSettings,
+  onShowReportIssue,
+}) => {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    onClose();
+    AuthStore.logout();
+    LayerStore.clearLayer();
+    router.replace('/');
+  };
+
+  const handleNotificationPress = (notification) => {
+    onClose();
+    const nav = NotificationStore.setPendingNavigation(notification);
+    if (onNotificationClick && nav) {
+      onNotificationClick(notification, nav);
+    }
+  };
+
+  const handleDismiss = (e, notification) => {
+    e.stopPropagation();
+    NotificationStore.dismissNotification(notification._id);
+  };
+
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const currentLayerName = LayerStore.currentLayer?.name || 'None';
+
+  return (
+    <Pressable
+      style={mobileOverlayStyles.backdrop}
+      onPress={onClose}
+    >
+      <Pressable
+        style={mobileOverlayStyles.panel}
+        onPress={(e) => e.stopPropagation()}
+      >
+        <TiledBackground style={{ flex: 1 }}>
+          <View style={mobileOverlayStyles.contentWrapper}>
+            <StitchedBorder borderRadius={12} borderColor="rgba(92, 90, 88, 0.2)" style={mobileOverlayStyles.border}>
+              {/* Header */}
+              <View style={mobileOverlayStyles.header}>
+                <Text style={mobileOverlayStyles.headerTitle}>
+                  {type === 'notifications' ? 'Notifications' : 'Menu'}
+                </Text>
+                <Pressable onPress={onClose} style={mobileOverlayStyles.closeButton}>
+                  <Text style={mobileOverlayStyles.closeButtonText}>✕</Text>
+                </Pressable>
+              </View>
+
+              {/* Content */}
+              <Scroll style={mobileOverlayStyles.content} contentContainerStyle={mobileOverlayStyles.contentContainer}>
+                {type === 'notifications' ? (
+                  <>
+                    {NotificationStore.notifications.length > 0 && (
+                      <Pressable onPress={() => NotificationStore.dismissAll()} style={mobileOverlayStyles.dismissAllButton}>
+                        <Text style={mobileOverlayStyles.dismissAllText}>Dismiss all</Text>
+                      </Pressable>
+                    )}
+                    {NotificationStore.notifications.length === 0 ? (
+                      <View style={mobileOverlayStyles.emptyState}>
+                        <Text style={mobileOverlayStyles.emptyText}>No notifications yet</Text>
+                      </View>
+                    ) : (
+                      NotificationStore.notifications.map((notification) => (
+                        <Pressable
+                          key={notification._id}
+                          style={[
+                            mobileOverlayStyles.notificationItem,
+                            !notification.read && mobileOverlayStyles.unreadItem
+                          ]}
+                          onPress={() => handleNotificationPress(notification)}
+                        >
+                          <View style={mobileOverlayStyles.avatarContainer}>
+                            {notification.actor?.avatar ? (
+                              <img
+                                src={notification.actor.avatar}
+                                alt=""
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: 6,
+                                  objectFit: 'cover'
+                                }}
+                              />
+                            ) : (
+                              <Heart size={28} />
+                            )}
+                          </View>
+                          <View style={mobileOverlayStyles.notificationContent}>
+                            <Text style={mobileOverlayStyles.notificationMessage} numberOfLines={2}>
+                              {notification.message}
+                            </Text>
+                            <Text style={mobileOverlayStyles.notificationTime}>
+                              {formatTimeAgo(notification.createdAt)}
+                            </Text>
+                          </View>
+                          <Pressable
+                            style={mobileOverlayStyles.dismissButton}
+                            onPress={(e) => handleDismiss(e, notification)}
+                          >
+                            <Text style={mobileOverlayStyles.dismissButtonText}>✕</Text>
+                          </Pressable>
+                        </Pressable>
+                      ))
+                    )}
+                  </>
+                ) : (
+                  <View style={mobileOverlayStyles.menuContent}>
+                    {/* Current Layer Display */}
+                    <View style={mobileOverlayStyles.layerInfo}>
+                      <Text style={mobileOverlayStyles.layerLabel}>Current Layer:</Text>
+                      <Text style={mobileOverlayStyles.layerName}>{currentLayerName}</Text>
+                    </View>
+
+                    <WoolButton
+                      title="Switch Layers"
+                      onPress={onShowLayerModal}
+                      variant="secondary"
+                      style={mobileOverlayStyles.menuButton}
+                    />
+                    <WoolButton
+                      title="Sound Settings"
+                      onPress={onShowSoundSettings}
+                      variant="blue"
+                      style={mobileOverlayStyles.menuButton}
+                    />
+                    <WoolButton
+                      title="Theme Settings"
+                      onPress={onShowThemeSettings}
+                      variant="purple"
+                      style={mobileOverlayStyles.menuButton}
+                    />
+                    <WoolButton
+                      title="Font Settings"
+                      onPress={onShowFontSettings}
+                      variant="green"
+                      style={mobileOverlayStyles.menuButton}
+                    />
+                    <WoolButton
+                      title="Report Issue"
+                      onPress={onShowReportIssue}
+                      variant="coral"
+                      style={mobileOverlayStyles.menuButton}
+                    />
+                    {AuthStore.isAuthenticated && (
+                      <WoolButton
+                        title="Logout"
+                        onPress={handleLogout}
+                        variant="coral"
+                        style={mobileOverlayStyles.menuButton}
+                      />
+                    )}
+                  </View>
+                )}
+              </Scroll>
+            </StitchedBorder>
+          </View>
+        </TiledBackground>
+      </Pressable>
+    </Pressable>
+  );
+});
+
+// Styles for mobile overlay panel
+const mobileOverlayStyles = StyleSheet.create({
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    zIndex: 500,
+  },
+  panel: {
+    width: 280,
+    height: '100%',
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  contentWrapper: {
+    backgroundColor: 'rgba(222, 134, 223, 0.1)',
+    padding: 4,
+    flex: 1,
+  },
+  border: {
+    flex: 1,
+    padding: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(92, 90, 88, 0.2)',
+    marginBottom: 12,
+  },
+  headerTitle: {
+    fontFamily: 'ChubbyTrail',
+    fontSize: 20,
+    color: '#403F3E',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: 'rgba(92, 90, 88, 0.1)',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: '#5C5A58',
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 20,
+  },
+  // Notification styles
+  dismissAllButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 12,
+  },
+  dismissAllText: {
+    fontFamily: 'Comfortaa',
+    fontSize: 12,
+    color: '#FF6B6B',
+  },
+  emptyState: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontFamily: 'Comfortaa',
+    fontSize: 14,
+    color: '#403F3E',
+    opacity: 0.6,
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    gap: 10,
+  },
+  unreadItem: {
+    backgroundColor: 'rgba(255, 107, 107, 0.15)',
+  },
+  avatarContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationMessage: {
+    fontFamily: 'Comfortaa',
+    fontSize: 13,
+    color: '#403F3E',
+    lineHeight: 18,
+  },
+  notificationTime: {
+    fontFamily: 'Comfortaa',
+    fontSize: 11,
+    color: '#403F3E',
+    opacity: 0.5,
+    marginTop: 4,
+  },
+  dismissButton: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: 'rgba(92, 90, 88, 0.1)',
+  },
+  dismissButtonText: {
+    fontSize: 12,
+    color: '#5C5A58',
+  },
+  // Menu styles
+  menuContent: {
+    gap: 10,
+  },
+  layerInfo: {
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(92, 90, 88, 0.2)',
+  },
+  layerLabel: {
+    fontFamily: 'Comfortaa',
+    fontSize: 11,
+    color: '#403F3E',
+    opacity: 0.7,
+  },
+  layerName: {
+    fontFamily: 'ChubbyTrail',
+    fontSize: 16,
+    color: '#403F3E',
+    marginTop: 2,
+  },
+  menuButton: {
+    marginVertical: 2,
+  },
+});
 
 const MapCanvas = ({ location }) => {
   const canvasRef = useRef(null);
@@ -74,10 +451,16 @@ const MapCanvas = ({ location }) => {
   const [weepingWillowStartAt, setWeepingWillowStartAt] = useState(null);
   const [weepingWillowParams, setWeepingWillowParams] = useState({});
   const [isBankFlowOpen, setIsBankFlowOpen] = useState(false);
+  const [isWorkbookOpen, setIsWorkbookOpen] = useState(false);
+  const [workbookBookshelfId, setWorkbookBookshelfId] = useState(null);
+  const [workbookTitle, setWorkbookTitle] = useState('Workbook');
   const [isEmoteMenuOpen, setIsEmoteMenuOpen] = useState(false);
   const [isLayerModalOpen, setIsLayerModalOpen] = useState(false);
   const [isSoundSettingsOpen, setIsSoundSettingsOpen] = useState(false);
   const [isThemeSettingsOpen, setIsThemeSettingsOpen] = useState(false);
+  const [isFontSettingsOpen, setIsFontSettingsOpen] = useState(false);
+  const [isReportIssueOpen, setIsReportIssueOpen] = useState(false);
+  const [mobileOverlay, setMobileOverlay] = useState(null); // 'menu' | 'notifications' | null
   const [characterPosition, setCharacterPosition] = useState(null);
   const [avatarImages, setAvatarImages] = useState({});
   const [canvasWidth, setCanvasWidth] = useState(1200);
@@ -625,26 +1008,28 @@ const MapCanvas = ({ location }) => {
         const hoverScale = (isHovered && obj.type !== 'decoration') ? 1.06 : 1;
         const scale = hoverScale * mobileBackScale;
         const scaledWidth = obj.width * scale;
+        const scaledHeight = obj.height * scale;
         const offsetX = (scaledWidth - obj.width) / 2;
-        const offsetY = (scaledWidth - obj.width) / 2;
+        const offsetY = (scaledHeight - obj.height) / 2;
 
         // Draw the image with scaling
-        ctx.drawImage(img, obj.x - offsetX, obj.y - offsetY, scaledWidth, scaledWidth);
+        ctx.drawImage(img, obj.x - offsetX, obj.y - offsetY, scaledWidth, scaledHeight);
 
         // If debug mode enabled at room level, collect decoration labels for later drawing on top
-        if (roomData.debugMode && obj.type === 'decoration') {
+        if (roomData.debugMode && obj.type === 'decoration' && obj.label) {
           const labelText = obj.label.toUpperCase();
           const centerX = obj.x + obj.width / 2;
-          const centerY = obj.y + obj.width / 2;
+          const centerY = obj.y + obj.height / 2;
           debugLabels.push({ labelText, centerX, centerY });
-        } else if (obj.showTitle !== false) {
+        } else if (obj.showTitle !== false && obj.label) {
           // Draw normal label below the image with shadow (no box)
           const labelText = obj.label.toUpperCase();
-          const textY = obj.y + obj.width + 24; // Position text below image
+          const labelFontSize = FontSettingsStore.getScaledFontSize(18);
+          const textY = obj.y + obj.height + FontSettingsStore.getScaledSpacing(24); // Position text below image
           const textX = obj.x + obj.width / 2;
 
           ctx.save();
-          ctx.font = '18px ChubbyTrail';
+          ctx.font = `${labelFontSize}px ChubbyTrail`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
 
@@ -653,7 +1038,7 @@ const MapCanvas = ({ location }) => {
           ctx.fillText(labelText, textX + 1, textY + 1);
 
           // Draw main text
-          ctx.fillStyle = '#403F3E';
+          ctx.fillStyle = FontSettingsStore.getFontColor('#403F3E');
           ctx.fillText(labelText, textX, textY);
           ctx.restore();
         }
@@ -671,9 +1056,10 @@ const MapCanvas = ({ location }) => {
         ctx.setLineDash([]);
 
         // Draw label with shadow
-        if (obj.showTitle !== false) {
+        if (obj.showTitle !== false && obj.label) {
           ctx.save();
-          ctx.font = '20px ChubbyTrail';
+          const placeholderFontSize = FontSettingsStore.getScaledFontSize(20);
+          ctx.font = `${placeholderFontSize}px ChubbyTrail`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
           const labelText = obj.label.toUpperCase();
@@ -683,7 +1069,7 @@ const MapCanvas = ({ location }) => {
           ctx.fillText(labelText, obj.x + obj.width / 2 + 0.5, obj.y + obj.height / 2 + 5.5);
 
           // Draw main text
-          ctx.fillStyle = '#403F3E';
+          ctx.fillStyle = FontSettingsStore.getFontColor('#403F3E');
           ctx.fillText(labelText, obj.x + obj.width / 2, obj.y + obj.height / 2 + 5);
           ctx.restore();
         }
@@ -709,13 +1095,14 @@ const MapCanvas = ({ location }) => {
     // Draw debug labels on top of everything (centered on object)
     if (debugLabels.length > 0) {
       ctx.save();
-      ctx.font = '18px ChubbyTrail';
+      const debugFontSize = FontSettingsStore.getScaledFontSize(18);
+      ctx.font = `${debugFontSize}px ChubbyTrail`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       debugLabels.forEach(({ labelText, centerX, centerY }) => {
         const textWidth = ctx.measureText(labelText).width;
-        const padding = 6;
-        const boxHeight = 22;
+        const padding = FontSettingsStore.getScaledSpacing(6);
+        const boxHeight = FontSettingsStore.getScaledSpacing(22);
 
         // White background centered on object
         ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -725,7 +1112,7 @@ const MapCanvas = ({ location }) => {
         ctx.lineWidth = 2;
         ctx.strokeRect(centerX - textWidth / 2 - padding, centerY - boxHeight / 2, textWidth + padding * 2, boxHeight);
         // Text centered
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = FontSettingsStore.getFontColor('#000');
         ctx.fillText(labelText, centerX, centerY);
       });
       ctx.restore();
@@ -898,7 +1285,8 @@ const MapCanvas = ({ location }) => {
 
         // Draw username below character
         ctx.save();
-        ctx.font = '12px Arial';
+        const otherUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
+        ctx.font = `${otherUsernameFontSize}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 
@@ -908,8 +1296,8 @@ const MapCanvas = ({ location }) => {
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillText(player.username || 'Player', player.position.x, player.position.y + avatarSize / 2 + 9 * avatarSizeMultiplier);
+        ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.7)');
+        ctx.fillText(player.username || 'Player', player.position.x, player.position.y + avatarSize / 2 + FontSettingsStore.getScaledSpacing(9) * avatarSizeMultiplier);
         ctx.restore();
       }
     });
@@ -1072,7 +1460,8 @@ const MapCanvas = ({ location }) => {
 
       // Draw username below character
       ctx.save();
-      ctx.font = 'bold 12px Arial';
+      const currentUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
+      ctx.font = `bold ${currentUsernameFontSize}px Arial`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
 
@@ -1082,8 +1471,8 @@ const MapCanvas = ({ location }) => {
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-      ctx.fillText(profileStore.username || 'You', characterPosition.x, characterPosition.y + size / 2 + 9);
+      ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.9)');
+      ctx.fillText(profileStore.username || 'You', characterPosition.x, characterPosition.y + size / 2 + FontSettingsStore.getScaledSpacing(9));
       ctx.restore();
     }
 
@@ -1200,23 +1589,29 @@ const MapCanvas = ({ location }) => {
 
     // Check if click is on an object
     let clickedObject = false;
+    const HITBOX_PADDING = 12; // Slightly larger hitbox for easier clicking
     for (const obj of allObjects) {
       // Check if this is the back/home button (scaled 50% larger on mobile)
       const isBackButton = obj.id && (obj.id.startsWith('back-') || obj.id === 'home-hearts');
       const mobileBackScale = (isBackButton && uxStore.shouldScaleUI) ? 1.5 : 1;
-      const scaledWidth = obj.width * mobileBackScale;
-      const scaledHeight = obj.height * mobileBackScale;
-      // Adjust position since scaled image is centered on original position
-      const offsetX = (scaledWidth - obj.width) / 2;
-      const offsetY = (scaledHeight - obj.height) / 2;
-      const hitX = obj.x - offsetX;
-      const hitY = obj.y - offsetY;
 
-      if (x >= hitX && x <= hitX + scaledWidth && y >= hitY && y <= hitY + scaledHeight) {
+      // Images are drawn as squares using width for both dimensions
+      // Non-images use their actual width/height
+      const drawnWidth = obj.width * mobileBackScale;
+      const drawnHeight = (obj.image ? obj.width : obj.height) * mobileBackScale;
+
+      // Hitbox with padding
+      const hitX = obj.x - HITBOX_PADDING;
+      const hitY = obj.y - HITBOX_PADDING;
+      const hitWidth = drawnWidth + HITBOX_PADDING * 2;
+      const hitHeight = drawnHeight + HITBOX_PADDING * 2;
+
+      if (x >= hitX && x <= hitX + hitWidth && y >= hitY && y <= hitY + hitHeight) {
         if (obj.navigateTo) {
           // Ensure navigateTo is a string and use push for proper navigation history
           const navPath = typeof obj.navigateTo === 'string' ? obj.navigateTo : obj.navigateTo.pathname || obj.navigateTo.path;
           if (navPath) {
+            SoundManager.play('nextPage');
             router.push(navPath);
           }
         } else if (obj.id === 'wishing-well') {
@@ -1225,6 +1620,10 @@ const MapCanvas = ({ location }) => {
           setIsWeepingWillowOpen(true);
         } else if (obj.flow === 'bank' || obj.action === 'openBankModal') {
           setIsBankFlowOpen(true);
+        } else if (obj.flow === 'workbook') {
+          setWorkbookBookshelfId(obj.flowParams?.bookshelfId || 'default');
+          setWorkbookTitle(obj.flowParams?.title || 'Workbook');
+          setIsWorkbookOpen(true);
         } else if (obj.description) {
           alert(obj.description); // TODO: Replace with modal
         }
@@ -1286,18 +1685,24 @@ const MapCanvas = ({ location }) => {
     ].filter(obj => obj && obj.type !== 'decoration');
 
     // Check if mouse is over an object
+    const HITBOX_PADDING = 12; // Slightly larger hitbox for easier hovering
     for (const obj of allObjects) {
       // Check if this is the back/home button (scaled 50% larger on mobile)
       const isBackButton = obj.id && (obj.id.startsWith('back-') || obj.id === 'home-hearts');
       const mobileBackScale = (isBackButton && uxStore.shouldScaleUI) ? 1.5 : 1;
-      const scaledWidth = obj.width * mobileBackScale;
-      const scaledHeight = obj.height * mobileBackScale;
-      const offsetX = (scaledWidth - obj.width) / 2;
-      const offsetY = (scaledHeight - obj.height) / 2;
-      const hitX = obj.x - offsetX;
-      const hitY = obj.y - offsetY;
 
-      if (x >= hitX && x <= hitX + scaledWidth && y >= hitY && y <= hitY + scaledHeight) {
+      // Images are drawn as squares using width for both dimensions
+      // Non-images use their actual width/height
+      const drawnWidth = obj.width * mobileBackScale;
+      const drawnHeight = (obj.image ? obj.width : obj.height) * mobileBackScale;
+
+      // Hitbox with padding
+      const hitX = obj.x - HITBOX_PADDING;
+      const hitY = obj.y - HITBOX_PADDING;
+      const hitWidth = drawnWidth + HITBOX_PADDING * 2;
+      const hitHeight = drawnHeight + HITBOX_PADDING * 2;
+
+      if (x >= hitX && x <= hitX + hitWidth && y >= hitY && y <= hitY + hitHeight) {
         foundHover = obj.id;
         canvas.style.cursor = 'pointer';
         break;
@@ -1376,6 +1781,7 @@ const MapCanvas = ({ location }) => {
         if (nav && nav.navigateTo) {
           const navPath = typeof nav.navigateTo === 'string' ? nav.navigateTo : nav.navigateTo.pathname || nav.navigateTo.path;
           if (navPath) {
+            SoundManager.play('nextPage');
             router.push(navPath);
           }
         }
@@ -1447,34 +1853,69 @@ const MapCanvas = ({ location }) => {
       paddingTop: 20,
     } : null;
 
-    // Shared canvas element
-    const canvasElement = (
-      <canvas
-        ref={canvasRef}
-        width={BASELINE_WIDTH}
-        height={BASELINE_HEIGHT}
-        onClick={handleCanvasClick}
-        onMouseMove={handleCanvasMouseMove}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+    // Room background element (only for rooms with custom backgrounds)
+    // Uses tiled repeating pattern like TiledBackground
+    const roomBackgroundElement = roomData?.background ? (
+      <div
         style={{
-          display: 'block',
-          background: 'transparent',
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: canvasWidth,
           height: canvasHeight,
+          backgroundImage: `url(${typeof roomData.background === 'string' ? roomData.background : roomData.background.default || roomData.background.uri || roomData.background})`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '200px 200px',
+          backgroundPosition: '0px 0px',
+          zIndex: 0,
+          filter: 'sepia(60%) saturate(140%) brightness(85%) hue-rotate(-10deg)',
         }}
       />
+    ) : null;
+
+    // Shared canvas element
+    const canvasElement = (
+      <>
+        {roomBackgroundElement}
+        <canvas
+          ref={canvasRef}
+          width={BASELINE_WIDTH}
+          height={BASELINE_HEIGHT}
+          onClick={handleCanvasClick}
+          onMouseMove={handleCanvasMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            display: 'block',
+            background: 'transparent',
+            width: canvasWidth,
+            height: canvasHeight,
+            position: roomData?.background ? 'relative' : undefined,
+            zIndex: roomData?.background ? 1 : undefined,
+          }}
+        />
+      </>
     );
 
     // Shared overlay elements (title, UserStatus when not in side panel, menu, inventory, knapsack)
     const overlayElements = (
       <>
         {roomData && roomData.showTitle !== false && (
-          <View style={[styles.titleOverlay, uxStore.shouldScaleUI && { top: 16 }]}>
-            <Text style={[styles.roomTitle, uxStore.shouldScaleUI && { fontSize: 28 }]}>{roomData.name.toUpperCase()}</Text>
+          <View style={[styles.titleOverlay, uxStore.shouldScaleUI && { top: FontSettingsStore.getScaledSpacing(16) }]}>
+            <Text style={[
+              styles.roomTitle,
+              {
+                fontSize: FontSettingsStore.getScaledFontSize(uxStore.shouldScaleUI ? 28 : 42),
+                color: FontSettingsStore.getFontColor('#5C5A58'),
+              }
+            ]}>{roomData.name.toUpperCase()}</Text>
           </View>
         )}
         {!hasSidePanel && <UserStatus />}
+        {/* Library navigation overlay */}
+        {(location === 'library' || location?.startsWith('library-')) && (
+          <LibraryNav currentRoom={location} />
+        )}
         {/* Menu container - only show on canvas when no side panel */}
         {!hasSidePanel && (
           <View style={[styles.menuContainer, uxStore.shouldScaleUI && { transform: 'scale(0.8)', transformOrigin: 'top right' }]}>
@@ -1483,6 +1924,8 @@ const MapCanvas = ({ location }) => {
               onShowLayerModal={() => setIsLayerModalOpen(true)}
               onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
               onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
+              onShowFontSettings={() => setIsFontSettingsOpen(true)}
+              onShowReportIssue={() => setIsReportIssueOpen(true)}
             />
           </View>
         )}
@@ -1559,6 +2002,16 @@ const MapCanvas = ({ location }) => {
           visible={isBankFlowOpen}
           onClose={() => setIsBankFlowOpen(false)}
         />
+        <Workbook
+          visible={isWorkbookOpen}
+          onClose={() => {
+            setIsWorkbookOpen(false);
+            setWorkbookBookshelfId(null);
+            setWorkbookTitle('Workbook');
+          }}
+          bookshelfId={workbookBookshelfId}
+          title={workbookTitle}
+        />
         <LayerSelectModal
           visible={isLayerModalOpen}
           onClose={() => setIsLayerModalOpen(false)}
@@ -1572,50 +2025,80 @@ const MapCanvas = ({ location }) => {
           visible={isThemeSettingsOpen}
           onClose={() => setIsThemeSettingsOpen(false)}
         />
+        <FontSettingsModal
+          visible={isFontSettingsOpen}
+          onClose={() => setIsFontSettingsOpen(false)}
+        />
+        <ReportIssueModal
+          visible={isReportIssueOpen}
+          onClose={() => setIsReportIssueOpen(false)}
+        />
       </>
     );
 
     return (
-      <View style={containerStyle}>
-        <style>{`
-          .map-canvas-button:hover {
-            transform: scale(1.06) !important;
-          }
-        `}</style>
-        {hasSidePanel ? (
-          <>
-            {/* Canvas area wrapped for flex layout */}
-            <View style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}>
+      <>
+        <View style={containerStyle}>
+          <style>{`
+            .map-canvas-button:hover {
+              transform: scale(1.06) !important;
+            }
+          `}</style>
+          {hasSidePanel ? (
+            <>
+              {/* Canvas area wrapped for flex layout */}
+              <View style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}>
+                {canvasElement}
+                {overlayElements}
+                {/* Mobile overlay panel */}
+                {mobileOverlay && (
+                  <MobileOverlayPanel
+                    type={mobileOverlay}
+                    onClose={() => setMobileOverlay(null)}
+                    onNotificationClick={handleNotificationClick}
+                    onShowLayerModal={() => { setMobileOverlay(null); setIsLayerModalOpen(true); }}
+                    onShowSoundSettings={() => { setMobileOverlay(null); setIsSoundSettingsOpen(true); }}
+                    onShowThemeSettings={() => { setMobileOverlay(null); setIsThemeSettingsOpen(true); }}
+                    onShowFontSettings={() => { setMobileOverlay(null); setIsFontSettingsOpen(true); }}
+                    onShowReportIssue={() => { setMobileOverlay(null); setIsReportIssueOpen(true); }}
+                  />
+                )}
+              </View>
+              {/* Side panel */}
+              <View style={sidePanelStyle}>
+                <UserStatus compact />
+                {/* Menu buttons in side panel */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                  <NotificationHeart
+                    onNotificationClick={handleNotificationClick}
+                    onButtonPress={() => setMobileOverlay(mobileOverlay === 'notifications' ? null : 'notifications')}
+                  />
+                  <HamburgerMenu
+                    onShowLayerModal={() => setIsLayerModalOpen(true)}
+                    onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
+                    onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
+                    onShowFontSettings={() => setIsFontSettingsOpen(true)}
+                    onShowReportIssue={() => setIsReportIssueOpen(true)}
+                    onButtonPress={() => setMobileOverlay(mobileOverlay === 'menu' ? null : 'menu')}
+                  />
+                </View>
+                {/* Knapsack in side panel */}
+                <View style={{ marginTop: 'auto', paddingTop: 12 }}>
+                  {knapsackButton}
+                </View>
+              </View>
+            </>
+          ) : (
+            <>
+              {/* Canvas and overlays directly in container (no wrapper) */}
               {canvasElement}
               {overlayElements}
-            </View>
-            {/* Side panel */}
-            <View style={sidePanelStyle}>
-              <UserStatus compact />
-              {/* Menu buttons in side panel */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
-                <NotificationHeart onNotificationClick={handleNotificationClick} />
-                <HamburgerMenu
-                  onShowLayerModal={() => setIsLayerModalOpen(true)}
-                  onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
-                  onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
-                />
-              </View>
-              {/* Knapsack in side panel */}
-              <View style={{ marginTop: 'auto', paddingTop: 12 }}>
-                {knapsackButton}
-              </View>
-            </View>
-          </>
-        ) : (
-          <>
-            {/* Canvas and overlays directly in container (no wrapper) */}
-            {canvasElement}
-            {overlayElements}
-          </>
-        )}
+            </>
+          )}
+        </View>
+        {/* Modals rendered outside rotated container so they stay upright */}
         {modals}
-      </View>
+      </>
     );
   }
 

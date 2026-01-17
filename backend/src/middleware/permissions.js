@@ -41,6 +41,24 @@ function isCreator(account) {
 }
 
 /**
+ * Check if account has developer permission (or is admin)
+ * @param {Object} account - Account document
+ * @returns {boolean}
+ */
+function isDeveloper(account) {
+  return hasPermission(account, 'developer') || isAdmin(account);
+}
+
+/**
+ * Check if account has support permission (or is developer/admin)
+ * @param {Object} account - Account document
+ * @returns {boolean}
+ */
+function isSupport(account) {
+  return hasPermission(account, 'support') || isDeveloper(account);
+}
+
+/**
  * WebSocket middleware to require a permission
  * @param {string} permission - Required permission
  * @returns {Function} Middleware function
@@ -81,6 +99,8 @@ module.exports = {
   isAdmin,
   isModerator,
   isCreator,
+  isDeveloper,
+  isSupport,
   requirePermission,
   requirePermissionREST
 };

@@ -18,6 +18,7 @@ import SessionStore from '../stores/SessionStore';
 import ProfileStore from '../stores/ProfileStore';
 import WebSocketService from '../services/websocket';
 import FormStore from '../stores/FormStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
@@ -307,6 +308,7 @@ const AvatarGenerationScreen = observer(() => {
           <Text
             style={[
               styles.title,
+              { fontSize: FontSettingsStore.getScaledFontSize(42), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
               Platform.OS === 'web' && {
                 textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
               }
@@ -317,6 +319,7 @@ const AvatarGenerationScreen = observer(() => {
           <Text
             style={[
               styles.subtitle,
+              { fontSize: FontSettingsStore.getScaledFontSize(18), lineHeight: FontSettingsStore.getScaledFontSize(26), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
               Platform.OS === 'web' && {
                 textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
               }
@@ -330,6 +333,7 @@ const AvatarGenerationScreen = observer(() => {
               <Text
                 style={[
                   styles.usernameInBox,
+                  { fontSize: FontSettingsStore.getScaledFontSize(28), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
                   Platform.OS === 'web' && {
                     textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
                   }
@@ -425,6 +429,7 @@ const AvatarGenerationScreen = observer(() => {
           <Text
             style={[
               styles.selectedColorText,
+              { fontSize: FontSettingsStore.getScaledFontSize(28), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
               Platform.OS === 'web' && {
                 textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
               }
@@ -524,6 +529,7 @@ const AvatarGenerationScreen = observer(() => {
             <Text
               style={[
                 styles.rateLimit,
+                { fontSize: FontSettingsStore.getScaledFontSize(20), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
                 Platform.OS === 'web' && {
                   textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
                 }
@@ -544,6 +550,7 @@ const AvatarGenerationScreen = observer(() => {
                 <Text
                   style={[
                     styles.placeholderText,
+                    { fontSize: FontSettingsStore.getScaledFontSize(20), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
                     Platform.OS === 'web' && {
                       textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
                     }

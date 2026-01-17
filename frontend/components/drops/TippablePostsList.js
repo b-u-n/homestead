@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import Scroll from '../Scroll';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import HeartPaymentModal from '../HeartPaymentModal';
 import Heart from '../Heart';
+import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * TippablePostsList Drop
  * Lists posts with ability to tip hearts to authors
  */
-const TippablePostsList = ({
+const TippablePostsList = observer(({
   input,
   context,
   onComplete,
@@ -102,7 +104,7 @@ const TippablePostsList = ({
               style={[styles.filterButton, filter === f && styles.filterButtonActive]}
               onPress={() => setFilter(f)}
             >
-              <Text style={[styles.filterButtonText, filter === f && styles.filterButtonTextActive]}>
+              <Text style={[styles.filterButtonText, filter === f && styles.filterButtonTextActive, { fontSize: FontSettingsStore.getScaledFontSize(12) }]}>
                 {f.toUpperCase()}
               </Text>
             </Pressable>
@@ -115,31 +117,31 @@ const TippablePostsList = ({
           const nextIndex = (currentIndex + 1) % sorts.length;
           setSort(sorts[nextIndex]);
         }}>
-          <Text style={styles.sortButtonText}>Sort: {sort.replace('-', ' ')}</Text>
+          <Text style={[styles.sortButtonText, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#5C5A58') }]}>Sort: {sort.replace('-', ' ')}</Text>
         </Pressable>
       </View>
 
       {/* Posts List */}
       {loading ? (
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={[styles.loadingText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>Loading...</Text>
       ) : posts.length === 0 ? (
-        <Text style={styles.emptyText}>No posts yet. Be the first to share!</Text>
+        <Text style={[styles.emptyText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>No posts yet. Be the first to share!</Text>
       ) : (
         <Scroll style={styles.postsList}>
           {posts.map((post) => (
             <View key={post._id} style={styles.postCard}>
               <View style={styles.postHeader}>
-                <Text style={styles.authorName}>{post.user?.name}</Text>
+                <Text style={[styles.authorName, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#7044C7') }]}>{post.user?.name}</Text>
                 <View style={styles.tipCountRow}>
                   <Heart size={14} />
-                  <Text style={styles.tipCount}>{post.totalTips || 0}</Text>
+                  <Text style={[styles.tipCount, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#E63946') }]}>{post.totalTips || 0}</Text>
                 </View>
               </View>
 
-              <Text style={styles.postContent}>{post.content}</Text>
+              <Text style={[styles.postContent, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledFontSize(20), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.content}</Text>
 
               <View style={styles.postFooter}>
-                <Text style={styles.responseCount}>
+                <Text style={[styles.responseCount, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
                   {post.responses?.length || 0} responses
                 </Text>
                 <Pressable
@@ -147,7 +149,7 @@ const TippablePostsList = ({
                   onPress={() => handleTipPress(post)}
                 >
                   <View style={styles.tipButtonContent}>
-                    <Text style={styles.tipButtonText}>TIP</Text>
+                    <Text style={[styles.tipButtonText, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#E63946') }]}>TIP</Text>
                     <Heart size={14} />
                   </View>
                 </Pressable>
@@ -159,13 +161,13 @@ const TippablePostsList = ({
 
       {/* Create Post Button */}
       <Pressable style={styles.createButton} onPress={handleCreatePost}>
-        <Text style={styles.createButtonText}>+ CREATE POST</Text>
+        <Text style={[styles.createButtonText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#7044C7') }]}>+ CREATE POST</Text>
       </Pressable>
 
       {/* Back Button */}
       {canGoBack && (
         <Pressable style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← BACK</Text>
+          <Text style={[styles.backButtonText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>← BACK</Text>
         </Pressable>
       )}
 
@@ -184,7 +186,7 @@ const TippablePostsList = ({
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

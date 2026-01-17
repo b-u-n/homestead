@@ -9,7 +9,7 @@ import NotificationStore from '../stores/NotificationStore';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
-const NotificationHeart = observer(({ style, onNotificationClick }) => {
+const NotificationHeart = observer(({ style, onNotificationClick, onButtonPress }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -81,7 +81,7 @@ const NotificationHeart = observer(({ style, onNotificationClick }) => {
     <View ref={containerRef} style={[styles.container, style]}>
       {/* Heart Button Wrapper - allows badge overflow */}
       <View style={styles.buttonWrapper}>
-        <Pressable onPress={() => setIsOpen(!isOpen)} style={styles.heartButton}>
+        <Pressable onPress={() => onButtonPress ? onButtonPress() : setIsOpen(!isOpen)} style={styles.heartButton}>
           {Platform.OS === 'web' && (
             <div
               style={{

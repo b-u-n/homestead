@@ -3,6 +3,7 @@ import { Pressable, Text as RNText, View, StyleSheet, ImageBackground, Platform 
 import StitchedBorder from './StitchedBorder';
 import { Typography } from '../constants/typography';
 import { useWoolColors } from '../hooks/useTheme';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 const woolBgImage = require('../assets/images/button-bg.png');
 const minkyBgImage = require('../assets/images/slot-bg-2.jpeg');
@@ -51,18 +52,22 @@ const ButtonTextureContext = createContext({ texture: 'wool', size: 'large' });
 
 /**
  * Text component for use inside buttons - automatically styled based on button texture and size
+ * Also applies global font settings (size multiplier and color override)
  */
 export const Text = ({ style, children, ...props }) => {
   const { texture, size } = useContext(ButtonTextureContext);
   const baseStyle = textStyles[texture] || textStyles.wool;
   const scale = sizeTextScale[size] || 1;
-  const scaledFontSize = Math.round(baseStyle.fontSize * scale);
+  // Apply both button size scale and global font size multiplier
+  const scaledFontSize = FontSettingsStore.getScaledFontSize(Math.round(baseStyle.fontSize * scale));
+  // Apply font color override if set
+  const fontColor = FontSettingsStore.getFontColor(baseStyle.color);
   const webShadow = Platform.OS === 'web'
     ? { textShadow: '0 1px 1px rgba(255, 255, 255, 0.62)' }
     : null;
 
   return (
-    <RNText style={[baseStyle, { fontSize: scaledFontSize }, webShadow, style]} {...props}>
+    <RNText style={[baseStyle, { fontSize: scaledFontSize, color: fontColor }, webShadow, style]} {...props}>
       {children}
     </RNText>
   );
@@ -139,8 +144,12 @@ const ButtonBase = ({
   // Check if children is a string to apply default text styling
   const isTextContent = typeof children === 'string';
 
-  // Get padding based on size
-  const padding = sizePadding[size] || sizePadding.large;
+  // Get padding based on size, scaled by font size multiplier
+  const basePadding = sizePadding[size] || sizePadding.large;
+  const padding = {
+    horizontal: FontSettingsStore.getScaledSpacing(basePadding.horizontal),
+    vertical: FontSettingsStore.getScaledSpacing(basePadding.vertical),
+  };
 
   // Determine if button should be auto-width (not full width)
   const isAutoWidth = size === 'small' || size === 'medium';

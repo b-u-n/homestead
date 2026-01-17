@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, Platform, ImageBackground } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import StitchedBorder from './StitchedBorder';
 import { useMinkyColor } from '../hooks/useTheme';
+import uxStore from '../stores/UXStore';
 
 const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
-const MinkyPanel = ({
+const MinkyPanel = observer(({
   children,
   style = {},
   borderRadius = 20,
@@ -18,6 +20,7 @@ const MinkyPanel = ({
 }) => {
   // Get theme color (uses flow context automatically)
   const effectiveColor = useMinkyColor(variant, overlayColor);
+  const isMobile = uxStore.isMobile || uxStore.isPortrait;
 
   return (
     <View style={[styles.container, { borderRadius }, style]}>
@@ -32,10 +35,12 @@ const MinkyPanel = ({
             height: '100%',
             backgroundImage: `url(${typeof slotBgImage === 'string' ? slotBgImage : slotBgImage.default || slotBgImage.uri || slotBgImage})`,
             backgroundRepeat: 'repeat',
-            backgroundSize: '40%',
+            backgroundSize: isMobile ? '80%' : '40%',
             borderRadius: borderRadius,
             pointerEvents: 'none',
             opacity: 0.8,
+            transform: 'translate3d(0,0,0)', // Force GPU layer for mobile rendering
+            WebkitBackfaceVisibility: 'hidden',
           }}
         />
       )}
@@ -62,7 +67,7 @@ const MinkyPanel = ({
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

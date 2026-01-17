@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import profileStore from '../stores/ProfileStore';
 import uxStore from '../stores/UXStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
 import MinkyPanel from './MinkyPanel';
 import AvatarStamp from './AvatarStamp';
 import Heart from './Heart';
@@ -64,7 +65,7 @@ const UserStatus = observer(({ compact = false }) => {
                       return (
                         <Text
                           key={index}
-                          style={[styles.usernameVerticalWord, { fontSize, lineHeight: fontSize + 2 }]}
+                          style={[styles.usernameVerticalWord, { fontSize: FontSettingsStore.getScaledFontSize(fontSize), lineHeight: FontSettingsStore.getScaledFontSize(fontSize) + 2, color: FontSettingsStore.getFontColor('#403F3E') }]}
                         >
                           {word}
                         </Text>
@@ -72,7 +73,7 @@ const UserStatus = observer(({ compact = false }) => {
                     })}
                 </View>
               ) : (
-                <Text style={styles.username}>
+                <Text style={[styles.username, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>
                   {profileStore.username}
                 </Text>
               )

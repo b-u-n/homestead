@@ -108,12 +108,13 @@ export default (width, height) => ({
       x: width / 2 + 260,
       y: height / 2 - 222,
       width: 134,
-      height: 101,
+      height: 134,
       label: 'Journal',
       description: 'A weathered journal sits here, inviting you to record your thoughts.',
       image: require('../../assets/images/journal.png'),
       showTitle: false,
-      zIndex: 1001
+      zIndex: 1001,
+      navigateTo: '/homestead/explore/map/library'
     },
     {
       id: 'help-wanted',
@@ -121,7 +122,7 @@ export default (width, height) => ({
       x: width / 2 - 26,
       y: height / 2 - 186,
       width: 192,
-      height: 77,
+      height: 192,
       label: 'Help Wanted',
       description: 'A bulletin board where community members share their struggles and ask for support.',
       flow: 'weepingWillow',

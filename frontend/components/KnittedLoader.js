@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Platform, ImageBackground, Easing } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import { Typography } from '../constants/typography';
 import { Colors } from '../constants/colors';
 import StitchedBorder from './StitchedBorder';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 const buttonBgImage = require('../assets/images/button-bg.png');
 
-const KnittedLoader = ({ text = 'Loading...' }) => {
+const KnittedLoader = observer(({ text = 'Loading...' }) => {
   // Four boxes with animated opacity for fade effect
   const box1Opacity = useRef(new Animated.Value(1)).current;
   const box2Opacity = useRef(new Animated.Value(0.5)).current;
@@ -127,6 +129,7 @@ const KnittedLoader = ({ text = 'Loading...' }) => {
       <Text
         style={[
           styles.text,
+          { fontSize: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDarker || '#3a3937') },
           Platform.OS === 'web' && {
             textShadow: '0 -1px 0 rgba(0, 0, 0, 0.36)',
           }
@@ -136,7 +139,7 @@ const KnittedLoader = ({ text = 'Loading...' }) => {
       </Text>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

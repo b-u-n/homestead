@@ -23,6 +23,7 @@ export const weepingWillowFlow = {
     'weepingWillow:list': {
       component: PostsList,
       depth: 0,
+      showBack: false,
       next: [
         {
           when: (output) => output.action === 'create',
@@ -53,7 +54,6 @@ export const weepingWillowFlow = {
     'weepingWillow:respond': {
       component: RespondToPost,
       depth: 0,
-      backLabel: 'Help Board',
       next: [
         {
           when: (output) => output.action === 'back',
@@ -66,7 +66,6 @@ export const weepingWillowFlow = {
     'weepingWillow:viewPost': {
       component: RespondToPost,
       depth: 0,
-      backLabel: 'Help Board',
       next: [
         {
           when: (output) => output.action === 'back',

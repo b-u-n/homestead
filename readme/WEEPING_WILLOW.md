@@ -10,16 +10,15 @@ Two distinct buttons:
 2. **Help others** - Browse existing posts and respond
 
 ### Create Post
-- User enters post content (max 500 characters)
+- User enters post content (max 5000 characters)
 - User selects heart bounty (1-9 hearts from their active balance)
 - Hearts are deducted from user's account on submission
 - Post displays under user's username (internally tracked by MongoDB ObjectId)
 - Real-time broadcast to all connected clients
 
 ### View Posts (List)
-- Displays all posts with filtering and sorting
-- Filters: All, New (7 days), Unresponded
-- Sorts: Newest, Oldest, Highest Bounty, Lowest Bounty
+- Displays all posts with sort options
+- Sort options: Unresponded, Most Popular, Most Hearts, Least Hearts, Newest, Oldest
 - Each post shows: author name, avatar, bounty amount, content, response count
 - Expandable to show all responses
 - "RESPOND" button to add a response
@@ -29,7 +28,7 @@ Two distinct buttons:
 - First responder wins the entire heart bounty
 - Hearts go to responder's active balance (capped at 9), overflow to bank
 - Cannot respond to your own posts
-- Max 500 characters
+- Max 5000 characters
 
 ---
 
@@ -61,10 +60,10 @@ All Clients: PostsList refreshes
 | **Backend Flow** | `/backend/src/flows/weepingWillow.js` | WebSocket handlers |
 | **Frontend Flow** | `/frontend/flows/weepingWillowFlow.js` | Navigation state machine |
 | **Landing** | `/frontend/components/drops/WeepingWillowLanding.js` | Ask for help / Help others buttons |
-| **Create** | `/frontend/components/drops/CreateWeepingWillowPost.js` | Post creation form |
+| **Create** | `/frontend/components/drops/CreateWeepingWillowPost.js` | Post creation form (mobile + desktop) |
 | **Confirmation** | `/frontend/components/drops/PostConfirmation.js` | Post submitted confirmation |
-| **List** | `/frontend/components/drops/PostsList.js` | Posts listing |
-| **Respond** | `/frontend/components/drops/RespondToPost.js` | Response form |
+| **List** | `/frontend/components/drops/PostsList.js` | Posts listing (mobile + desktop) |
+| **Respond** | `/frontend/components/drops/RespondToPost.js` | Response form (mobile + desktop, layout adapts) |
 | **ViewPost** | `/frontend/components/drops/ViewPost.js` | Single post view (notification deep link) |
 
 ---
@@ -77,7 +76,7 @@ See [WEBSOCKETS.md](./WEBSOCKETS.md) for full documentation.
 
 | Event | Direction | Purpose |
 |-------|-----------|---------|
-| `weepingWillow:posts:get` | Request/Response | Fetch posts with filters/sorts |
+| `weepingWillow:posts:get` | Request/Response | Fetch posts with sort options |
 | `weepingWillow:posts:create` | Request/Response | Create new post (deducts hearts) |
 | `weepingWillow:posts:addResponse` | Request/Response | Add response (awards hearts to first) |
 | `weepingWillow:newPost` | Broadcast | Notifies all clients of new post |
@@ -94,7 +93,7 @@ See [WEBSOCKETS.md](./WEBSOCKETS.md) for full documentation.
   content: {
     type: String,
     required: true,
-    maxLength: 500
+    maxLength: 5000
   },
   hearts: {
     type: Number,
@@ -113,7 +112,7 @@ See [WEBSOCKETS.md](./WEBSOCKETS.md) for full documentation.
   },
   authorAvatar: String,
   responses: [{
-    content: { type: String, required: true, maxLength: 500 },
+    content: { type: String, required: true, maxLength: 5000 },
     responderId: { type: ObjectId, ref: 'Account', required: true },
     responderName: { type: String, required: true },
     responderAvatar: String,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Platform, ScrollView } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
@@ -7,9 +7,11 @@ import ErrorStore from '../../stores/ErrorStore';
 import profileStore from '../../stores/ProfileStore';
 import FormStore from '../../stores/FormStore';
 import uxStore from '../../stores/UXStore';
+import FontSettingsStore from '../../stores/FontSettingsStore';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import Heart from '../Heart';
+import Scrollbar from '../Scrollbar';
 
 /**
  * CreatePost Drop
@@ -23,6 +25,9 @@ const CreatePost = observer(({
   canGoBack
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scrollMetrics, setScrollMetrics] = useState({ offset: 0, visible: 0, content: 0 });
+  const textareaRef = useRef(null);
+  const scrollRef = useRef(null);
 
   const flowName = context?.flowName || 'wishingWell';
   const isFreePost = flowName === 'wishingWell'; // Wishing well posts are free
@@ -30,12 +35,24 @@ const CreatePost = observer(({
   // Get persisted form state scoped to this flow's new post
   const formKey = `${flowName}:newPost`;
   const content = FormStore.getField(formKey, 'content') || '';
-  const hearts = FormStore.getField(formKey, 'hearts') || 1;
+  const hearts = FormStore.getField(formKey, 'hearts') || 3;
   const availableHearts = profileStore.hearts || 0;
 
   // Setters that update FormStore
   const setContent = (value) => FormStore.setField(formKey, 'content', value);
   const setHearts = (value) => FormStore.setField(formKey, 'hearts', value);
+
+  // Auto-resize textarea on mount and when content changes
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      requestAnimationFrame(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = (textareaRef.current.scrollHeight + 8) + 'px';
+        }
+      });
+    }
+  }, [content]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -43,8 +60,8 @@ const CreatePost = observer(({
       return;
     }
 
-    if (content.length > 500) {
-      ErrorStore.addError('Wish must be 500 characters or less');
+    if (content.length > 5000) {
+      ErrorStore.addError('Wish must be 5000 characters or less');
       return;
     }
 
@@ -100,7 +117,14 @@ const CreatePost = observer(({
       overlayColor="rgba(112, 68, 199, 0.2)"
     >
       {/* Explanation */}
-      <Text style={[styles.explanationText, isMobile && { fontSize: 12, lineHeight: 18 }]}>
+      <Text style={[
+        styles.explanationText,
+        {
+          fontSize: FontSettingsStore.getScaledFontSize(isMobile ? 12 : 13),
+          lineHeight: FontSettingsStore.getScaledSpacing(isMobile ? 18 : 20),
+          color: FontSettingsStore.getFontColor('#403F3E'),
+        }
+      ]}>
         {isFreePost ? (
           `Share a positive message with the community! Other users can respond and you can tip them hearts if their response resonates with you.`
         ) : (
@@ -111,40 +135,80 @@ const CreatePost = observer(({
       {/* Heart Selector (only for paid posts - weeping willow) */}
       {!isFreePost && (
         <View style={styles.heartSelectorContainer}>
-          <Text style={styles.label}>HEART BOUNTY</Text>
-          <View style={styles.heartSelector}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
-              const isSelected = heartNum <= hearts;
-              const isAvailable = heartNum <= availableHearts;
+          <Text style={[styles.label, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#403F3E') }]}>HEART BOUNTY</Text>
+          {isMobile ? (
+            // Mobile: 3x3 grid
+            <View style={styles.heartGrid}>
+              {[0, 1, 2].map(row => (
+                <View key={row} style={styles.heartGridRow}>
+                  {[1, 2, 3].map(col => {
+                    const heartNum = row * 3 + col;
+                    const isSelected = heartNum <= hearts;
+                    const isAvailable = heartNum <= availableHearts;
 
-              let heartStyle = {};
-              if (!isAvailable) {
-                heartStyle = { opacity: 0.2 };
-              } else if (isSelected) {
-                heartStyle = { opacity: 1 };
-              } else {
-                heartStyle = { opacity: 0.4 };
-              }
-
-              return (
-                <Pressable
-                  key={heartNum}
-                  onPress={() => {
-                    if (heartNum <= availableHearts) {
-                      setHearts(heartNum);
+                    let heartStyle = {};
+                    if (!isAvailable) {
+                      heartStyle = { opacity: 0.2 };
+                    } else if (isSelected) {
+                      heartStyle = { opacity: 1 };
+                    } else {
+                      heartStyle = { opacity: 0.4 };
                     }
-                  }}
-                  disabled={heartNum > availableHearts}
-                  style={[styles.heartIcon, heartStyle]}
-                >
-                  <Heart size={isMobile ? 24 : 28} />
-                </Pressable>
-              );
-            })}
-          </View>
+
+                    return (
+                      <Pressable
+                        key={heartNum}
+                        onPress={() => {
+                          if (heartNum <= availableHearts) {
+                            setHearts(heartNum);
+                          }
+                        }}
+                        disabled={heartNum > availableHearts}
+                        style={[styles.heartIcon, heartStyle]}
+                      >
+                        <Heart size={24} />
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          ) : (
+            // Desktop: single row
+            <View style={styles.heartSelector}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
+                const isSelected = heartNum <= hearts;
+                const isAvailable = heartNum <= availableHearts;
+
+                let heartStyle = {};
+                if (!isAvailable) {
+                  heartStyle = { opacity: 0.2 };
+                } else if (isSelected) {
+                  heartStyle = { opacity: 1 };
+                } else {
+                  heartStyle = { opacity: 0.4 };
+                }
+
+                return (
+                  <Pressable
+                    key={heartNum}
+                    onPress={() => {
+                      if (heartNum <= availableHearts) {
+                        setHearts(heartNum);
+                      }
+                    }}
+                    disabled={heartNum > availableHearts}
+                    style={[styles.heartIcon, heartStyle]}
+                  >
+                    <Heart size={28} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
           <View style={styles.heartHelpRow}>
-            <Text style={styles.heartHelp}>Heart bounty for responders: {hearts}</Text>
-            <Heart size={14} />
+            <Text style={[styles.heartHelp, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>Heart bounty for responders: {hearts}</Text>
+            <Heart size={FontSettingsStore.getScaledFontSize(14)} />
           </View>
         </View>
       )}
@@ -153,22 +217,29 @@ const CreatePost = observer(({
       <View style={[styles.inputContainer, isMobile && { flex: 0 }]}>
         {Platform.OS === 'web' ? (
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
-            maxLength={500}
+            maxLength={5000}
             style={{
               fontFamily: 'Comfortaa',
-              fontSize: isMobile ? 13 : 14,
-              padding: 10,
+              fontSize: FontSettingsStore.getScaledFontSize(isMobile ? 13 : 14),
+              color: FontSettingsStore.getFontColor('#403F3E'),
+              padding: FontSettingsStore.getScaledSpacing(10),
               borderRadius: 8,
               border: '1px solid rgba(92, 90, 88, 0.3)',
               backgroundColor: 'rgba(255, 255, 255, 0.5)',
               outline: 'none',
               resize: 'none',
               width: '100%',
-              minHeight: isMobile ? 100 : 120,
+              minHeight: FontSettingsStore.getScaledSpacing(isMobile ? 100 : 120),
               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
+              overflow: 'hidden',
+            }}
+            onInput={(e) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
             }}
           />
         ) : (
@@ -177,11 +248,11 @@ const CreatePost = observer(({
             onChangeText={setContent}
             placeholder={isFreePost ? "Share a hopeful wish or positive message..." : "What's on your mind?"}
             multiline
-            maxLength={500}
+            maxLength={5000}
             style={styles.textInput}
           />
         )}
-        <Text style={styles.charCount}>{content.length}/500</Text>
+        <Text style={[styles.charCount, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.6)') }]}>{content.length}/5000</Text>
       </View>
 
       {/* Submit Button */}
@@ -198,14 +269,40 @@ const CreatePost = observer(({
   // Mobile: wrap in ScrollView for proper scrolling
   if (isMobile) {
     return (
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {formContent}
-      </ScrollView>
+      <View style={styles.scrollWrapper}>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={(e) => setScrollMetrics({
+            offset: e.nativeEvent.contentOffset.y,
+            visible: e.nativeEvent.layoutMeasurement.height,
+            content: e.nativeEvent.contentSize.height,
+          })}
+          onLayout={(e) => setScrollMetrics(prev => ({
+            ...prev,
+            visible: e.nativeEvent.layout.height,
+          }))}
+          onContentSizeChange={(w, h) => setScrollMetrics(prev => ({
+            ...prev,
+            content: h,
+          }))}
+          scrollEventThrottle={16}
+        >
+          {formContent}
+        </ScrollView>
+        <Scrollbar
+          contentHeight={scrollMetrics.content}
+          visibleHeight={scrollMetrics.visible}
+          scrollOffset={scrollMetrics.offset}
+          onScroll={(offset) => scrollRef.current?.scrollTo({ y: offset, animated: false })}
+          thumbColor="rgba(112, 68, 199, 0.5)"
+          trackColor="rgba(112, 68, 199, 0.15)"
+          style={{ marginLeft: 4 }}
+        />
+      </View>
     );
   }
 
@@ -219,6 +316,13 @@ const CreatePost = observer(({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  scroll: {
     flex: 1,
   },
   scrollContent: {
@@ -254,6 +358,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexWrap: 'wrap',
+    gap: 4,
+  },
+  heartGrid: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  heartGridRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 4,
   },
   heartIcon: {

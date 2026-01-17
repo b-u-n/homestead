@@ -72,18 +72,27 @@ app.use('/api/accounts', require('./routes/accounts'));
 // Logs routes
 app.use('/api/logs', require('./routes/logs'));
 
+// Report issues routes
+const reportIssuesRouter = require('./routes/reportIssues');
+app.use('/api/report-issues', reportIssuesRouter);
+
 // Load Flow Engine
 const flowEngine = require('./utils/FlowEngine');
 const wishingWellFlow = require('./flows/wishingWell');
 const weepingWillowFlow = require('./flows/weepingWillow');
 const heartsFlow = require('./flows/hearts');
 const notificationsFlow = require('./flows/notifications');
+const workbookFlow = require('./flows/workbook');
 
 // Register flows
 flowEngine.registerFlow(wishingWellFlow);
 flowEngine.registerFlow(weepingWillowFlow);
 flowEngine.registerFlow(heartsFlow);
 flowEngine.registerFlow(notificationsFlow);
+flowEngine.registerFlow(workbookFlow);
+
+// Pass io to report issues router for notifications
+reportIssuesRouter.setIo(io);
 
 // Socket connection handling
 io.on('connection', (socket) => {
@@ -104,6 +113,7 @@ io.on('connection', (socket) => {
   flowEngine.setupFlow(socket, io, 'weepingWillow');
   flowEngine.setupFlow(socket, io, 'hearts');
   flowEngine.setupFlow(socket, io, 'notifications');
+  flowEngine.setupFlow(socket, io, 'workbook');
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);

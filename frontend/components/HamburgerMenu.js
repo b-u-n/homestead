@@ -14,6 +14,9 @@ const HamburgerMenu = observer(({
   onShowLayerModal,
   onShowSoundSettings,
   onShowThemeSettings,
+  onShowFontSettings,
+  onShowReportIssue,
+  onButtonPress,
 }) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -63,13 +66,23 @@ const HamburgerMenu = observer(({
     onShowThemeSettings?.();
   };
 
+  const handleFontSettings = () => {
+    setIsOpen(false);
+    onShowFontSettings?.();
+  };
+
+  const handleReportIssue = () => {
+    setIsOpen(false);
+    onShowReportIssue?.();
+  };
+
   const currentLayerName = LayerStore.currentLayer?.name || 'None';
 
   return (
     <>
       <View ref={containerRef} style={[styles.container, style]}>
         {/* Hamburger Button */}
-        <Pressable onPress={() => setIsOpen(!isOpen)} style={styles.hamburgerButton}>
+        <Pressable onPress={() => onButtonPress ? onButtonPress() : setIsOpen(!isOpen)} style={styles.hamburgerButton}>
           {Platform.OS === 'web' && (
             <div
               style={{
@@ -165,6 +178,22 @@ const HamburgerMenu = observer(({
                       title="Theme Settings"
                       onPress={handleThemeSettings}
                       variant="purple"
+                      style={styles.menuButton}
+                    />
+
+                    {/* Font Settings Button */}
+                    <WoolButton
+                      title="Font Settings"
+                      onPress={handleFontSettings}
+                      variant="green"
+                      style={styles.menuButton}
+                    />
+
+                    {/* Report Issue Button */}
+                    <WoolButton
+                      title="Report Issue"
+                      onPress={handleReportIssue}
+                      variant="coral"
                       style={styles.menuButton}
                     />
 

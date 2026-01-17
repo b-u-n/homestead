@@ -84,8 +84,8 @@ module.exports = {
           return { valid: false, error: 'Missing required fields' };
         }
 
-        if (content.length > 500) {
-          return { valid: false, error: 'Content must be 500 characters or less' };
+        if (content.length > 5000) {
+          return { valid: false, error: 'Content must be 5000 characters or less' };
         }
 
         return { valid: true };
@@ -137,8 +137,8 @@ module.exports = {
           return { valid: false, error: 'Missing required fields' };
         }
 
-        if (content.length > 500) {
-          return { valid: false, error: 'Response must be 500 characters or less' };
+        if (content.length > 5000) {
+          return { valid: false, error: 'Response must be 5000 characters or less' };
         }
 
         return { valid: true };

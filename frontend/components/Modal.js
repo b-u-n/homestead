@@ -1,13 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Platform, Pressable, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import StitchedBorder from './StitchedBorder';
 import TiledBackground from './TiledBackground';
 import SoundManager from '../services/SoundManager';
 import Scroll from './Scroll';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
-const buttonBgImage = require('../assets/images/button-bg.png');
+const menuBackImage = require('../assets/images/menu-back.png');
+const menuCloseImage = require('../assets/images/menu-close.png');
 
-const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack }) => {
+const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack }) => {
   // Show back button if canGoBack OR if a custom back action is provided
   const showBack = canGoBack || onCustomBack;
   const hasPlayedOpenSound = useRef(false);
@@ -74,39 +77,18 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
               <View style={styles.navBar}>
                 {/* Back button or spacer */}
                 {showBack ? (
-                  <Pressable onPress={onCustomBack || onBack} style={[backLabel ? styles.navButtonPressableWide : styles.navButtonPressable, { left: 0 }]}>
-                    {/* Background texture */}
-                    {Platform.OS === 'web' && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
-                          backgroundRepeat: 'repeat',
-                          backgroundSize: backLabel ? '30%' : '15%',
-                          borderRadius: 8,
-                          pointerEvents: 'none',
-                          opacity: 0.8,
-                        }}
-                      />
+                  <Pressable onPress={onCustomBack || onBack} style={[styles.backButtonPressable, { left: 0 }]}>
+                    <img
+                      src={typeof menuBackImage === 'string' ? menuBackImage : menuBackImage.default || menuBackImage.uri || menuBackImage}
+                      alt="Back"
+                      style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                    />
+                    {backLabel && (
+                      <Text style={[styles.backButtonLabel, {
+                        fontSize: FontSettingsStore.getScaledFontSize(12),
+                        color: FontSettingsStore.getFontColor('#403F3E'),
+                      }]}>{backLabel}</Text>
                     )}
-                    {Platform.OS !== 'web' && (
-                      <ImageBackground
-                        source={buttonBgImage}
-                        style={styles.navButtonBgImage}
-                        imageStyle={{ opacity: 0.8, borderRadius: 8 }}
-                        resizeMode="repeat"
-                      />
-                    )}
-                    <View style={styles.navButtonOverlayPurple}>
-                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(112, 68, 199, 0.4)" style={styles.navButtonBorder}>
-                        <Text style={backLabel ? styles.navButtonTextSmall : styles.navButtonText}>← {backLabel || ''}</Text>
-                      </StitchedBorder>
-                    </View>
-                    <View style={styles.embossBorder} pointerEvents="none" />
                   </Pressable>
                 ) : (
                   <View style={styles.navButtonSpacer} />
@@ -114,44 +96,23 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
 
                 {/* Title in center */}
                 {title && (
-                  <Text style={styles.titleInNav}>{title}</Text>
+                  <Text style={[
+                    styles.titleInNav,
+                    {
+                      fontSize: FontSettingsStore.getScaledFontSize(24),
+                      color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)'),
+                    }
+                  ]}>{title}</Text>
                 )}
 
                 {/* Close button */}
                 {showClose ? (
-                  <Pressable onPress={handleClose} style={[styles.navButtonPressable, { right: 0 }]}>
-                    {/* Background texture */}
-                    {Platform.OS === 'web' && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          backgroundImage: `url(${typeof buttonBgImage === 'string' ? buttonBgImage : buttonBgImage.default || buttonBgImage.uri || buttonBgImage})`,
-                          backgroundRepeat: 'repeat',
-                          backgroundSize: '15%',
-                          borderRadius: 8,
-                          pointerEvents: 'none',
-                          opacity: 0.8,
-                        }}
-                      />
-                    )}
-                    {Platform.OS !== 'web' && (
-                      <ImageBackground
-                        source={buttonBgImage}
-                        style={styles.navButtonBgImage}
-                        imageStyle={{ opacity: 0.8, borderRadius: 8 }}
-                        resizeMode="repeat"
-                      />
-                    )}
-                    <View style={styles.navButtonOverlayPurple}>
-                      <StitchedBorder borderRadius={8} borderWidth={2} borderColor="rgba(112, 68, 199, 0.4)" style={styles.navButtonBorder}>
-                        <Text style={styles.navButtonText}>✕</Text>
-                      </StitchedBorder>
-                    </View>
-                    <View style={styles.embossBorder} pointerEvents="none" />
+                  <Pressable onPress={handleClose} style={[styles.closeButtonPressable, { right: 0 }]}>
+                    <img
+                      src={typeof menuCloseImage === 'string' ? menuCloseImage : menuCloseImage.default || menuCloseImage.uri || menuCloseImage}
+                      alt="Close"
+                      style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                    />
                   </Pressable>
                 ) : (
                   <View style={styles.navButtonSpacer} />
@@ -168,7 +129,7 @@ const Modal = ({ visible, onClose, onBack, canGoBack, title, children, modalSize
       </View>
     </Pressable>
   );
-};
+});
 
 const styles = StyleSheet.create({
   overlay: {
@@ -205,10 +166,6 @@ const styles = StyleSheet.create({
   containerBorder: {
     padding: 20,
   },
-  navButtonBorder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -224,65 +181,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
   },
-  navButtonPressable: {
-    width: 50,
-    height: 50,
+  backButtonPressable: {
     position: 'absolute',
-    borderRadius: 8,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 11,
+    gap: 6,
+  },
+  closeButtonPressable: {
+    position: 'absolute',
     zIndex: 11,
   },
-  navButtonPressableWide: {
-    height: 40,
-    position: 'absolute',
-    borderRadius: 8,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 11,
-  },
-  navButtonBgImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-  },
-  navButtonOverlay: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(222, 134, 223, 0.25)',
-    padding: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navButtonOverlayPurple: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(78, 78, 188, 0.27)',
-    padding: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navButtonText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#403F3E',
-  },
-  navButtonTextSmall: {
-    fontSize: 14,
+  backButtonLabel: {
     fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#403F3E',
-    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    fontWeight: '600',
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
@@ -305,22 +218,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: 8,
-  },
-  embossBorder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 8,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.5)',
-    borderLeftColor: 'rgba(255, 255, 255, 0.5)',
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderRightColor: 'rgba(0, 0, 0, 0.15)',
-    borderBottomColor: 'rgba(0, 0, 0, 0.15)',
   },
 });
 

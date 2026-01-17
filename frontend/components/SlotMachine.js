@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Animated, PanResponder, Platform, ImageBackground } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import Scroll from './Scroll';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import StitchedBorder from './StitchedBorder';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
@@ -13,7 +15,7 @@ const ITEM_HEIGHT = 50;
 const VISIBLE_ITEMS = 9;
 const CENTER_INDEX = 4;
 
-const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = false, onSpinComplete }) => {
+const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, triggerSpin = false, onSpinComplete }) => {
   const scrollViewRef = useRef(null);
   const containerRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -232,7 +234,7 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title} id={`${title}-label`}>{title}</Text>
+      <Text style={[styles.title, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor(Colors.light.secondary) }]} id={`${title}-label`}>{title}</Text>
       
       <View style={styles.slotContainer}>
         <View style={styles.backgroundImageWrapper}>
@@ -323,7 +325,7 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
                 <Text style={[
                   styles.itemText,
                   !isSpinning && currentIndex === index && styles.selectedItemText,
-                  { opacity },
+                  { opacity, fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDarker) },
                   Platform.OS === 'web' && !isSpinning && currentIndex === index && {
                     textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
                   }
@@ -347,7 +349,7 @@ const SlotMachine = ({ items, selectedItem, onItemSelect, title, triggerSpin = f
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

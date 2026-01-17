@@ -1,11 +1,28 @@
 import React, { forwardRef } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
+import ScrollBarView from './ScrollBarView';
 
 /**
- * Scroll - Wrapper for ScrollView
+ * Scroll - Wrapper for scrollable content with MinkyPanel-styled scrollbar
  *
  * Use this instead of ScrollView directly so we can update
- * scrolling behavior app-wide in one place.
+ * scrolling behavior app-wide in one place. Automatically provides a custom
+ * scrollbar on web that:
+ * - Resizes thumb based on content/viewport ratio
+ * - Moves thumb when content is scrolled
+ * - Supports click-to-jump on track
+ * - Supports dragging the thumb
+ * - Supports mousewheel on scrollbar area
+ *
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - Content to scroll
+ * @param {Object} props.style - Style for the outer container
+ * @param {Object} props.contentContainerStyle - Style for the inner content container
+ * @param {boolean} props.horizontal - Enable horizontal scrolling (default: false)
+ * @param {string} props.keyboardShouldPersistTaps - Keyboard behavior (default: 'handled')
+ * @param {boolean} props.fadeEdges - Apply fade mask at edges on web (default: true)
+ * @param {string} props.overlayColor - Scrollbar track overlay color
+ * @param {string} props.thumbOverlayColor - Scrollbar thumb overlay color
  *
  * @example
  * <Scroll>
@@ -13,8 +30,9 @@ import { ScrollView, StyleSheet } from 'react-native';
  * </Scroll>
  *
  * @example
- * <Scroll contentContainerStyle={{ gap: 10 }}>
- *   <Text>With custom content styles</Text>
+ * // Without edge fading
+ * <Scroll fadeEdges={false}>
+ *   <Text>Content here</Text>
  * </Scroll>
  */
 const Scroll = forwardRef(({
@@ -22,24 +40,58 @@ const Scroll = forwardRef(({
   style,
   contentContainerStyle,
   horizontal = false,
-  showsVerticalScrollIndicator = false,
-  showsHorizontalScrollIndicator = false,
   keyboardShouldPersistTaps = 'handled',
+  fadeEdges = true,
+  overlayColor = 'rgba(112, 68, 199, 0.25)',
+  thumbOverlayColor = 'rgba(135, 180, 210, 0.5)',
   ...props
 }, ref) => {
+  // Apply fade mask on web
+  if (Platform.OS === 'web' && fadeEdges) {
+    return (
+      <View style={[styles.fadeWrapper, style]}>
+        <div style={{
+          flex: 1,
+          maskImage: horizontal
+            ? 'linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0.85) 8px, black 14px, black calc(100% - 14px), rgba(0,0,0,0.85) calc(100% - 8px), rgba(0,0,0,0.1))'
+            : 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.85) 8px, black 14px, black calc(100% - 14px), rgba(0,0,0,0.85) calc(100% - 8px), rgba(0,0,0,0.1))',
+          WebkitMaskImage: horizontal
+            ? 'linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0.85) 8px, black 14px, black calc(100% - 14px), rgba(0,0,0,0.85) calc(100% - 8px), rgba(0,0,0,0.1))'
+            : 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.85) 8px, black 14px, black calc(100% - 14px), rgba(0,0,0,0.85) calc(100% - 8px), rgba(0,0,0,0.1))',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+        }}>
+          <ScrollBarView
+            ref={ref}
+            style={styles.scroll}
+            contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
+            horizontal={horizontal}
+            keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+            overlayColor={overlayColor}
+            thumbOverlayColor={thumbOverlayColor}
+            {...props}
+          >
+            {children}
+          </ScrollBarView>
+        </div>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView
+    <ScrollBarView
       ref={ref}
       style={[styles.scroll, style]}
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       horizontal={horizontal}
-      showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-      showsHorizontalScrollIndicator={showsHorizontalScrollIndicator}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      overlayColor={overlayColor}
+      thumbOverlayColor={thumbOverlayColor}
       {...props}
     >
       {children}
-    </ScrollView>
+    </ScrollBarView>
   );
 });
 
@@ -49,6 +101,12 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  fadeWrapper: {
+    flex: 1,
+    overflow: 'hidden',
   },
 });
 

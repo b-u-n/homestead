@@ -2,6 +2,7 @@ export default (width, height) => ({
   name: 'Sugarbee Cafe',
   type: 'room',
   parentSection: 'town-square',
+  showTitle: false,
 
   // Background sounds for the cafe
   backgroundSounds: [
@@ -35,7 +36,8 @@ export default (width, height) => ({
       width: 220,
       height: 60,
       label: 'To Town Square',
-      navigateTo: '/homestead/explore/map/town-square'
+      navigateTo: '/homestead/explore/map/town-square',
+      showTitle: false
     },
     {
       id: 'to-town-square-2',
@@ -44,7 +46,8 @@ export default (width, height) => ({
       width: 220,
       height: 60,
       label: 'To Town Square',
-      navigateTo: '/homestead/explore/map/town-square'
+      navigateTo: '/homestead/explore/map/town-square',
+      showTitle: false
     },
   ],
 
@@ -63,13 +66,14 @@ export default (width, height) => ({
     {
       id: 'cat-couch',
       type: 'decoration',
-      x: width / 2 - 180,
-      y: height / 2 + 50,
-      width: 105,
-      height: 105,
+      x: width / 2 + 100,
+      y: height / 2 + 70,
+      width: 262,
+      height: 262,
       label: 'Cat Couch',
+      showTitle: false,
       description: 'A comfortable armchair perfect for sipping coffee.',
-      image: require('../../assets/images/cafe-cat-couch.png')
+      image: require('../../assets/images/sugarbee-cafe-couch.png')
     }
   ]
 });

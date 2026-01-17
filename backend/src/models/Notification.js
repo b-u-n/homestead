@@ -17,6 +17,8 @@ const notificationSchema = new mongoose.Schema({
       'weepingWillow:response',  // Someone responded to your post
       'weepingWillow:bounty',    // You earned a bounty
       'wishingWell:tip',         // Someone tipped your post
+      'reportIssue:statusChanged', // Issue report status changed
+      'reportIssue:comment',     // New comment on issue report
       'system'                   // System notification
     ],
     index: true

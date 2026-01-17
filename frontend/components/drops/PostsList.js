@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import ErrorStore from '../../stores/ErrorStore';
+import FontSettingsStore from '../../stores/FontSettingsStore';
+import uxStore from '../../stores/UXStore';
 import Scroll from '../Scroll';
 import AvatarStamp from '../AvatarStamp';
 import MinkyPanel from '../MinkyPanel';
@@ -24,10 +27,10 @@ const formatTimeAgo = (dateString) => {
 
 /**
  * PostsList Drop
- * Landing page for Help Wanted - shows posts list with filters
+ * Landing page for Help Wanted - shows posts list with sort options
  * Clicking a post navigates to view/respond
  */
-const PostsList = ({
+const PostsList = observer(({
   input,
   context,
   onComplete,
@@ -113,25 +116,25 @@ const PostsList = ({
                 size={32}
                 borderRadius={5}
               />
-              <Text style={styles.authorName}>{post.user?.name}</Text>
+              <Text style={[styles.authorName, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.user?.name}</Text>
             </View>
             <View style={styles.heartsRow}>
-              <Text style={styles.hearts}>{post.hearts}</Text>
-              <Heart size={14} />
+              <Text style={[styles.hearts, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.hearts}</Text>
+              <Heart size={FontSettingsStore.getScaledFontSize(14)} />
             </View>
           </View>
 
           {/* Post Content */}
-          <Text style={styles.postContent} numberOfLines={3}>
+          <Text style={[styles.postContent, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledSpacing(20), color: FontSettingsStore.getFontColor('#403F3E') }]} numberOfLines={3}>
             {post.content}
           </Text>
 
           {/* Post Footer */}
           <View style={styles.postFooter}>
-            <Text style={styles.date}>
+            <Text style={[styles.date, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
               {formatTimeAgo(post.createdAt)}
             </Text>
-            <Text style={styles.responseCount}>
+            <Text style={[styles.responseCount, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
               {hasResponses ? `${post.responses.length} response${post.responses.length > 1 ? 's' : ''}` : 'No responses yet'}
             </Text>
           </View>
@@ -142,16 +145,68 @@ const PostsList = ({
 
   return (
     <View style={styles.container}>
-      {/* Header row: Sort options + Ask for Help button */}
-      <View style={styles.headerRow}>
-        <Scroll horizontal style={styles.sortScroll}>
+      {/* Ask for Help section */}
+      <View style={styles.askSection}>
+        <MinkyPanel
+          borderRadius={8}
+          padding={12}
+          paddingTop={12}
+          overlayColor="rgba(112, 68, 199, 0.2)"
+        >
+          <Text style={[styles.askText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>
+            Need to talk? Request support from our community. {"<3"}
+          </Text>
+        </MinkyPanel>
+        <View style={{ alignSelf: 'center' }}>
+          <WoolButton
+            onPress={() => onComplete({ action: 'create' })}
+            variant="purple"
+            size="small"
+          >
+            Ask for Help
+          </WoolButton>
+        </View>
+      </View>
+
+      {/* Section title */}
+      <Text style={[styles.sectionTitle, { marginTop: 8, fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)') }]}>HELP REQUESTS</Text>
+
+      {/* Sort options */}
+      {(uxStore.isMobile || uxStore.isPortrait) ? (
+        // Mobile: 2x3 grid
+        <View style={styles.sortGrid}>
+          {[
+            [{ value: 'unresponded', label: 'Unresponded' }, { value: 'popular', label: 'Most Popular' }],
+            [{ value: 'value-desc', label: 'Most Hearts' }, { value: 'value-asc', label: 'Least Hearts' }],
+            [{ value: 'date-desc', label: 'Newest' }, { value: 'date-asc', label: 'Oldest' }]
+          ].map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.sortGridRow}>
+              {row.map((s) => (
+                <WoolButton
+                  key={s.value}
+                  onPress={() => setSort(s.value)}
+                  variant="purple"
+                  size="small"
+                  focused={sort === s.value}
+                  style={{ flex: 1 }}
+                >
+                  {s.label}
+                </WoolButton>
+              ))}
+            </View>
+          ))}
+        </View>
+      ) : (
+        // Desktop: horizontal scroll
+        <Scroll horizontal style={styles.sortScroll} fadeEdges={false}>
           <View style={styles.sortButtons}>
             {[
               { value: 'unresponded', label: 'Unresponded' },
-              { value: 'date-desc', label: 'Newest' },
-              { value: 'date-asc', label: 'Oldest' },
+              { value: 'popular', label: 'Most Popular' },
               { value: 'value-desc', label: 'Most Hearts' },
-              { value: 'value-asc', label: 'Least Hearts' }
+              { value: 'value-asc', label: 'Least Hearts' },
+              { value: 'date-desc', label: 'Newest' },
+              { value: 'date-asc', label: 'Oldest' }
             ].map((s) => (
               <WoolButton
                 key={s.value}
@@ -165,35 +220,27 @@ const PostsList = ({
             ))}
           </View>
         </Scroll>
-
-        <WoolButton
-          onPress={() => onComplete({ action: 'create' })}
-          variant="purple"
-          size="small"
-        >
-          Ask for Help
-        </WoolButton>
-      </View>
+      )}
 
       {/* Posts List */}
       <Scroll style={styles.postsList}>
         {loading ? (
           <MinkyPanel
             borderRadius={8}
-            padding={20}
-            paddingTop={20}
+            padding={FontSettingsStore.getScaledSpacing(20)}
+            paddingTop={FontSettingsStore.getScaledSpacing(20)}
             overlayColor="rgba(112, 68, 199, 0.2)"
           >
-            <Text style={styles.statusText}>Loading posts...</Text>
+            <Text style={[styles.statusText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>Loading posts...</Text>
           </MinkyPanel>
         ) : posts.length === 0 ? (
           <MinkyPanel
             borderRadius={8}
-            padding={20}
-            paddingTop={20}
+            padding={FontSettingsStore.getScaledSpacing(20)}
+            paddingTop={FontSettingsStore.getScaledSpacing(20)}
             overlayColor="rgba(112, 68, 199, 0.2)"
           >
-            <Text style={styles.statusText}>
+            <Text style={[styles.statusText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
               {isWeepingWillow
                 ? 'No help requests found. Be the first to ask for help!'
                 : 'No wishes found. Be the first to make one!'}
@@ -205,23 +252,52 @@ const PostsList = ({
       </Scroll>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     gap: 12,
   },
-  headerRow: {
-    flexDirection: 'row',
+  askSection: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
+    gap: 10,
+    width: '100%',
+  },
+  askText: {
+    fontSize: 14,
+    fontFamily: 'Comfortaa',
+    fontWeight: '600',
+    color: '#403F3E',
+    textAlign: 'center',
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'ChubbyTrail',
+    fontWeight: '600',
+    color: 'rgba(64, 63, 62, 0.82)',
+    textAlign: 'center',
+    textShadowColor: 'rgba(255, 255, 255, 1)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 2,
   },
   sortScroll: {
     flex: 1,
   },
   sortButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+    width: '100%',
+  },
+  sortGrid: {
+    gap: 6,
+  },
+  sortGridRow: {
     flexDirection: 'row',
     gap: 6,
   },

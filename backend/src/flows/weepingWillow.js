@@ -24,12 +24,11 @@ module.exports = {
 
   handlers: {
     /**
-     * Get posts with filters and sorting
+     * Get posts with sorting options
      */
     'weepingWillow:posts:get': {
       validate: (data) => {
-        // Optional filters: 'new', 'unresponded', 'popular'
-        // Optional sort: 'value-asc', 'value-desc', 'date-asc', 'date-desc'
+        // Optional sort: 'unresponded', 'popular', 'value-asc', 'value-desc', 'date-asc', 'date-desc'
         return { valid: true };
       },
 
@@ -66,6 +65,24 @@ module.exports = {
             success: true,
             data: posts
           };
+        } else if (sort === 'popular') {
+          // Sort by number of responses (most popular)
+          const posts = await WeepingWillowPost.aggregate([
+            {
+              $addFields: {
+                responseCount: { $size: { $ifNull: ['$responses', []] } }
+              }
+            },
+            {
+              $sort: { responseCount: -1, createdAt: -1 }
+            },
+            { $limit: 50 }
+          ]);
+
+          return {
+            success: true,
+            data: posts
+          };
         }
 
         const posts = await WeepingWillowPost.find({})
@@ -91,8 +108,8 @@ module.exports = {
           return { valid: false, error: 'Missing required fields' };
         }
 
-        if (content.length > 500) {
-          return { valid: false, error: 'Content must be 500 characters or less' };
+        if (content.length > 5000) {
+          return { valid: false, error: 'Content must be 5000 characters or less' };
         }
 
         if (typeof hearts !== 'number' || hearts < 1) {
@@ -164,8 +181,8 @@ module.exports = {
           return { valid: false, error: 'Missing required fields' };
         }
 
-        if (content.length > 500) {
-          return { valid: false, error: 'Response must be 500 characters or less' };
+        if (content.length > 5000) {
+          return { valid: false, error: 'Response must be 5000 characters or less' };
         }
 
         return { valid: true };

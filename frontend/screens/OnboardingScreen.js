@@ -10,6 +10,7 @@ import AuthStore from '../stores/AuthStore';
 import SessionStore from '../stores/SessionStore';
 import WebSocketService from '../services/websocket';
 import domain from '../utils/domain';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 // Helper for web redirect
 const webRedirect = (url) => {
@@ -227,6 +228,7 @@ const OnboardingScreen = observer(() => {
           <Text
             style={[
               styles.title,
+              { fontSize: FontSettingsStore.getScaledFontSize(42), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
               Platform.OS === 'web' && {
                 textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
               }
@@ -239,6 +241,7 @@ const OnboardingScreen = observer(() => {
           <Text
             style={[
               styles.byHeartsbox,
+              { fontSize: FontSettingsStore.getScaledFontSize(28), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
               Platform.OS === 'web' && {
                 textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
               }
@@ -249,6 +252,7 @@ const OnboardingScreen = observer(() => {
           <Text
             style={[
               styles.subtitle,
+              { fontSize: FontSettingsStore.getScaledFontSize(18), lineHeight: FontSettingsStore.getScaledFontSize(26), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
               Platform.OS === 'web' && {
                 textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
               }

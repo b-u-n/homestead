@@ -7,6 +7,7 @@ import WoolButton from './WoolButton';
 import MinkyPanel from './MinkyPanel';
 import ThemeStore from '../stores/ThemeStore';
 import AuthStore from '../stores/AuthStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 // Predefined color options for panels (lower opacity)
 const COLOR_PRESETS = {
@@ -223,7 +224,7 @@ const ThemeSettingsModal = observer(({ visible, onClose }) => {
           paddingTop={10}
           overlayColor={panelColor || 'rgba(112, 68, 199, 0.2)'}
         >
-          <Text style={styles.previewText}>Preview Panel</Text>
+          <Text style={[styles.previewText, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#403F3E') }]}>Preview Panel</Text>
         </MinkyPanel>
         <View style={styles.buttonPreviewRow}>
           <View style={styles.buttonPreviewItem}>

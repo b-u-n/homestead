@@ -22,7 +22,7 @@ const responseSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 500
+    maxlength: 5000
   },
   user: {
     type: userSchema,
@@ -54,7 +54,7 @@ const wishingWellPostSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 500
+    maxlength: 5000
   },
   user: {
     type: userSchema,

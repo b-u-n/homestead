@@ -22,7 +22,7 @@ const responseSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 500
+    maxlength: 5000
   },
   user: {
     type: userSchema,
@@ -38,7 +38,7 @@ const weepingWillowPostSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 500
+    maxlength: 5000
   },
   hearts: {
     type: Number,

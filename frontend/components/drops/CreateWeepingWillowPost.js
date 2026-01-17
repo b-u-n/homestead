@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
@@ -6,6 +6,7 @@ import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import profileStore from '../../stores/ProfileStore';
 import FormStore from '../../stores/FormStore';
+import uxStore from '../../stores/UXStore';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import Heart from '../Heart';
@@ -23,18 +24,33 @@ const CreateWeepingWillowPost = observer(({
   canGoBack
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const textareaRef = useRef(null);
 
   const flowName = context?.flowName || 'weepingWillow';
 
   // Get persisted form state scoped to this flow's new post
   const formKey = `${flowName}:newPost`;
   const content = FormStore.getField(formKey, 'content') || '';
-  const hearts = FormStore.getField(formKey, 'hearts') || 1;
+  const hearts = FormStore.getField(formKey, 'hearts') || 3;
   const availableHearts = profileStore.hearts || 0;
 
   // Setters that update FormStore
   const setContent = (value) => FormStore.setField(formKey, 'content', value);
   const setHearts = (value) => FormStore.setField(formKey, 'hearts', value);
+
+  const isMobile = uxStore.isMobile || uxStore.isPortrait;
+
+  // Auto-resize textarea on mount and when content changes
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      requestAnimationFrame(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = (textareaRef.current.scrollHeight + 8) + 'px';
+        }
+      });
+    }
+  }, [content]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -42,8 +58,8 @@ const CreateWeepingWillowPost = observer(({
       return;
     }
 
-    if (content.length > 500) {
-      ErrorStore.addError('Message must be 500 characters or less');
+    if (content.length > 5000) {
+      ErrorStore.addError('Message must be 5000 characters or less');
       return;
     }
 
@@ -95,14 +111,13 @@ const CreateWeepingWillowPost = observer(({
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <MinkyPanel
-        borderRadius={10}
-        padding={16}
-        paddingTop={16}
-        overlayColor="rgba(112, 68, 199, 0.2)"
-      >
+  const formContent = (
+    <MinkyPanel
+      borderRadius={10}
+      padding={16}
+      paddingTop={16}
+      overlayColor="rgba(112, 68, 199, 0.2)"
+    >
         {/* Explanation */}
         <Text style={styles.explanationText}>
           When you feel like you just need to talk, that's what we're here for. Share what's on your mind. Other users can respond to earn the hearts you offer.
@@ -110,37 +125,78 @@ const CreateWeepingWillowPost = observer(({
 
         {/* Heart Selector */}
         <View style={styles.heartSelectorContainer}>
-          <View style={styles.heartSelector}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
-              const isSelected = heartNum <= hearts;
-              const isAvailable = heartNum <= availableHearts;
+          {isMobile ? (
+            // Mobile: 3x3 grid
+            <View style={styles.heartGrid}>
+              {[0, 1, 2].map(row => (
+                <View key={row} style={styles.heartGridRow}>
+                  {[1, 2, 3].map(col => {
+                    const heartNum = row * 3 + col;
+                    const isSelected = heartNum <= hearts;
+                    const isAvailable = heartNum <= availableHearts;
 
-              let heartStyle = {};
-              if (!isAvailable) {
-                heartStyle = { opacity: 0.2 };
-              } else if (isSelected) {
-                heartStyle = { opacity: 1 };
-              } else {
-                heartStyle = { opacity: 0.4 };
-              }
-
-              return (
-                <Pressable
-                  key={heartNum}
-                  onPress={() => {
-                    if (heartNum <= availableHearts) {
-                      setHearts(heartNum);
-                      SoundManager.play('heart');
+                    let heartStyle = {};
+                    if (!isAvailable) {
+                      heartStyle = { opacity: 0.2 };
+                    } else if (isSelected) {
+                      heartStyle = { opacity: 1 };
+                    } else {
+                      heartStyle = { opacity: 0.4 };
                     }
-                  }}
-                  disabled={heartNum > availableHearts}
-                  style={[styles.heartIcon, heartStyle]}
-                >
-                  <Heart size={28} />
-                </Pressable>
-              );
-            })}
-          </View>
+
+                    return (
+                      <Pressable
+                        key={heartNum}
+                        onPress={() => {
+                          if (heartNum <= availableHearts) {
+                            setHearts(heartNum);
+                            SoundManager.play('heart');
+                          }
+                        }}
+                        disabled={heartNum > availableHearts}
+                        style={[styles.heartIcon, heartStyle]}
+                      >
+                        <Heart size={24} />
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          ) : (
+            // Desktop: single row
+            <View style={styles.heartSelector}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((heartNum) => {
+                const isSelected = heartNum <= hearts;
+                const isAvailable = heartNum <= availableHearts;
+
+                let heartStyle = {};
+                if (!isAvailable) {
+                  heartStyle = { opacity: 0.2 };
+                } else if (isSelected) {
+                  heartStyle = { opacity: 1 };
+                } else {
+                  heartStyle = { opacity: 0.4 };
+                }
+
+                return (
+                  <Pressable
+                    key={heartNum}
+                    onPress={() => {
+                      if (heartNum <= availableHearts) {
+                        setHearts(heartNum);
+                        SoundManager.play('heart');
+                      }
+                    }}
+                    disabled={heartNum > availableHearts}
+                    style={[styles.heartIcon, heartStyle]}
+                  >
+                    <Heart size={28} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
           <View style={styles.heartHelpRow}>
             <Text style={styles.heartHelp}>Heart bounty for responders: {hearts}</Text>
             <Heart size={14} />
@@ -151,10 +207,11 @@ const CreateWeepingWillowPost = observer(({
         <View style={styles.inputContainer}>
           {Platform.OS === 'web' ? (
             <textarea
+              ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="What's on your mind?"
-              maxLength={500}
+              maxLength={5000}
               style={{
                 fontFamily: 'Comfortaa',
                 fontSize: 14,
@@ -164,9 +221,15 @@ const CreateWeepingWillowPost = observer(({
                 backgroundColor: 'rgba(255, 255, 255, 0.5)',
                 outline: 'none',
                 resize: 'none',
-                flex: 1,
-                minHeight: 284,
+                width: '100%',
+                minHeight: 120,
+                boxSizing: 'border-box',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 0 rgba(0, 0, 0, 0.15)',
+                overflow: 'hidden',
+              }}
+              onInput={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
               }}
             />
           ) : (
@@ -175,11 +238,11 @@ const CreateWeepingWillowPost = observer(({
               onChangeText={setContent}
               placeholder="What's on your mind?"
               multiline
-              maxLength={500}
+              maxLength={5000}
               style={styles.textInput}
             />
           )}
-          <Text style={styles.charCount}>{content.length}/500</Text>
+          <Text style={styles.charCount}>{content.length}/5000</Text>
         </View>
 
         {/* Submit Button */}
@@ -190,14 +253,18 @@ const CreateWeepingWillowPost = observer(({
         >
           {isSubmitting ? 'SENDING...' : 'SEND REQUEST'}
         </WoolButton>
-      </MinkyPanel>
-    </View>
+    </MinkyPanel>
   );
+
+  return formContent;
 });
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   explanationText: {
     fontSize: 13,
@@ -228,6 +295,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexWrap: 'wrap',
+    gap: 4,
+  },
+  heartGrid: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  heartGridRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 4,
   },
   heartIcon: {
