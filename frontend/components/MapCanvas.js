@@ -483,6 +483,13 @@ const MOVE_ANIM_DURATION = Math.max(
   MOVE_ANIM.real.fade.delay   + MOVE_ANIM.real.fade.duration,
   MOVE_ANIM.real.scale.delay  + MOVE_ANIM.real.scale.duration,
 );
+// Trail opacity multiplier: lighter colors get more visible trails (white ≈ 2×, purple ≈ 1×)
+const trailBrightnessMul = (hex) => {
+  if (!hex) return 1;
+  const n = parseInt(hex.replace('#', ''), 16);
+  const brightness = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 0xFF) + 0.114 * (n & 0xFF)) / 255;
+  return 0.5 + 1.5 * brightness;
+};
 // ────────────────────────────────────────────────────────────────────
 
 const MapCanvas = ({ location }) => {
@@ -1376,6 +1383,21 @@ const MapCanvas = ({ location }) => {
           drawOtherAt(ma.oldPos, false);
           ctx.restore();
 
+          // Trail between old and new position
+          const trailProgress = Math.min(1, elapsed / MOVE_ANIM_DURATION);
+          const trailFade = 1 - trailProgress;
+          const trailMul = trailBrightnessMul(player.avatarColor);
+          for (let i = 1; i <= 15; i++) {
+            const t = i / 16;
+            const tx = ma.oldPos.x + (player.position.x - ma.oldPos.x) * t;
+            const ty = ma.oldPos.y + (player.position.y - ma.oldPos.y) * t;
+            const trailAlpha = 0.04 * trailMul * trailFade * (0.4 + 0.6 * t);
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, trailAlpha);
+            drawOtherAt({ x: tx, y: ty }, false);
+            ctx.restore();
+          }
+
           // Real at new position
           const realAlpha = moveAnimValue(MOVE_ANIM.real.fade, elapsed);
           const realScale = moveAnimValue(MOVE_ANIM.real.scale, elapsed);
@@ -1564,6 +1586,21 @@ const MapCanvas = ({ location }) => {
         ctx.translate(-anim.oldPos.x, -anim.oldPos.y);
         drawAvatarAt(anim.oldPos, 1, 1, false);
         ctx.restore();
+
+        // Trail between old and new position
+        const trailProgress = Math.min(1, elapsed / MOVE_ANIM_DURATION);
+        const trailFade = 1 - trailProgress;
+        const trailMul = trailBrightnessMul(profileStore.avatarColor);
+        for (let i = 1; i <= 15; i++) {
+          const t = i / 16;
+          const tx = anim.oldPos.x + (anim.newPos.x - anim.oldPos.x) * t;
+          const ty = anim.oldPos.y + (anim.newPos.y - anim.oldPos.y) * t;
+          const trailAlpha = 0.04 * trailMul * trailFade * (0.4 + 0.6 * t);
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, trailAlpha);
+          drawAvatarAt({ x: tx, y: ty }, 1, 1, false);
+          ctx.restore();
+        }
 
         // Real (original at new position)
         const realAlpha = moveAnimValue(MOVE_ANIM.real.fade, elapsed);
