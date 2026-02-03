@@ -1,4 +1,4 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import Scrollbar from './Scrollbar';
 
@@ -28,8 +28,12 @@ const ScrollBarView = forwardRef(({
     content: 0,
   });
   const scrollRef = useRef(null);
+  const containerRef = useRef(null);
   const scrollbarDragRef = useRef(onScrollbarDrag);
   scrollbarDragRef.current = onScrollbarDrag;
+  const metricsRef = useRef(scrollMetrics);
+  metricsRef.current = scrollMetrics;
+  const touchScrollRef = useRef({ startPos: 0, startOffset: 0, isScrolling: false, active: false });
 
   // Expose ScrollView methods via ref
   useImperativeHandle(ref, () => ({
@@ -75,6 +79,75 @@ const ScrollBarView = forwardRef(({
     scrollbarDragRef.current?.(offset);
   }, [horizontal]);
 
+  // Touch-to-scroll: native DOM listeners bypass RNW's Responder system
+  // which can intercept touch events from Pressable children and prevent scrolling
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const node = containerRef.current;
+    if (!node) return;
+
+    const scrollbarSize = 32; // scrollbar width/height + margin
+
+    const handleTouchStart = (e) => {
+      const touch = e.touches[0];
+      const rect = node.getBoundingClientRect();
+
+      // Don't handle touches on the scrollbar area — let Scrollbar handle those
+      if (!horizontal) {
+        if (touch.clientX - rect.left > rect.width - scrollbarSize) return;
+      } else {
+        if (touch.clientY - rect.top > rect.height - scrollbarSize) return;
+      }
+
+      touchScrollRef.current = {
+        startPos: horizontal ? touch.clientX : touch.clientY,
+        startOffset: metricsRef.current.offset,
+        isScrolling: false,
+        active: true,
+      };
+    };
+
+    const handleTouchMove = (e) => {
+      if (!touchScrollRef.current.active) return;
+      const touch = e.touches[0];
+      const pos = horizontal ? touch.clientX : touch.clientY;
+      const delta = touchScrollRef.current.startPos - pos;
+      const metrics = metricsRef.current;
+      const maxScroll = metrics.content - metrics.visible;
+
+      if (maxScroll <= 0) return;
+
+      if (!touchScrollRef.current.isScrolling && Math.abs(delta) > 8) {
+        touchScrollRef.current.isScrolling = true;
+      }
+
+      if (touchScrollRef.current.isScrolling) {
+        e.preventDefault();
+        const newOffset = Math.max(0, Math.min(touchScrollRef.current.startOffset + delta, maxScroll));
+        if (horizontal) {
+          scrollRef.current?.scrollTo({ x: newOffset, animated: false });
+        } else {
+          scrollRef.current?.scrollTo({ y: newOffset, animated: false });
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchScrollRef.current.active = false;
+      touchScrollRef.current.isScrolling = false;
+    };
+
+    node.addEventListener('touchstart', handleTouchStart, { passive: true });
+    node.addEventListener('touchmove', handleTouchMove, { passive: false });
+    node.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      node.removeEventListener('touchstart', handleTouchStart);
+      node.removeEventListener('touchmove', handleTouchMove);
+      node.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [horizontal]);
+
   // Determine if scrollbar should be visible
   const canScroll = scrollMetrics.content > scrollMetrics.visible && scrollMetrics.visible > 0;
   const showScrollbar = alwaysShowScrollbar || canScroll;
@@ -89,6 +162,7 @@ const ScrollBarView = forwardRef(({
         height: 30,
         display: 'flex',
         flexDirection: 'column',
+        zIndex: 10,
       }
     : {
         position: 'absolute',
@@ -98,10 +172,11 @@ const ScrollBarView = forwardRef(({
         width: 30,
         display: 'flex',
         flexDirection: 'row',
+        zIndex: 10,
       };
 
   return (
-    <View style={[styles.container, style]}>
+    <View ref={containerRef} style={[styles.container, style]}>
       <ScrollView
         ref={scrollRef}
         style={showScrollbar

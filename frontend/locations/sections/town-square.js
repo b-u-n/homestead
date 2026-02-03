@@ -4,19 +4,6 @@ export default (width, height) => ({
   debugMode: false,
   showTitle: false,
 
-  // Heart button on homepage (same position as back button on other screens)
-  backButton: {
-    id: 'home-hearts',
-    x: 18,
-    y: 18,
-    width: 80,
-    height: 80,
-    label: 'Hearts',
-    flow: 'bank', // Opens the hearts/bank flow
-    image: require('../../assets/images/heart.png'),
-    showTitle: false
-  },
-
   // Navigation to other sections (edge buttons) - disabled for now
   navigation: [],
 

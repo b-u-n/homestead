@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, StyleSheet, Platform, Text, Image, Pressable, ImageBackground } from 'react-native';
+import { View, StyleSheet, Platform, Text, Image, Pressable, TouchableOpacity, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { reaction } from 'mobx';
@@ -27,6 +27,7 @@ import SoundSettingsModal from './SoundSettingsModal';
 import ThemeSettingsModal from './ThemeSettingsModal';
 import ReportIssueModal from './ReportIssueModal';
 import FontSettingsModal from './FontSettingsModal';
+import AccessibilitySettingsModal from './AccessibilitySettingsModal';
 import heartsFlow from '../flows/heartsFlow';
 import CharacterIcon, { isPointInCharacter } from './CharacterIcon';
 import EmoteMenu, { getClickedEmote } from './EmoteMenu';
@@ -101,6 +102,7 @@ const MobileOverlayPanel = observer(({
   onShowSoundSettings,
   onShowThemeSettings,
   onShowFontSettings,
+  onShowAccessibilitySettings,
   onShowReportIssue,
 }) => {
   const router = useRouter();
@@ -143,13 +145,11 @@ const MobileOverlayPanel = observer(({
   const currentLayerName = LayerStore.currentLayer?.name || 'None';
 
   return (
-    <Pressable
-      style={mobileOverlayStyles.backdrop}
-      onPress={onClose}
-    >
-      <Pressable
+    <View style={mobileOverlayStyles.backdrop}>
+      <Pressable style={mobileOverlayStyles.backdropTouchArea} onPress={onClose} />
+      <View
         style={mobileOverlayStyles.panel}
-        onPress={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <TiledBackground style={{ flex: 1 }}>
           <View style={mobileOverlayStyles.contentWrapper}>
@@ -165,13 +165,13 @@ const MobileOverlayPanel = observer(({
               </View>
 
               {/* Content */}
-              <Scroll style={mobileOverlayStyles.content} contentContainerStyle={mobileOverlayStyles.contentContainer}>
+              <Scroll fadeEdges={false} style={mobileOverlayStyles.content} contentContainerStyle={mobileOverlayStyles.contentContainer}>
                 {type === 'notifications' ? (
                   <>
                     {NotificationStore.notifications.length > 0 && (
-                      <Pressable onPress={() => NotificationStore.dismissAll()} style={mobileOverlayStyles.dismissAllButton}>
+                      <TouchableOpacity activeOpacity={0.7} onPress={() => NotificationStore.dismissAll()} style={mobileOverlayStyles.dismissAllButton}>
                         <Text style={mobileOverlayStyles.dismissAllText}>Dismiss all</Text>
-                      </Pressable>
+                      </TouchableOpacity>
                     )}
                     {NotificationStore.notifications.length === 0 ? (
                       <View style={mobileOverlayStyles.emptyState}>
@@ -179,7 +179,8 @@ const MobileOverlayPanel = observer(({
                       </View>
                     ) : (
                       NotificationStore.notifications.map((notification) => (
-                        <Pressable
+                        <TouchableOpacity
+                          activeOpacity={0.7}
                           key={notification._id}
                           style={[
                             mobileOverlayStyles.notificationItem,
@@ -211,13 +212,14 @@ const MobileOverlayPanel = observer(({
                               {formatTimeAgo(notification.createdAt)}
                             </Text>
                           </View>
-                          <Pressable
+                          <TouchableOpacity
+                            activeOpacity={0.7}
                             style={mobileOverlayStyles.dismissButton}
                             onPress={(e) => handleDismiss(e, notification)}
                           >
                             <Text style={mobileOverlayStyles.dismissButtonText}>✕</Text>
-                          </Pressable>
-                        </Pressable>
+                          </TouchableOpacity>
+                        </TouchableOpacity>
                       ))
                     )}
                   </>
@@ -230,30 +232,42 @@ const MobileOverlayPanel = observer(({
                     </View>
 
                     <WoolButton
+                      scrollable
                       title="Switch Layers"
                       onPress={onShowLayerModal}
                       variant="secondary"
                       style={mobileOverlayStyles.menuButton}
                     />
                     <WoolButton
+                      scrollable
                       title="Sound Settings"
                       onPress={onShowSoundSettings}
                       variant="blue"
                       style={mobileOverlayStyles.menuButton}
                     />
                     <WoolButton
+                      scrollable
                       title="Theme Settings"
                       onPress={onShowThemeSettings}
                       variant="purple"
                       style={mobileOverlayStyles.menuButton}
                     />
                     <WoolButton
+                      scrollable
                       title="Font Settings"
                       onPress={onShowFontSettings}
                       variant="green"
                       style={mobileOverlayStyles.menuButton}
                     />
                     <WoolButton
+                      scrollable
+                      title="Accessibility"
+                      onPress={onShowAccessibilitySettings}
+                      variant="secondary"
+                      style={mobileOverlayStyles.menuButton}
+                    />
+                    <WoolButton
+                      scrollable
                       title="Report Issue"
                       onPress={onShowReportIssue}
                       variant="coral"
@@ -261,6 +275,7 @@ const MobileOverlayPanel = observer(({
                     />
                     {AuthStore.isAuthenticated && (
                       <WoolButton
+                        scrollable
                         title="Logout"
                         onPress={handleLogout}
                         variant="coral"
@@ -273,8 +288,8 @@ const MobileOverlayPanel = observer(({
             </StitchedBorder>
           </View>
         </TiledBackground>
-      </Pressable>
-    </Pressable>
+      </View>
+    </View>
   );
 });
 
@@ -287,9 +302,12 @@ const mobileOverlayStyles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     zIndex: 500,
+  },
+  backdropTouchArea: {
+    flex: 1,
   },
   panel: {
     width: 280,
@@ -512,6 +530,7 @@ const MapCanvas = ({ location }) => {
   const [isThemeSettingsOpen, setIsThemeSettingsOpen] = useState(false);
   const [isFontSettingsOpen, setIsFontSettingsOpen] = useState(false);
   const [isReportIssueOpen, setIsReportIssueOpen] = useState(false);
+  const [isAccessibilitySettingsOpen, setIsAccessibilitySettingsOpen] = useState(false);
   const [mobileOverlay, setMobileOverlay] = useState(null); // 'menu' | 'notifications' | null
   const [characterPosition, setCharacterPosition] = useState(null);
   const [avatarImages, setAvatarImages] = useState({});
@@ -1966,10 +1985,9 @@ const MapCanvas = ({ location }) => {
 
   if (Platform.OS === 'web') {
     // Check if we have a meaningful side panel (letterbox > 60px)
-    const hasSidePanel = uxStore.isPortrait && uxStore.letterboxWidth > 60;
+    const hasSidePanel = uxStore.letterboxWidth > 60;
 
-    // Container style with rotation when in portrait
-    // Use full screen dimensions when we have a side panel
+    // Container style — portrait uses rotation, landscape uses straight flexbox
     const containerStyle = uxStore.isPortrait ? {
       position: 'fixed',
       top: 0,
@@ -1982,8 +2000,15 @@ const MapCanvas = ({ location }) => {
       zIndex: 1,
       display: 'flex',
       flexDirection: 'row',
+    } : hasSidePanel ? {
+      // Landscape with sidebar: no rotation, flexbox row
+      ...styles.container,
+      width: uxStore.fullWidth,
+      height: canvasHeight,
+      display: 'flex',
+      flexDirection: 'row',
     } : {
-      // Desktop: container matches canvas size exactly (no extra space)
+      // Landscape without sidebar: container matches canvas size exactly
       ...styles.container,
       width: canvasWidth,
       height: canvasHeight,
@@ -2077,6 +2102,7 @@ const MapCanvas = ({ location }) => {
               onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
               onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
               onShowFontSettings={() => setIsFontSettingsOpen(true)}
+              onShowAccessibilitySettings={() => setIsAccessibilitySettingsOpen(true)}
               onShowReportIssue={() => setIsReportIssueOpen(true)}
             />
           </View>
@@ -2181,6 +2207,14 @@ const MapCanvas = ({ location }) => {
           visible={isFontSettingsOpen}
           onClose={() => setIsFontSettingsOpen(false)}
         />
+        <AccessibilitySettingsModal
+          visible={isAccessibilitySettingsOpen}
+          onClose={() => setIsAccessibilitySettingsOpen(false)}
+          onOpenFontSettings={() => {
+            setIsAccessibilitySettingsOpen(false);
+            setIsFontSettingsOpen(true);
+          }}
+        />
         <ReportIssueModal
           visible={isReportIssueOpen}
           onClose={() => setIsReportIssueOpen(false)}
@@ -2212,6 +2246,7 @@ const MapCanvas = ({ location }) => {
                     onShowSoundSettings={() => { setMobileOverlay(null); setIsSoundSettingsOpen(true); }}
                     onShowThemeSettings={() => { setMobileOverlay(null); setIsThemeSettingsOpen(true); }}
                     onShowFontSettings={() => { setMobileOverlay(null); setIsFontSettingsOpen(true); }}
+                    onShowAccessibilitySettings={() => { setMobileOverlay(null); setIsAccessibilitySettingsOpen(true); }}
                     onShowReportIssue={() => { setMobileOverlay(null); setIsReportIssueOpen(true); }}
                   />
                 )}
@@ -2230,6 +2265,7 @@ const MapCanvas = ({ location }) => {
                     onShowSoundSettings={() => setIsSoundSettingsOpen(true)}
                     onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
                     onShowFontSettings={() => setIsFontSettingsOpen(true)}
+                    onShowAccessibilitySettings={() => setIsAccessibilitySettingsOpen(true)}
                     onShowReportIssue={() => setIsReportIssueOpen(true)}
                     onButtonPress={() => setMobileOverlay(mobileOverlay === 'menu' ? null : 'menu')}
                   />

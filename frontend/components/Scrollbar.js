@@ -78,6 +78,7 @@ const Scrollbar = ({
     if (e.target !== e.currentTarget && e.target.closest('[data-thumb="true"]')) return;
 
     e.preventDefault();
+    e.stopPropagation();
     const rect = trackRef.current.getBoundingClientRect();
     const clickPos = horizontal ? (e.clientX - rect.left) : (e.clientY - rect.top);
     const clickRatio = clickPos / (horizontal ? rect.width : rect.height);
@@ -96,6 +97,8 @@ const Scrollbar = ({
     if (!onScroll || Platform.OS !== 'web' || !trackRef.current) return;
     if (e.target !== e.currentTarget && e.target.closest('[data-thumb="true"]')) return;
 
+    e.preventDefault();
+    e.stopPropagation();
     const touch = e.touches[0];
     const rect = trackRef.current.getBoundingClientRect();
     const touchPos = horizontal ? (touch.clientX - rect.left) : (touch.clientY - rect.top);

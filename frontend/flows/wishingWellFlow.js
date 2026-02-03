@@ -1,94 +1,34 @@
-import WishingWellLanding from '../components/drops/WishingWellLanding';
-import TippablePostsList from '../components/drops/TippablePostsList';
-import CreateWishingWellPost from '../components/drops/CreateWishingWellPost';
-import RespondToPost from '../components/drops/RespondToPost';
+import PositivityBoard from '../components/drops/PositivityBoard';
+import ViewPost from '../components/drops/ViewPost';
 
 /**
  * Wishing Well Flow Definition
  *
- * Navigation flow:
- * landing -> view -> list -> respond
- * landing -> create -> list
+ * Simplified single-screen positivity board.
+ * Two drops:
+ *   board - Main single-screen board (start)
+ *   viewPost - Notification deep link entry, navigates back to board
  */
 export const wishingWellFlow = {
   name: 'wishingWell',
   title: 'Wishing Well',
-  startAt: 'wishingWell:landing',
+  startAt: 'wishingWell:board',
   additionalOpenSound: 'wishingWell',
 
   drops: {
-    'wishingWell:landing': {
-      component: WishingWellLanding,
-      input: {},
-      output: {
-        action: 'view' | 'create'
-      },
-      next: [
-        {
-          when: (output) => output.action === 'view',
-          goto: 'wishingWell:list'
-        },
-        {
-          when: (output) => output.action === 'create',
-          goto: 'wishingWell:create'
-        }
-      ]
+    'wishingWell:board': {
+      component: PositivityBoard,
+      depth: 0,
+      next: []
     },
 
-    'wishingWell:list': {
-      component: TippablePostsList,
-      input: {},
-      output: {
-        action: 'back' | 'respond' | 'create',
-        postId: 'string?'
-      },
+    'wishingWell:viewPost': {
+      component: ViewPost,
+      depth: 0,
       next: [
-        {
-          when: (output) => output.action === 'back',
-          goto: 'wishingWell:landing'
-        },
-        {
-          when: (output) => output.action === 'create',
-          goto: 'wishingWell:create'
-        },
-        {
-          when: (output) => output.action === 'respond',
-          goto: 'wishingWell:respond'
-        }
-      ]
-    },
-
-    'wishingWell:create': {
-      component: CreateWishingWellPost,
-      input: {},
-      output: {
-        action: 'back' | 'submitted'
-      },
-      next: [
-        {
-          when: (output) => output.action === 'back',
-          goto: 'wishingWell:landing'
-        },
-        {
-          when: (output) => output.action === 'submitted',
-          goto: 'wishingWell:list'
-        }
-      ]
-    },
-
-    'wishingWell:respond': {
-      component: RespondToPost,
-      input: {
-        postId: 'string' // From previous drop
-      },
-      output: {
-        action: 'back'
-      },
-      next: [
-        {
-          when: (output) => output.action === 'back',
-          goto: 'wishingWell:list'
-        }
+        { when: (o) => o.action === 'list', goto: 'wishingWell:board' },
+        { when: (o) => o.action === 'respond', goto: 'wishingWell:board' },
+        { when: true, goto: 'wishingWell:board' }
       ]
     }
   }

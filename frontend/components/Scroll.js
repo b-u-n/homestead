@@ -61,7 +61,8 @@ const Scroll = forwardRef(({
             : 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.85) 8px, black 14px, black calc(100% - 14px), rgba(0,0,0,0.85) calc(100% - 8px), rgba(0,0,0,0.1))',
           display: 'flex',
           flexDirection: 'column',
-          height: '100%',
+          minHeight: 0,
+          overflow: 'hidden',
         }}>
           <ScrollBarView
             ref={ref}

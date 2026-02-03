@@ -52,21 +52,12 @@ class UXStore {
     const scaleX = effectiveWidth / BASELINE_WIDTH;
     const scaleY = effectiveHeight / BASELINE_HEIGHT;
 
-    if (portrait) {
-      // Mobile portrait: maintain aspect ratio (uniform scale) to allow for side panel
-      this.renderScale = Math.min(scaleX, scaleY);
-      this.screenWidth = BASELINE_WIDTH * this.renderScale;
-      this.screenHeight = BASELINE_HEIGHT * this.renderScale;
-      this.letterboxWidth = effectiveWidth - this.screenWidth;
-      this.letterboxHeight = effectiveHeight - this.screenHeight;
-    } else {
-      // Desktop/landscape: fill the full window (no letterboxing)
-      this.renderScale = Math.min(scaleX, scaleY); // Still track for UI scaling purposes
-      this.screenWidth = effectiveWidth;
-      this.screenHeight = effectiveHeight;
-      this.letterboxWidth = 0;
-      this.letterboxHeight = 0;
-    }
+    // Maintain aspect ratio (uniform scale) in all modes to allow for side panel
+    this.renderScale = Math.min(scaleX, scaleY);
+    this.screenWidth = BASELINE_WIDTH * this.renderScale;
+    this.screenHeight = BASELINE_HEIGHT * this.renderScale;
+    this.letterboxWidth = effectiveWidth - this.screenWidth;
+    this.letterboxHeight = effectiveHeight - this.screenHeight;
   }
 
   // Check if we should apply mobile UI scaling (scale < 0.8)

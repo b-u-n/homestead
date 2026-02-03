@@ -15,6 +15,7 @@ const HamburgerMenu = observer(({
   onShowSoundSettings,
   onShowThemeSettings,
   onShowFontSettings,
+  onShowAccessibilitySettings,
   onShowReportIssue,
   onButtonPress,
 }) => {
@@ -69,6 +70,11 @@ const HamburgerMenu = observer(({
   const handleFontSettings = () => {
     setIsOpen(false);
     onShowFontSettings?.();
+  };
+
+  const handleAccessibilitySettings = () => {
+    setIsOpen(false);
+    onShowAccessibilitySettings?.();
   };
 
   const handleReportIssue = () => {
@@ -186,6 +192,14 @@ const HamburgerMenu = observer(({
                       title="Font Settings"
                       onPress={handleFontSettings}
                       variant="green"
+                      style={styles.menuButton}
+                    />
+
+                    {/* Accessibility Button */}
+                    <WoolButton
+                      title="Accessibility"
+                      onPress={handleAccessibilitySettings}
+                      variant="secondary"
                       style={styles.menuButton}
                     />
 

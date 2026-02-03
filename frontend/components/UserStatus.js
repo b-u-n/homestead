@@ -9,8 +9,8 @@ import AvatarStamp from './AvatarStamp';
 import Heart from './Heart';
 
 const UserStatus = observer(({ compact = false }) => {
-  // Check if we're in the side panel (compact mode on mobile)
-  const inSidePanel = compact && uxStore.isPortrait && uxStore.letterboxWidth > 60;
+  // Check if we're in the side panel (compact mode when letterbox space available)
+  const inSidePanel = compact && uxStore.letterboxWidth > 60;
 
   // Scale down on mobile (only when not in side panel)
   const mobileStyle = !inSidePanel && uxStore.shouldScaleUI ? {
