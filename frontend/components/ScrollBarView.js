@@ -18,6 +18,7 @@ const ScrollBarView = forwardRef(({
   scrollbarStyle,
   alwaysShowScrollbar = false,
   onScroll,
+  onScrollbarDrag,
   ...scrollViewProps
 }, ref) => {
   const [scrollMetrics, setScrollMetrics] = useState({
@@ -26,6 +27,8 @@ const ScrollBarView = forwardRef(({
     content: 0,
   });
   const scrollRef = useRef(null);
+  const scrollbarDragRef = useRef(onScrollbarDrag);
+  scrollbarDragRef.current = onScrollbarDrag;
 
   // Expose ScrollView methods via ref
   useImperativeHandle(ref, () => ({
@@ -64,6 +67,7 @@ const ScrollBarView = forwardRef(({
 
   const handleScrollbarScroll = useCallback((offset) => {
     scrollRef.current?.scrollTo({ y: offset, animated: false });
+    scrollbarDragRef.current?.(offset);
   }, []);
 
   // Determine if scrollbar should be visible

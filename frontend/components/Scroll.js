@@ -44,6 +44,7 @@ const Scroll = forwardRef(({
   fadeEdges = true,
   overlayColor = 'rgba(112, 68, 199, 0.25)',
   thumbOverlayColor = 'rgba(135, 180, 210, 0.5)',
+  onScrollbarDrag,
   ...props
 }, ref) => {
   // Apply fade mask on web
@@ -70,6 +71,7 @@ const Scroll = forwardRef(({
             keyboardShouldPersistTaps={keyboardShouldPersistTaps}
             overlayColor={overlayColor}
             thumbOverlayColor={thumbOverlayColor}
+            onScrollbarDrag={onScrollbarDrag}
             {...props}
           >
             {children}
@@ -88,6 +90,7 @@ const Scroll = forwardRef(({
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       overlayColor={overlayColor}
       thumbOverlayColor={thumbOverlayColor}
+      onScrollbarDrag={onScrollbarDrag}
       {...props}
     >
       {children}

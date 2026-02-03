@@ -169,13 +169,26 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
     }
   }, [currentIndex, isSpinning, items, isMobileOrMobileWeb]);
 
+  // Stop touch events from bubbling to outer scroll container on mobile
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const container = slotContainerRef.current;
+    if (!container) return;
+
+    const stopProp = (e) => e.stopPropagation();
+    container.addEventListener('touchmove', stopProp);
+    return () => {
+      container.removeEventListener('touchmove', stopProp);
+    };
+  }, []);
+
   const performSpinAnimation = async () => {
     if (isSpinning) return;
     
     setIsSpinning(true);
     
-    const spinCount = 15 + Math.floor(Math.random() * 10);
-    const spinDuration = 188; // Adjusted speed (188ms per frame)
+    const spinCount = 16 + Math.floor(Math.random() * 4);
+    const spinDuration = 130;
     
     for (let i = 0; i < spinCount; i++) {
       const randomIndex = Math.floor(Math.random() * items.length);
@@ -213,7 +226,6 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
 
   const scrollToIndex = (index, source) => {
     if (scrollViewRef.current) {
-      console.log('[scrollToIndex] called from:', source, 'index:', index, 'isProgrammatic was:', isProgrammaticScroll.current);
       isProgrammaticScroll.current = true;
       if (programmaticScrollTimer.current) clearTimeout(programmaticScrollTimer.current);
       programmaticScrollTimer.current = setTimeout(() => {
@@ -241,11 +253,20 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
   };
 
   const handleMomentumScrollEnd = (event) => {
-    if (isProgrammaticScroll.current) return;
-    const yOffset = event.nativeEvent.contentOffset.y;
-    const index = Math.round(yOffset / ITEM_HEIGHT);
-    console.log('[momentumEnd] firing, index:', index);
-    scrollToIndex(index, 'momentumEnd');
+    // All scroll sources handle their own snapping:
+    // wheel → snaps in wheel handler, click → scrollToIndex in onPress,
+    // pan → snaps on release, scrollbar → free scroll, mobile → snapToInterval
+    return;
+  };
+
+  // Direct callback from scrollbar drag — bypasses isProgrammaticScroll guard
+  const handleScrollbarDrag = (offset) => {
+    const index = Math.round(offset / ITEM_HEIGHT);
+    if (index >= 0 && index < items.length && index !== currentIndex) {
+      setCurrentIndex(index);
+      lastSelectionSource.current = 'scroll';
+      onItemSelect(items[index]);
+    }
   };
 
   const getItemOpacity = (itemIndex, currentIndex) => {
@@ -253,11 +274,11 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
 
     const distance = Math.abs(itemIndex - currentIndex);
     if (distance === 0) return 1;
-    if (distance === 1) return 0.85;
-    if (distance === 2) return 0.8;
-    if (distance === 3) return 0.75;
+    if (distance === 1) return 0.9;
+    if (distance === 2) return 0.85;
+    if (distance === 3) return 0.8;
     if (distance === 4) return 0.7;
-    return 0.65;
+    return 0.6;
   };
 
   const getItemScale = (itemIndex, currentIndex) => {
@@ -327,6 +348,7 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
           snapToInterval={ITEM_HEIGHT}
           decelerationRate="fast"
           onScroll={handleScroll}
+          onScrollbarDrag={handleScrollbarDrag}
           onMomentumScrollEnd={handleMomentumScrollEnd}
           scrollEventThrottle={16}
           contentContainerStyle={styles.scrollContent}
@@ -350,7 +372,6 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
                 activeOpacity={0.7}
                 onPress={() => {
                   if (isSpinning) return;
-                  console.log('[SlotMachine] clicked index:', index, 'item:', item, 'currentIndex was:', currentIndex);
                   setCurrentIndex(index);
                   lastSelectionSource.current = 'click';
                   onItemSelect(items[index]);

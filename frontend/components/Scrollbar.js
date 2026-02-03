@@ -34,8 +34,8 @@ const Scrollbar = ({
   const scrollProgress = scrollableHeight > 0 ? scrollOffset / scrollableHeight : 0;
   const thumbTopPercent = canScroll ? scrollProgress * (100 - thumbHeightPercent) : 0;
 
-  // Handle drag move
-  const handleMouseMove = useCallback((e) => {
+  // Handle drag move (mouse or touch)
+  const handleDragMove = useCallback((clientY) => {
     if (!isDragging.current || !onScroll || !trackRef.current) return;
 
     const rect = trackRef.current.getBoundingClientRect();
@@ -45,7 +45,7 @@ const Scrollbar = ({
 
     if (availableTrackHeight <= 0) return;
 
-    const deltaY = e.clientY - dragStartY.current;
+    const deltaY = clientY - dragStartY.current;
     const scrollDelta = (deltaY / availableTrackHeight) * (contentHeight - visibleHeight);
     const newOffset = dragStartOffset.current + scrollDelta;
     const maxScroll = contentHeight - visibleHeight;
@@ -53,29 +53,64 @@ const Scrollbar = ({
     onScroll(Math.max(0, Math.min(newOffset, maxScroll)));
   }, [onScroll, contentHeight, visibleHeight, thumbHeightPercent]);
 
+  const handleMouseMove = useCallback((e) => handleDragMove(e.clientY), [handleDragMove]);
+  const handleTouchMove = useCallback((e) => {
+    e.preventDefault();
+    handleDragMove(e.touches[0].clientY);
+  }, [handleDragMove]);
+
   // Handle drag end
-  const handleMouseUp = useCallback(() => {
+  const handleDragEnd = useCallback(() => {
     isDragging.current = false;
     document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  }, [handleMouseMove]);
+    document.removeEventListener('mouseup', handleDragEnd);
+    document.removeEventListener('touchmove', handleTouchMove, { capture: true });
+    document.removeEventListener('touchend', handleDragEnd, { capture: true });
+  }, [handleMouseMove, handleTouchMove]);
 
-  // Handle click on track to jump
-  const handleTrackClick = useCallback((e) => {
+  // Keep old name for existing refs
+  const handleMouseUp = handleDragEnd;
+
+  // Handle press on track to jump and start drag
+  const handleTrackMouseDown = useCallback((e) => {
     if (!onScroll || Platform.OS !== 'web' || !trackRef.current) return;
-
-    // Don't handle if clicking on thumb
     if (e.target !== e.currentTarget && e.target.closest('[data-thumb="true"]')) return;
 
+    e.preventDefault();
     const rect = trackRef.current.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
     const clickRatio = clickY / rect.height;
     const maxScroll = contentHeight - visibleHeight;
     const newOffset = Math.max(0, Math.min(clickRatio * maxScroll, maxScroll));
     onScroll(newOffset);
-  }, [onScroll, contentHeight, visibleHeight]);
 
-  // Handle drag start
+    isDragging.current = true;
+    dragStartY.current = e.clientY;
+    dragStartOffset.current = newOffset;
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleDragEnd);
+  }, [onScroll, contentHeight, visibleHeight, handleMouseMove, handleDragEnd]);
+
+  const handleTrackTouchStart = useCallback((e) => {
+    if (!onScroll || Platform.OS !== 'web' || !trackRef.current) return;
+    if (e.target !== e.currentTarget && e.target.closest('[data-thumb="true"]')) return;
+
+    const touch = e.touches[0];
+    const rect = trackRef.current.getBoundingClientRect();
+    const touchY = touch.clientY - rect.top;
+    const touchRatio = touchY / rect.height;
+    const maxScroll = contentHeight - visibleHeight;
+    const newOffset = Math.max(0, Math.min(touchRatio * maxScroll, maxScroll));
+    onScroll(newOffset);
+
+    isDragging.current = true;
+    dragStartY.current = touch.clientY;
+    dragStartOffset.current = newOffset;
+    document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+    document.addEventListener('touchend', handleDragEnd, { capture: true });
+  }, [onScroll, contentHeight, visibleHeight, handleTouchMove, handleDragEnd]);
+
+  // Handle drag start (mouse)
   const handleMouseDown = useCallback((e) => {
     if (Platform.OS !== 'web' || !canScroll) return;
 
@@ -86,16 +121,31 @@ const Scrollbar = ({
     dragStartOffset.current = scrollOffset;
 
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [scrollOffset, canScroll, handleMouseMove, handleMouseUp]);
+    document.addEventListener('mouseup', handleDragEnd);
+  }, [scrollOffset, canScroll, handleMouseMove, handleDragEnd]);
+
+  // Handle drag start (touch)
+  const handleTouchStart = useCallback((e) => {
+    if (Platform.OS !== 'web' || !canScroll) return;
+
+    e.stopPropagation();
+    isDragging.current = true;
+    dragStartY.current = e.touches[0].clientY;
+    dragStartOffset.current = scrollOffset;
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+    document.addEventListener('touchend', handleDragEnd, { capture: true });
+  }, [scrollOffset, canScroll, handleTouchMove, handleDragEnd]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchmove', handleTouchMove, { capture: true });
+      document.removeEventListener('touchend', handleDragEnd, { capture: true });
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleTouchMove, handleDragEnd]);
 
   // Handle mousewheel on scrollbar
   const handleWheel = useCallback((e) => {
@@ -118,7 +168,8 @@ const Scrollbar = ({
   return (
     <div
       ref={trackRef}
-      onClick={handleTrackClick}
+      onMouseDown={handleTrackMouseDown}
+      onTouchStart={handleTrackTouchStart}
       onWheel={handleWheel}
       style={{
         height: '100%',
@@ -179,6 +230,7 @@ const Scrollbar = ({
       <div
         data-thumb="true"
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
         style={{
           position: 'absolute',
           left: 3,

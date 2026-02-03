@@ -296,6 +296,8 @@ const styles = StyleSheet.create({
   previewBorder: {
     width: '100%',
     padding: 20,
+    minHeight: Platform.OS !== 'web' || (typeof window !== 'undefined' && window.innerWidth <= 768) ? 160 : undefined,
+    justifyContent: 'center',
   },
   preview: {
     fontFamily: Typography.fonts.header,
