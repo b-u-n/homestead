@@ -119,9 +119,10 @@ const styles = StyleSheet.create({
     width: 18,
   },
   roomLabel: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 15,
     color: '#403F3E',
+    opacity: 0.8,
   },
   textCurrent: {
     color: '#2a7d9c',

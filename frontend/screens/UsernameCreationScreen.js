@@ -243,10 +243,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: Typography.fonts.header,
     fontSize: 42,
-    fontWeight: '800',
     textAlign: 'center',
     marginBottom: 24,
     color: Colors.cottagecore.greyDark,
+    opacity: 0.8,
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 0,
@@ -300,8 +300,8 @@ const styles = StyleSheet.create({
   preview: {
     fontFamily: Typography.fonts.header,
     fontSize: 28,
-    fontWeight: 'bold',
     color: Colors.cottagecore.greyDarker,
+    opacity: 0.8,
     textAlign: 'center',
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
     textShadowOffset: { width: 0, height: 1 },

@@ -265,6 +265,20 @@ const FontSettingsModal = observer(({ visible, onClose }) => {
                 thumbColor={FontSettingsStore.accessibilityMode ? '#6EC882' : '#999'}
               />
             </View>
+            <View style={[styles.accessibilityRow, { marginTop: 14 }]}>
+              <View style={styles.accessibilityInfo}>
+                <Text style={styles.sectionTitle}>Reduce Animations</Text>
+                <Text style={styles.accessibilityHint}>
+                  Disables motion effects like avatar movement animations
+                </Text>
+              </View>
+              <Switch
+                value={FontSettingsStore.reduceAnimations}
+                onValueChange={(enabled) => FontSettingsStore.setReduceAnimations(enabled)}
+                trackColor={{ false: 'rgba(92, 90, 88, 0.3)', true: 'rgba(110, 200, 130, 0.5)' }}
+                thumbColor={FontSettingsStore.reduceAnimations ? '#6EC882' : '#999'}
+              />
+            </View>
           </View>
 
           {/* Font Size Section */}
@@ -347,9 +361,10 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   sectionTitle: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 16,
     color: '#403F3E',
+    opacity: 0.8,
     marginBottom: 10,
   },
   accessibilityRow: {
@@ -425,9 +440,10 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   sliderValueLabel: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 18,
     color: '#403F3E',
+    opacity: 0.8,
   },
   sliderTrackOuter: {
     paddingVertical: 8,
@@ -491,7 +507,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   previewTextLarge: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
+    opacity: 0.8,
     marginBottom: 8,
   },
   previewTextBody: {

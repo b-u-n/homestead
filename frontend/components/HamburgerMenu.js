@@ -326,9 +326,10 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   layerName: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 16,
     color: '#403F3E',
+    opacity: 0.8,
     marginTop: 2,
   },
   menuButton: {

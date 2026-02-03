@@ -14,6 +14,7 @@ const ACCESSIBILITY_DEFAULTS = {
 class FontSettingsStore {
   // Settings
   accessibilityMode = false;
+  reduceAnimations = false;
   fontSizeMultiplier = 1.0;  // Range: 0.75 - 2.0
   fontColor = null;          // null = use default colors, or hex string
 
@@ -69,6 +70,14 @@ class FontSettingsStore {
     await this.syncToServer();
   }
 
+  async setReduceAnimations(enabled) {
+    runInAction(() => {
+      this.reduceAnimations = enabled;
+    });
+    await this.persist();
+    await this.syncToServer();
+  }
+
   /**
    * Set font size multiplier
    * @param {number} multiplier - Value between 0.75 and 2.0
@@ -100,6 +109,7 @@ class FontSettingsStore {
   async reset() {
     runInAction(() => {
       this.accessibilityMode = false;
+      this.reduceAnimations = false;
       this.fontSizeMultiplier = 1.0;
       this.fontColor = null;
     });
@@ -123,6 +133,7 @@ class FontSettingsStore {
       if (WebSocketService.socket?.connected) {
         WebSocketService.socket.emit('fontSettings:update', {
           accessibilityMode: this.accessibilityMode,
+          reduceAnimations: this.reduceAnimations,
           fontSizeMultiplier: this.fontSizeMultiplier,
           fontColor: this.fontColor,
         }, (response) => {
@@ -149,6 +160,9 @@ class FontSettingsStore {
             if (response.accessibilityMode !== undefined) {
               this.accessibilityMode = response.accessibilityMode;
             }
+            if (response.reduceAnimations !== undefined) {
+              this.reduceAnimations = response.reduceAnimations;
+            }
             if (response.fontSizeMultiplier !== undefined) {
               this.fontSizeMultiplier = response.fontSizeMultiplier;
             }
@@ -159,6 +173,7 @@ class FontSettingsStore {
           this.persist();
           resolve({
             accessibilityMode: this.accessibilityMode,
+            reduceAnimations: this.reduceAnimations,
             fontSizeMultiplier: this.fontSizeMultiplier,
             fontColor: this.fontColor,
           });
@@ -176,6 +191,7 @@ class FontSettingsStore {
     try {
       const data = JSON.stringify({
         accessibilityMode: this.accessibilityMode,
+        reduceAnimations: this.reduceAnimations,
         fontSizeMultiplier: this.fontSizeMultiplier,
         fontColor: this.fontColor,
       });
@@ -208,6 +224,9 @@ class FontSettingsStore {
         runInAction(() => {
           if (parsed.accessibilityMode !== undefined) {
             this.accessibilityMode = parsed.accessibilityMode;
+          }
+          if (parsed.reduceAnimations !== undefined) {
+            this.reduceAnimations = parsed.reduceAnimations;
           }
           if (parsed.fontSizeMultiplier !== undefined) {
             this.fontSizeMultiplier = parsed.fontSizeMultiplier;

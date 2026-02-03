@@ -34,21 +34,6 @@ const Scrollbar = ({
   const scrollProgress = scrollableHeight > 0 ? scrollOffset / scrollableHeight : 0;
   const thumbTopPercent = canScroll ? scrollProgress * (100 - thumbHeightPercent) : 0;
 
-  // Handle click on track to jump
-  const handleTrackClick = useCallback((e) => {
-    if (!onScroll || Platform.OS !== 'web' || !trackRef.current) return;
-
-    // Don't handle if clicking on thumb
-    if (e.target !== e.currentTarget && e.target.closest('[data-thumb="true"]')) return;
-
-    const rect = trackRef.current.getBoundingClientRect();
-    const clickY = e.clientY - rect.top;
-    const clickRatio = clickY / rect.height;
-    const maxScroll = contentHeight - visibleHeight;
-    const newOffset = clickRatio * maxScroll;
-    onScroll(Math.max(0, Math.min(newOffset, maxScroll)));
-  }, [onScroll, contentHeight, visibleHeight]);
-
   // Handle drag move
   const handleMouseMove = useCallback((e) => {
     if (!isDragging.current || !onScroll || !trackRef.current) return;
@@ -74,6 +59,21 @@ const Scrollbar = ({
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
   }, [handleMouseMove]);
+
+  // Handle click on track to jump
+  const handleTrackClick = useCallback((e) => {
+    if (!onScroll || Platform.OS !== 'web' || !trackRef.current) return;
+
+    // Don't handle if clicking on thumb
+    if (e.target !== e.currentTarget && e.target.closest('[data-thumb="true"]')) return;
+
+    const rect = trackRef.current.getBoundingClientRect();
+    const clickY = e.clientY - rect.top;
+    const clickRatio = clickY / rect.height;
+    const maxScroll = contentHeight - visibleHeight;
+    const newOffset = Math.max(0, Math.min(clickRatio * maxScroll, maxScroll));
+    onScroll(newOffset);
+  }, [onScroll, contentHeight, visibleHeight]);
 
   // Handle drag start
   const handleMouseDown = useCallback((e) => {

@@ -322,9 +322,10 @@ const mobileOverlayStyles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 20,
     color: '#403F3E',
+    opacity: 0.8,
   },
   closeButton: {
     width: 32,
@@ -430,15 +431,59 @@ const mobileOverlayStyles = StyleSheet.create({
     opacity: 0.7,
   },
   layerName: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 16,
     color: '#403F3E',
+    opacity: 0.8,
     marginTop: 2,
   },
   menuButton: {
     marginVertical: 2,
   },
 });
+
+// ── Move animation config ──────────────────────────────────────────
+// Four independent channels: ghost.fade, ghost.scale, real.fade, real.scale
+// Each has its own duration (ms), delay (ms), value range, and easing curve.
+const MOVE_ANIM = {
+  ghost: {
+    fade:  { duration: 126, delay: 20, from: 1, to: 0,   easing: 'easeInQuad' },
+    scale: { duration: 200, delay: 0, from: 1, to: 1.2, easing: 'easeOutQuad' },
+  },
+  real: {
+    fade:  { duration: 280, delay: 12, from: 0, to: 1,   easing: 'easeOutQuad' },
+    scale: { duration: 300, delay: 12, from: 0.75, to: 1, easing: 'pounce' },
+  },
+};
+
+const MOVE_EASINGS = {
+  linear:       (t) => t,
+  easeInQuad:   (t) => t * t,
+  easeOutQuad:  (t) => 1 - (1 - t) * (1 - t),
+  easeOutCubic: (t) => 1 - Math.pow(1 - t, 3),
+  pounce:       (t) => {
+    // easeOutBack with playful overshoot (~12% past target)
+    const s = 2.5;
+    return 1 + (s + 1) * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2);
+  },
+};
+
+// Evaluate a single animation channel at a given elapsed time
+const moveAnimValue = (cfg, elapsed) => {
+  const local = Math.max(0, elapsed - cfg.delay);
+  const t = Math.min(1, local / cfg.duration);
+  const eased = MOVE_EASINGS[cfg.easing](t);
+  return cfg.from + (cfg.to - cfg.from) * eased;
+};
+
+// Total duration = longest channel (delay + duration)
+const MOVE_ANIM_DURATION = Math.max(
+  MOVE_ANIM.ghost.fade.delay  + MOVE_ANIM.ghost.fade.duration,
+  MOVE_ANIM.ghost.scale.delay + MOVE_ANIM.ghost.scale.duration,
+  MOVE_ANIM.real.fade.delay   + MOVE_ANIM.real.fade.duration,
+  MOVE_ANIM.real.scale.delay  + MOVE_ANIM.real.scale.duration,
+);
+// ────────────────────────────────────────────────────────────────────
 
 const MapCanvas = ({ location }) => {
   const canvasRef = useRef(null);
@@ -468,6 +513,36 @@ const MapCanvas = ({ location }) => {
   const [touchStart, setTouchStart] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [playersRefresh, setPlayersRefresh] = useState(0);
+
+  // Avatar move animation state
+  const moveAnimRef = useRef({
+    active: false,
+    startTime: 0,
+    duration: 220,
+    oldPos: null,
+    newPos: null,
+  });
+  const drawCanvasRef = useRef(null);
+
+  // Animation loop — drives redraws during poof animation
+  useEffect(() => {
+    let frameId;
+    const tick = () => {
+      const anim = moveAnimRef.current;
+      if (anim.active) {
+        const elapsed = Date.now() - anim.startTime;
+        if (elapsed >= anim.duration) {
+          anim.active = false;
+        }
+        if (drawCanvasRef.current) drawCanvasRef.current();
+        frameId = requestAnimationFrame(tick);
+      }
+    };
+    if (moveAnimRef.current.active) {
+      frameId = requestAnimationFrame(tick);
+    }
+    return () => { if (frameId) cancelAnimationFrame(frameId); };
+  }, [characterPosition]);
 
   // Watch for changes to other players and force re-render
   useEffect(() => {
@@ -968,6 +1043,7 @@ const MapCanvas = ({ location }) => {
   }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale]);
 
   const drawCanvas = () => {
+    drawCanvasRef.current = drawCanvas;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -1029,7 +1105,7 @@ const MapCanvas = ({ location }) => {
           const textX = obj.x + obj.width / 2;
 
           ctx.save();
-          ctx.font = `${labelFontSize}px ChubbyTrail`;
+          ctx.font = `${labelFontSize}px SuperStitch`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
 
@@ -1059,7 +1135,7 @@ const MapCanvas = ({ location }) => {
         if (obj.showTitle !== false && obj.label) {
           ctx.save();
           const placeholderFontSize = FontSettingsStore.getScaledFontSize(20);
-          ctx.font = `${placeholderFontSize}px ChubbyTrail`;
+          ctx.font = `${placeholderFontSize}px SuperStitch`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
           const labelText = obj.label.toUpperCase();
@@ -1096,7 +1172,7 @@ const MapCanvas = ({ location }) => {
     if (debugLabels.length > 0) {
       ctx.save();
       const debugFontSize = FontSettingsStore.getScaledFontSize(18);
-      ctx.font = `${debugFontSize}px ChubbyTrail`;
+      ctx.font = `${debugFontSize}px SuperStitch`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       debugLabels.forEach(({ labelText, centerX, centerY }) => {
@@ -1304,176 +1380,190 @@ const MapCanvas = ({ location }) => {
 
     // Draw current player
     if (characterPosition) {
+      const anim = moveAnimRef.current;
       const size = avatarSize;
-      const drawX = characterPosition.x - size / 2;
-      const drawY = characterPosition.y - size / 2;
       const borderRadius = 8 * avatarSizeMultiplier;
-
-      // Draw shadow/glow for current user
-      ctx.shadowColor = 'rgba(179, 230, 255, 0.6)';
-      ctx.shadowBlur = 15;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-
-      // Draw outer background (white)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
-      ctx.fill();
-
-      // Reset shadow
-      ctx.shadowBlur = 0;
 
       // Get border color from player's avatar color or use default
       const getMyBorderColor = (hexColor, opacity = 0.8) => {
-        if (!hexColor) return `rgba(179, 230, 255, ${opacity})`; // Default sky blue
-        // Convert hex to rgb
+        if (!hexColor) return `rgba(179, 230, 255, ${opacity})`;
         const hex = hexColor.replace('#', '');
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);
         return `rgba(${r}, ${g}, ${b}, ${opacity})`;
       };
-
       const myBorderColor = getMyBorderColor(profileStore.avatarColor, 0.8);
 
-      // Draw outer dashed border (thicker for current user with their color)
-      ctx.strokeStyle = myBorderColor;
-      ctx.lineWidth = 3;
-      ctx.setLineDash([5, 5]);
-      drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Draw avatar image if loaded, otherwise placeholder
-      if (profileStore.avatarUrl && avatarImages[profileStore.avatarUrl]) {
-        const img = avatarImages[profileStore.avatarUrl];
-
+      // Helper: draw avatar at a given position with alpha + scale
+      const drawAvatarAt = (pos, alpha, scale, showExtras) => {
+        const parentAlpha = ctx.globalAlpha;
         ctx.save();
-        drawRoundedRect(drawX, drawY, size, size, borderRadius);
-        ctx.clip();
-        ctx.drawImage(img, drawX, drawY, size, size);
+        ctx.globalAlpha = parentAlpha * alpha;
+        ctx.translate(pos.x, pos.y);
+        ctx.scale(scale, scale);
+        ctx.translate(-pos.x, -pos.y);
+
+        const dx = pos.x - size / 2;
+        const dy = pos.y - size / 2;
+
+        // Glow
+        ctx.shadowColor = 'rgba(179, 230, 255, 0.6)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Outer background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Outer dashed border
+        ctx.strokeStyle = myBorderColor;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Avatar image or placeholder
+        if (profileStore.avatarUrl && avatarImages[profileStore.avatarUrl]) {
+          const img = avatarImages[profileStore.avatarUrl];
+          ctx.save();
+          drawRoundedRect(dx, dy, size, size, borderRadius);
+          ctx.clip();
+          ctx.drawImage(img, dx, dy, size, size);
+          ctx.restore();
+        } else {
+          ctx.save();
+          drawRoundedRect(dx, dy, size, size, borderRadius);
+          ctx.clip();
+          ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+          ctx.fill();
+          ctx.restore();
+          ctx.save();
+          ctx.font = 'bold 32px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = getMyBorderColor(profileStore.avatarColor, 0.6);
+          ctx.fillText('?', pos.x, pos.y);
+          ctx.restore();
+        }
+
+        // Inner dashed border
+        ctx.strokeStyle = myBorderColor;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        drawRoundedRect(dx + 2, dy + 2, size - 4, size - 4, borderRadius - 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Emote + username only on the real avatar
+        if (showExtras) {
+          if (characterStore.activeEmote) {
+            const emoteAlpha = characterStore.emoteOpacity;
+            ctx.save();
+            ctx.globalAlpha = alpha * emoteAlpha;
+            const emoteFontSize = 20 * avatarSizeMultiplier;
+            const textWidth = measureEmote(ctx, characterStore.activeEmote, emoteFontSize);
+            const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
+            const bubbleHeight = 28 * avatarSizeMultiplier;
+            const bubbleX = pos.x - bubbleWidth / 2 + 16 * avatarSizeMultiplier;
+            const bubbleY = pos.y - size / 2 - 40 * avatarSizeMultiplier;
+            const emoteBorderRadius = 6 * avatarSizeMultiplier;
+            const tailTipY = pos.y - size / 2 - 6 * avatarSizeMultiplier;
+            const tailBaseY = bubbleY + bubbleHeight;
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, emoteBorderRadius + 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, emoteBorderRadius + 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.save();
+            drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, emoteBorderRadius);
+            ctx.clip();
+            ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+            ctx.fill();
+            ctx.restore();
+            ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, emoteBorderRadius - 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            const tailWidth = 4 * avatarSizeMultiplier;
+            const tailLeftX = bubbleX + 12 * avatarSizeMultiplier;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(tailLeftX, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(tailLeftX, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+            ctx.moveTo(tailLeftX + tailWidth, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            drawEmote(ctx, characterStore.activeEmote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2, emoteFontSize);
+            ctx.restore();
+          }
+
+          // Username
+          ctx.save();
+          const currentUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
+          ctx.font = `bold ${currentUsernameFontSize}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.shadowColor = 'rgba(179, 230, 255, 0.8)';
+          ctx.shadowBlur = 0.5;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.9)');
+          ctx.fillText(profileStore.username || 'You', pos.x, pos.y + size / 2 + FontSettingsStore.getScaledSpacing(9));
+          ctx.restore();
+        }
+
+        ctx.restore(); // end transform
+      };
+
+      if (anim.active && anim.oldPos && anim.newPos) {
+        const elapsed = Date.now() - anim.startTime;
+
+        // Ghost (clone at old position)
+        const ghostAlpha = moveAnimValue(MOVE_ANIM.ghost.fade, elapsed);
+        const ghostScale = moveAnimValue(MOVE_ANIM.ghost.scale, elapsed);
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ghostAlpha);
+        ctx.translate(anim.oldPos.x, anim.oldPos.y);
+        ctx.scale(ghostScale, ghostScale);
+        ctx.translate(-anim.oldPos.x, -anim.oldPos.y);
+        drawAvatarAt(anim.oldPos, 1, 1, false);
+        ctx.restore();
+
+        // Real (original at new position)
+        const realAlpha = moveAnimValue(MOVE_ANIM.real.fade, elapsed);
+        const realScale = moveAnimValue(MOVE_ANIM.real.scale, elapsed);
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, realAlpha));
+        ctx.translate(anim.newPos.x, anim.newPos.y);
+        ctx.scale(realScale, realScale);
+        ctx.translate(-anim.newPos.x, -anim.newPos.y);
+        drawAvatarAt(anim.newPos, 1, 1, true);
         ctx.restore();
       } else {
-        // Draw placeholder background
-        ctx.save();
-        drawRoundedRect(drawX, drawY, size, size, borderRadius);
-        ctx.clip();
-        ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
-        ctx.fill();
-        ctx.restore();
-
-        // Draw placeholder "?"
-        ctx.save();
-        ctx.font = 'bold 32px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = getMyBorderColor(profileStore.avatarColor, 0.6);
-        ctx.fillText('?', characterPosition.x, characterPosition.y);
-        ctx.restore();
+        drawAvatarAt(characterPosition, 1, 1, true);
       }
-
-      // Draw inner dashed border
-      ctx.strokeStyle = myBorderColor;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([3, 3]);
-      drawRoundedRect(drawX + 2, drawY + 2, size - 4, size - 4, borderRadius - 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Draw emote if present
-      if (characterStore.activeEmote) {
-        const opacity = characterStore.emoteOpacity;
-        ctx.save();
-        ctx.globalAlpha = opacity;
-
-        // Measure emote (text or image)
-        const emoteFontSize = 20 * avatarSizeMultiplier;
-        const textWidth = measureEmote(ctx, characterStore.activeEmote, emoteFontSize);
-
-        // Expression bubble dimensions (offset scaled)
-        const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
-        const bubbleHeight = 28 * avatarSizeMultiplier;
-        const bubbleX = characterPosition.x - bubbleWidth / 2 + 16 * avatarSizeMultiplier;
-        const bubbleY = characterPosition.y - size / 2 - 40 * avatarSizeMultiplier;
-        const emoteBorderRadius = 6 * avatarSizeMultiplier;
-        const tailTipY = characterPosition.y - size / 2 - 6 * avatarSizeMultiplier; // gap above avatar
-        const tailBaseY = bubbleY + bubbleHeight;
-
-        // Draw outer background for bubble
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, emoteBorderRadius + 2);
-        ctx.fill();
-
-        // Draw outer dashed border for bubble (cyan for current player)
-        ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, emoteBorderRadius + 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Draw inner bubble with clipping
-        ctx.save();
-        drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, emoteBorderRadius);
-        ctx.clip();
-        ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
-        ctx.fill();
-        ctx.restore();
-
-        // Draw inner dashed border for bubble (cyan for current player)
-        ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([3, 3]);
-        drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, emoteBorderRadius - 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Draw triangle tail (sticking out from lower left corner of bubble)
-        const tailWidth = 4 * avatarSizeMultiplier;
-        const tailLeftX = bubbleX + 12 * avatarSizeMultiplier;
-
-        // Draw tail background (triangle pointing down to 2px above avatar)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.beginPath();
-        ctx.moveTo(tailLeftX, tailBaseY); // Top left at bubble bottom
-        ctx.lineTo(tailLeftX + tailWidth, tailBaseY); // Top right at bubble bottom
-        ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY); // Point at 2px above avatar
-        ctx.closePath();
-        ctx.fill();
-
-        // Draw tail dashed border (cyan for current player)
-        ctx.strokeStyle = 'rgba(179, 230, 255, 0.8)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([3, 3]);
-        ctx.beginPath();
-        ctx.moveTo(tailLeftX, tailBaseY);
-        ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
-        ctx.moveTo(tailLeftX + tailWidth, tailBaseY);
-        ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Draw emote (centered in the bubble)
-        drawEmote(ctx, characterStore.activeEmote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2, emoteFontSize);
-        ctx.restore();
-      }
-
-      // Draw username below character
-      ctx.save();
-      const currentUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
-      ctx.font = `bold ${currentUsernameFontSize}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-
-      // Add glow effect with cyan color for current player
-      ctx.shadowColor = 'rgba(179, 230, 255, 0.8)';
-      ctx.shadowBlur = 0.5;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-
-      ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.9)');
-      ctx.fillText(profileStore.username || 'You', characterPosition.x, characterPosition.y + size / 2 + FontSettingsStore.getScaledSpacing(9));
-      ctx.restore();
     }
 
     // Draw emote menu if open
@@ -1634,6 +1724,17 @@ const MapCanvas = ({ location }) => {
 
     // If didn't click on any object, move character to clicked position
     if (!clickedObject && characterPosition) {
+      // Start move animation (skip if reduce animations is on)
+      if (!FontSettingsStore.reduceAnimations) {
+        moveAnimRef.current = {
+          active: true,
+          startTime: Date.now(),
+          duration: MOVE_ANIM_DURATION,
+          oldPos: { ...characterPosition },
+          newPos: { x, y },
+        };
+      }
+
       // Update local position
       setCharacterPosition({ x, y });
       characterStore.setPosition(location, x, y);
@@ -2125,8 +2226,9 @@ const styles = StyleSheet.create({
   },
   roomTitle: {
     fontSize: 42,
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     color: '#5C5A58',
+    opacity: 0.8,
   },
   menuContainer: {
     position: 'absolute',

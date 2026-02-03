@@ -120,8 +120,8 @@ const CreatePost = observer(({
       <Text style={[
         styles.explanationText,
         {
-          fontSize: FontSettingsStore.getScaledFontSize(isMobile ? 12 : 13),
-          lineHeight: FontSettingsStore.getScaledSpacing(isMobile ? 18 : 20),
+          fontSize: FontSettingsStore.getScaledFontSize(isMobile ? 15 : 16),
+          lineHeight: FontSettingsStore.getScaledSpacing(isMobile ? 22 : 24),
           color: FontSettingsStore.getFontColor('#403F3E'),
         }
       ]}>
@@ -135,7 +135,7 @@ const CreatePost = observer(({
       {/* Heart Selector (only for paid posts - weeping willow) */}
       {!isFreePost && (
         <View style={styles.heartSelectorContainer}>
-          <Text style={[styles.label, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#403F3E') }]}>HEART BOUNTY</Text>
+          <Text style={[styles.label, { fontSize: FontSettingsStore.getScaledFontSize(15), color: FontSettingsStore.getFontColor('#403F3E') }]}>HEART BOUNTY</Text>
           {isMobile ? (
             // Mobile: 3x3 grid
             <View style={styles.heartGrid}>
@@ -207,8 +207,8 @@ const CreatePost = observer(({
             </View>
           )}
           <View style={styles.heartHelpRow}>
-            <Text style={[styles.heartHelp, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>Heart bounty for responders: {hearts}</Text>
-            <Heart size={FontSettingsStore.getScaledFontSize(14)} />
+            <Text style={[styles.heartHelp, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>Heart bounty for responders: {hearts}</Text>
+            <Heart size={FontSettingsStore.getScaledFontSize(18)} />
           </View>
         </View>
       )}
@@ -224,7 +224,7 @@ const CreatePost = observer(({
             maxLength={5000}
             style={{
               fontFamily: 'Comfortaa',
-              fontSize: FontSettingsStore.getScaledFontSize(isMobile ? 13 : 14),
+              fontSize: FontSettingsStore.getScaledFontSize(isMobile ? 16 : 18),
               color: FontSettingsStore.getFontColor('#403F3E'),
               padding: FontSettingsStore.getScaledSpacing(10),
               borderRadius: 8,
@@ -252,7 +252,7 @@ const CreatePost = observer(({
             style={styles.textInput}
           />
         )}
-        <Text style={[styles.charCount, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.6)') }]}>{content.length}/5000</Text>
+        <Text style={[styles.charCount, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.6)') }]}>{content.length}/5000</Text>
       </View>
 
       {/* Submit Button */}
@@ -330,11 +330,11 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   explanationText: {
-    fontSize: 13,
+    fontSize: 16,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: '#403F3E',
-    lineHeight: 20,
+    lineHeight: 24,
     marginBottom: 16,
     textShadowColor: 'rgba(255, 255, 255, 0.62)',
     textShadowOffset: { width: 0, height: 1 },
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 12,
+    fontSize: 15,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   heartHelp: {
-    fontSize: 11,
+    fontSize: 14,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: 'rgba(64, 63, 62, 0.85)',
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(92, 90, 88, 0.3)',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 14,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     color: '#403F3E',
     textAlignVertical: 'top',
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   charCount: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: 'Comfortaa',
     color: '#5C5A58',
     textAlign: 'right',

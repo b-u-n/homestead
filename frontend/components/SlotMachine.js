@@ -18,6 +18,7 @@ const CENTER_INDEX = 4;
 const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, triggerSpin = false, onSpinComplete }) => {
   const scrollViewRef = useRef(null);
   const containerRef = useRef(null);
+  const slotContainerRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
 
@@ -49,37 +50,54 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
     if (newIndex !== currentIndex) {
       setCurrentIndex(newIndex);
       onItemSelect(items[newIndex]);
-      scrollToIndex(newIndex);
+      scrollToIndex(newIndex, 'keyboard');
     }
   };
 
-  // Enhanced wheel event handling with proper throttling
-  const lastWheelTime = useRef(0);
+  // Wheel scrolling with gradual ramp-up
+  const wheelAccumulator = useRef(0);
+  const wheelSnapTimer = useRef(null);
+  const wheelItemsMoved = useRef(0);
+  const currentScrollOffset = useRef(0);
   const handleWheel = (event) => {
     if (isSpinning) return;
-    
-    // Require minimum scroll distance to prevent tiny movements
-    if (Math.abs(event.deltaY) < 30) return;
-    
-    const now = Date.now();
-    
-    // Platform-specific throttle - slower on desktop, no throttle on mobile
-    const throttleTime = Platform.OS === 'web' ? 284 : 0;
-    if (now - lastWheelTime.current < throttleTime) return;
-    lastWheelTime.current = now;
-    
+
     event.preventDefault();
     event.stopPropagation();
-    
-    // Each scroll moves exactly 1 item
-    const direction = event.deltaY > 0 ? 1 : -1;
-    const newIndex = Math.max(0, Math.min(items.length - 1, currentIndex + direction));
-    
-    if (newIndex !== currentIndex) {
-      setCurrentIndex(newIndex);
-      onItemSelect(items[newIndex]);
-      scrollToIndex(newIndex);
+
+    // Normalize delta for line-mode scroll wheels (e.g. Firefox)
+    let delta = event.deltaY;
+    if (event.deltaMode === 1) {
+      delta *= ITEM_HEIGHT;
     }
+
+    wheelAccumulator.current += delta;
+
+    // Move items one at a time; threshold decreases gradually the more you scroll
+    let targetIndex = currentIndex;
+    let threshold = Math.max(88, 100 - wheelItemsMoved.current * 3);
+
+    while (Math.abs(wheelAccumulator.current) >= threshold) {
+      const direction = wheelAccumulator.current > 0 ? 1 : -1;
+      wheelAccumulator.current -= direction * threshold;
+      wheelItemsMoved.current++;
+      targetIndex = Math.max(0, Math.min(items.length - 1, targetIndex + direction));
+      threshold = Math.max(88, 100 - wheelItemsMoved.current * 3);
+    }
+
+    if (targetIndex !== currentIndex) {
+      setCurrentIndex(targetIndex);
+      lastSelectionSource.current = 'wheel';
+      onItemSelect(items[targetIndex]);
+      scrollToIndex(targetIndex, 'wheel');
+    }
+
+    // Reset ramp-up when scrolling stops
+    if (wheelSnapTimer.current) clearTimeout(wheelSnapTimer.current);
+    wheelSnapTimer.current = setTimeout(() => {
+      wheelAccumulator.current = 0;
+      wheelItemsMoved.current = 0;
+    }, 150);
   };
 
   // Pan responder for drag handling - fixed sensitivity
@@ -87,8 +105,9 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
   const accumulatedDelta = useRef(0);
   
   const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => !isSpinning,
-    onMoveShouldSetPanResponder: () => !isSpinning,
+    onStartShouldSetPanResponder: () => false,
+    onMoveShouldSetPanResponder: (evt, gestureState) =>
+      !isSpinning && (Math.abs(gestureState.dy) > 5 || Math.abs(gestureState.dx) > 5),
     onPanResponderGrant: () => {
       dragStartIndex.current = currentIndex;
       accumulatedDelta.current = 0;
@@ -104,15 +123,15 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
       if (newIndex !== currentIndex) {
         setCurrentIndex(newIndex);
         onItemSelect(items[newIndex]);
-        scrollToIndex(newIndex);
+        scrollToIndex(newIndex, 'panMove');
       }
     },
     onPanResponderRelease: () => {
-      scrollToIndex(currentIndex);
+      scrollToIndex(currentIndex, 'panRelease');
     },
     onPanResponderTerminationRequest: () => false,
     onPanResponderTerminate: () => {
-      scrollToIndex(currentIndex);
+      scrollToIndex(currentIndex, 'panTerminate');
     },
   });
 
@@ -120,9 +139,10 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
     const index = items.findIndex(item => item === selectedItem);
     if (index !== -1) {
       setCurrentIndex(index);
-      if (!triggerSpin) {
-        scrollToIndex(index);
+      if (!triggerSpin && lastSelectionSource.current !== 'scroll') {
+        scrollToIndex(index, 'useEffect');
       }
+      lastSelectionSource.current = null;
     }
   }, [selectedItem, items]);
 
@@ -135,15 +155,16 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
   // Add wheel event listener for better mouse scroll (desktop web only)
   useEffect(() => {
     if (isMobileOrMobileWeb) return; // Skip on mobile and mobile web
-    
-    const container = containerRef.current;
+
+    const container = slotContainerRef.current;
     if (container && container.addEventListener) {
       const wheelHandler = (e) => handleWheel(e);
-      container.addEventListener('wheel', wheelHandler, { passive: false });
+      container.addEventListener('wheel', wheelHandler, { passive: false, capture: true });
       return () => {
         if (container.removeEventListener) {
-          container.removeEventListener('wheel', wheelHandler);
+          container.removeEventListener('wheel', wheelHandler, { capture: true });
         }
+        if (wheelSnapTimer.current) clearTimeout(wheelSnapTimer.current);
       };
     }
   }, [currentIndex, isSpinning, items, isMobileOrMobileWeb]);
@@ -175,7 +196,7 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
     setTimeout(() => {
       const finalIndex = items.findIndex(item => item === selectedItem);
       setCurrentIndex(finalIndex);
-      scrollToIndex(finalIndex);
+      scrollToIndex(finalIndex, 'spinEnd');
       
       // Notify parent that this slot machine has completed spinning
       if (onSpinComplete) {
@@ -186,9 +207,18 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
     }, 100);
   };
 
-  const scrollToIndex = (index) => {
+  const isProgrammaticScroll = useRef(false);
+  const programmaticScrollTimer = useRef(null);
+  const lastSelectionSource = useRef(null);
+
+  const scrollToIndex = (index, source) => {
     if (scrollViewRef.current) {
-      // Scroll to put the selected item in the center
+      console.log('[scrollToIndex] called from:', source, 'index:', index, 'isProgrammatic was:', isProgrammaticScroll.current);
+      isProgrammaticScroll.current = true;
+      if (programmaticScrollTimer.current) clearTimeout(programmaticScrollTimer.current);
+      programmaticScrollTimer.current = setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 400);
       scrollViewRef.current.scrollTo({
         y: index * ITEM_HEIGHT,
         animated: true,
@@ -198,45 +228,50 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
 
   const handleScroll = (event) => {
     const yOffset = event.nativeEvent.contentOffset.y;
+    currentScrollOffset.current = yOffset;
+
+    if (isProgrammaticScroll.current) return;
+
     const index = Math.round(yOffset / ITEM_HEIGHT);
-    
     if (index !== currentIndex && index >= 0 && index < items.length) {
       setCurrentIndex(index);
+      lastSelectionSource.current = 'scroll';
       onItemSelect(items[index]);
     }
   };
 
   const handleMomentumScrollEnd = (event) => {
+    if (isProgrammaticScroll.current) return;
     const yOffset = event.nativeEvent.contentOffset.y;
     const index = Math.round(yOffset / ITEM_HEIGHT);
-    scrollToIndex(index);
+    console.log('[momentumEnd] firing, index:', index);
+    scrollToIndex(index, 'momentumEnd');
   };
 
   const getItemOpacity = (itemIndex, currentIndex) => {
-    // When spinning, show all items at full opacity
     if (isSpinning) return 1;
-    
+
     const distance = Math.abs(itemIndex - currentIndex);
     if (distance === 0) return 1;
-    if (distance === 1) return 0.9;
+    if (distance === 1) return 0.85;
     if (distance === 2) return 0.8;
-    if (distance === 3) return 0.6;
-    if (distance === 4) return 0.4;
-    return 0.2;
+    if (distance === 3) return 0.75;
+    if (distance === 4) return 0.7;
+    return 0.65;
   };
 
   const getItemScale = (itemIndex, currentIndex) => {
     const distance = Math.abs(itemIndex - currentIndex);
-    if (distance === 0) return 1;
-    if (distance === 1) return 0.9;
-    return 0.8;
+    if (distance === 0) return 1.1;
+    if (distance === 1) return 0.95;
+    return 0.9;
   };
 
   return (
     <View style={styles.container}>
       <Text style={[styles.title, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor(Colors.light.secondary) }]} id={`${title}-label`}>{title}</Text>
       
-      <View style={styles.slotContainer}>
+      <View ref={slotContainerRef} style={styles.slotContainer}>
         <View style={styles.backgroundImageWrapper}>
           {Platform.OS === 'web' && (
             <div
@@ -291,8 +326,8 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
           showsVerticalScrollIndicator={false}
           snapToInterval={ITEM_HEIGHT}
           decelerationRate="fast"
-          onScroll={isMobileOrMobileWeb ? handleScroll : undefined}
-          onMomentumScrollEnd={isMobileOrMobileWeb ? handleMomentumScrollEnd : undefined}
+          onScroll={handleScroll}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
           scrollEventThrottle={16}
           contentContainerStyle={styles.scrollContent}
           scrollEnabled={isMobileOrMobileWeb && !isSpinning}
@@ -308,31 +343,36 @@ const SlotMachine = observer(({ items, selectedItem, onItemSelect, title, trigge
           {items.map((item, index) => {
             const opacity = getItemOpacity(index, currentIndex);
             const scale = getItemScale(index, currentIndex);
-            
+
             return (
-              <View
+              <TouchableOpacity
                 key={item}
-                style={[
-                  styles.item,
-                  {
-                    opacity,
-                    transform: [{ scale }]
-                  }
-                ]}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (isSpinning) return;
+                  console.log('[SlotMachine] clicked index:', index, 'item:', item, 'currentIndex was:', currentIndex);
+                  setCurrentIndex(index);
+                  lastSelectionSource.current = 'click';
+                  onItemSelect(items[index]);
+                  scrollToIndex(index, 'click');
+                }}
+                style={styles.item}
                 accessible={false}
                 importantForAccessibility="no"
               >
-                <Text style={[
-                  styles.itemText,
-                  !isSpinning && currentIndex === index && styles.selectedItemText,
-                  { opacity, fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDarker) },
-                  Platform.OS === 'web' && !isSpinning && currentIndex === index && {
-                    textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
-                  }
-                ]}>
-                  {item}
-                </Text>
-              </View>
+                <View style={{ opacity, transform: [{ scale }] }} pointerEvents="none">
+                  <Text style={[
+                    styles.itemText,
+                    !isSpinning && currentIndex === index && styles.selectedItemText,
+                    { opacity, fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDarker) },
+                    Platform.OS === 'web' && !isSpinning && currentIndex === index && {
+                      textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                    }
+                  ]}>
+                    {item}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             );
           })}
           
@@ -452,7 +492,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fonts.header,
     color: Colors.cottagecore.greyDarker,
     fontSize: 18,
-    fontWeight: 'bold',
+    opacity: 0.8,
     textAlign: 'center',
     userSelect: 'none',
     cursor: 'default',
@@ -461,7 +501,7 @@ const styles = StyleSheet.create({
   selectedItemText: {
     fontFamily: Typography.fonts.header,
     color: Colors.cottagecore.greyDarker,
-    fontWeight: 'bold',
+    opacity: 0.8,
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 0,

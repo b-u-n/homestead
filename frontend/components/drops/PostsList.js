@@ -116,25 +116,25 @@ const PostsList = observer(({
                 size={32}
                 borderRadius={5}
               />
-              <Text style={[styles.authorName, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.user?.name}</Text>
+              <Text style={[styles.authorName, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.user?.name}</Text>
             </View>
             <View style={styles.heartsRow}>
-              <Text style={[styles.hearts, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.hearts}</Text>
-              <Heart size={FontSettingsStore.getScaledFontSize(14)} />
+              <Text style={[styles.hearts, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#403F3E') }]}>{post.hearts}</Text>
+              <Heart size={FontSettingsStore.getScaledFontSize(18)} />
             </View>
           </View>
 
           {/* Post Content */}
-          <Text style={[styles.postContent, { fontSize: FontSettingsStore.getScaledFontSize(14), lineHeight: FontSettingsStore.getScaledSpacing(20), color: FontSettingsStore.getFontColor('#403F3E') }]} numberOfLines={3}>
+          <Text style={[styles.postContent, { fontSize: FontSettingsStore.getScaledFontSize(18), lineHeight: FontSettingsStore.getScaledSpacing(25), color: FontSettingsStore.getFontColor('#403F3E') }]} numberOfLines={3}>
             {post.content}
           </Text>
 
           {/* Post Footer */}
           <View style={styles.postFooter}>
-            <Text style={[styles.date, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
+            <Text style={[styles.date, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
               {formatTimeAgo(post.createdAt)}
             </Text>
-            <Text style={[styles.responseCount, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
+            <Text style={[styles.responseCount, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
               {hasResponses ? `${post.responses.length} response${post.responses.length > 1 ? 's' : ''}` : 'No responses yet'}
             </Text>
           </View>
@@ -153,7 +153,7 @@ const PostsList = observer(({
           paddingTop={12}
           overlayColor="rgba(112, 68, 199, 0.2)"
         >
-          <Text style={[styles.askText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>
+          <Text style={[styles.askText, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#403F3E') }]}>
             Need to talk? Request support from our community. {"<3"}
           </Text>
         </MinkyPanel>
@@ -161,7 +161,7 @@ const PostsList = observer(({
           <WoolButton
             onPress={() => onComplete({ action: 'create' })}
             variant="purple"
-            size="small"
+            size="large"
           >
             Ask for Help
           </WoolButton>
@@ -169,7 +169,7 @@ const PostsList = observer(({
       </View>
 
       {/* Section title */}
-      <Text style={[styles.sectionTitle, { marginTop: 8, fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)') }]}>HELP REQUESTS</Text>
+      <Text style={[styles.sectionTitle, { marginTop: 8, fontSize: FontSettingsStore.getScaledFontSize(22), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)') }]}>HELP REQUESTS</Text>
 
       {/* Sort options */}
       {(uxStore.isMobile || uxStore.isPortrait) ? (
@@ -231,7 +231,7 @@ const PostsList = observer(({
             paddingTop={FontSettingsStore.getScaledSpacing(20)}
             overlayColor="rgba(112, 68, 199, 0.2)"
           >
-            <Text style={[styles.statusText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>Loading posts...</Text>
+            <Text style={[styles.statusText, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#5C5A58') }]}>Loading posts...</Text>
           </MinkyPanel>
         ) : posts.length === 0 ? (
           <MinkyPanel
@@ -240,7 +240,7 @@ const PostsList = observer(({
             paddingTop={FontSettingsStore.getScaledSpacing(20)}
             overlayColor="rgba(112, 68, 199, 0.2)"
           >
-            <Text style={[styles.statusText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
+            <Text style={[styles.statusText, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
               {isWeepingWillow
                 ? 'No help requests found. Be the first to ask for help!'
                 : 'No wishes found. Be the first to make one!'}
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   askText: {
-    fontSize: 14,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: '#403F3E',
@@ -275,10 +275,10 @@ const styles = StyleSheet.create({
     textShadowRadius: 1,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'ChubbyTrail',
-    fontWeight: '600',
+    fontSize: 22,
+    fontFamily: 'SuperStitch',
     color: 'rgba(64, 63, 62, 0.82)',
+    opacity: 0.8,
     textAlign: 'center',
     textShadowColor: 'rgba(255, 255, 255, 1)',
     textShadowOffset: { width: 0, height: 2 },
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   authorName: {
-    fontSize: 14,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   hearts: {
-    fontSize: 14,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
@@ -342,11 +342,11 @@ const styles = StyleSheet.create({
     textShadowRadius: 1,
   },
   postContent: {
-    fontSize: 14,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: '#403F3E',
-    lineHeight: 20,
+    lineHeight: 25,
     marginBottom: 8,
     textShadowColor: 'rgba(255, 255, 255, 0.62)',
     textShadowOffset: { width: 0, height: 1 },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   date: {
-    fontSize: 11,
+    fontSize: 14,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: 'rgba(64, 63, 62, 0.85)',
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 0,
   },
   responseCount: {
-    fontSize: 11,
+    fontSize: 14,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: 'rgba(64, 63, 62, 0.85)',
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 0,
   },
   statusText: {
-    fontSize: 14,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: '#5C5A58',

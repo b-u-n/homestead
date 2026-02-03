@@ -1,7 +1,7 @@
 // Global typography configuration for consistent font usage across the app
 export const Typography = {
   fonts: {
-    header: 'ChubbyTrail',
+    header: 'SuperStitch',
     subheader: 'PWDottedFont', // Note: Only supports uppercase text
     body: 'Comfortaa',
     bodyBold: 'Comfortaa-Bold',
@@ -13,6 +13,7 @@ export const Typography = {
     needleworkGood: 'NeedleworkGood',
     needleworkPerfect: 'NeedleworkPerfect',
     textCircle: 'TextCircle',
+    superStitch: 'SuperStitch',
   },
 
   sizes: {
@@ -28,24 +29,28 @@ export const Typography = {
   // Pre-configured text styles
   styles: {
     h1: {
-      fontFamily: 'ChubbyTrail',
+      fontFamily: 'SuperStitch',
       fontSize: 32,
-      letterSpacing: 1,
+      letterSpacing: 1.2,
+      opacity: 0.8,
     },
     h2: {
-      fontFamily: 'ChubbyTrail',
+      fontFamily: 'SuperStitch',
       fontSize: 28,
-      letterSpacing: 0.8,
+      letterSpacing: 1,
+      opacity: 0.8,
     },
     h3: {
-      fontFamily: 'ChubbyTrail',
+      fontFamily: 'SuperStitch',
       fontSize: 24,
-      letterSpacing: 0.6,
+      letterSpacing: 0.8,
+      opacity: 0.8,
     },
     h4: {
-      fontFamily: 'ChubbyTrail',
+      fontFamily: 'SuperStitch',
       fontSize: 20,
-      letterSpacing: 0.4,
+      letterSpacing: 0.6,
+      opacity: 0.8,
     },
     subheader: {
       fontFamily: 'PWDottedFont',

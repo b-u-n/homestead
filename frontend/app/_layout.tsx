@@ -90,6 +90,7 @@ export default function RootLayout() {
     'NeedleworkGood': require('../assets/fonts/Needlework Good.ttf'),
     'NeedleworkPerfect': require('../assets/fonts/Needlework Perfect.ttf'),
     'TextCircle': require('../assets/fonts/TextCircle-Regular.ttf'),
+    'SuperStitch': require('../assets/fonts/SuperStitch.ttf'),
   });
 
   useEffect(() => {

@@ -201,9 +201,9 @@ const styles = StyleSheet.create({
   },
   titleInNav: {
     fontSize: 24,
-    fontFamily: 'ChubbyTrail',
-    fontWeight: '600',
+    fontFamily: 'SuperStitch',
     color: 'rgba(64, 63, 62, 0.82)',
+    opacity: 0.8,
     textAlign: 'center',
     width: '100%',
     paddingHorizontal: 60, // Make room for buttons on both sides

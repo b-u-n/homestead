@@ -312,8 +312,9 @@ const styles = StyleSheet.create({
   },
   responsesSectionTitle: {
     fontSize: 16,
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     color: '#403F3E',
+    opacity: 0.8,
     marginBottom: 5,
   },
   response: {

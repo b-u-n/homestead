@@ -643,9 +643,9 @@ const styles = StyleSheet.create({
   },
   panelTitle: {
     fontSize: 18,
-    fontFamily: 'ChubbyTrail',
-    fontWeight: '600',
+    fontFamily: 'SuperStitch',
     color: 'rgba(64, 63, 62, 0.82)',
+    opacity: 0.8,
     textAlign: 'center',
     marginBottom: 8,
     textShadowColor: 'rgba(255, 255, 255, 1)',

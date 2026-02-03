@@ -306,9 +306,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(222, 134, 223, 0.15)',
   },
   categoryTitle: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 16,
     color: '#403F3E',
+    opacity: 0.8,
   },
   expandIcon: {
     fontSize: 12,

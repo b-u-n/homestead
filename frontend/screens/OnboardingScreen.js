@@ -92,12 +92,12 @@ const OnboardingScreen = observer(() => {
                   sessionId: sessionId,
                 }, token);
                 // New user, go to onboarding
-                router.push('/homestead/onboarding/username');
+                router.push('/homestead/onboarding');
               }
             })
             .catch(err => {
               console.error('Error loading account:', err);
-              router.push('/homestead/onboarding/username');
+              router.push('/homestead/onboarding');
             });
         } catch (e) {
           console.error('Error processing OAuth token:', e);
@@ -140,7 +140,7 @@ const OnboardingScreen = observer(() => {
           const user = JSON.parse(decodeURIComponent(userStr));
           AuthStore.setUser(user, token);
           WebSocketService.connect();
-          router.push('/homestead/onboarding/username');
+          router.push('/homestead/onboarding');
         } catch (e) {
           Alert.alert('Error', 'Failed to process authentication');
         }
@@ -218,7 +218,7 @@ const OnboardingScreen = observer(() => {
 
   const handleSkipForNow = () => {
     // For development purposes
-    router.push('/homestead/onboarding/username');
+    router.push('/homestead/onboarding');
   };
 
   return (
@@ -248,17 +248,6 @@ const OnboardingScreen = observer(() => {
             ]}
           >
             by heartsbox
-          </Text>
-          <Text
-            style={[
-              styles.subtitle,
-              { fontSize: FontSettingsStore.getScaledFontSize(18), lineHeight: FontSettingsStore.getScaledFontSize(26), color: FontSettingsStore.getFontColor(Colors.cottagecore.greyDark) },
-              Platform.OS === 'web' && {
-                textShadow: '0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3)',
-              }
-            ]}
-          >
-            sign in to save your progress
           </Text>
         </View>
 
@@ -333,6 +322,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
     color: Colors.cottagecore.greyDark,
+    opacity: 0.8,
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 0,
@@ -345,6 +335,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: 'center',
     color: Colors.cottagecore.greyDark,
+    opacity: 0.8,
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 0,

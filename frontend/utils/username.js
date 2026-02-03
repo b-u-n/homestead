@@ -141,7 +141,7 @@ export const getWordArrays = () => ({
 });
 
 export const createCustomUsername = (adjective, adverb, noun) => {
-  return `${adjective}${adverb}${noun}`;
+  return `${adjective} ${adverb} ${noun}`;
 };
 
 export { ADJECTIVES, ADVERBS, NOUNS };

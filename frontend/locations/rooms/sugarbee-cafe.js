@@ -74,6 +74,19 @@ export default (width, height) => ({
       showTitle: false,
       description: 'A comfortable armchair perfect for sipping coffee.',
       image: require('../../assets/images/sugarbee-cafe-couch.png')
+    },
+    {
+      id: 'journal',
+      type: 'interactive',
+      x: width / 2 - 180,
+      y: height / 2 + 100,
+      width: 134,
+      height: 134,
+      label: 'Journal',
+      description: 'A weathered journal sits here, inviting you to record your thoughts.',
+      image: require('../../assets/images/journal.png'),
+      showTitle: false,
+      navigateTo: '/homestead/explore/map/library'
     }
   ]
 });

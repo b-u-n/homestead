@@ -88,8 +88,9 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
+    fontFamily: 'SuperStitch',
+    letterSpacing: 0.5,
+    opacity: 0.8,
   },
 });
 

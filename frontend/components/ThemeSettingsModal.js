@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   flowsHeader: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 14,
     color: '#403F3E',
     marginTop: 10,
@@ -448,9 +448,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 16,
     color: '#403F3E',
+    opacity: 0.8,
   },
   switch: {
     marginLeft: 10,

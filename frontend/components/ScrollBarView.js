@@ -90,7 +90,7 @@ const ScrollBarView = forwardRef(({
           style={{
             position: 'absolute',
             top: 8,
-            right: 0,
+            right: 2,
             bottom: 8,
             width: 30,
             display: 'flex',

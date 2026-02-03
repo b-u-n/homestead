@@ -360,9 +360,10 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(92, 90, 88, 0.2)',
   },
   headerTitle: {
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     fontSize: 18,
     color: '#403F3E',
+    opacity: 0.8,
   },
   clearAll: {
     fontFamily: 'Comfortaa',

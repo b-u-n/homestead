@@ -11,22 +11,23 @@ const minkyBgImage = require('../assets/images/slot-bg-2.jpeg');
 // Text styles per texture
 const textStyles = {
   wool: {
-    fontFamily: Typography.fonts.needleworkGood,
+    fontFamily: Typography.fonts.superStitch,
     fontSize: 20,
-    fontWeight: 'bold',
     color: '#403F3E',
+    opacity: 0.8,
     textAlign: 'center',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     textShadowColor: 'rgba(255, 255, 255, 0.62)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
   minky: {
-    fontFamily: Typography.fonts.body,
+    fontFamily: Typography.fonts.superStitch,
     fontSize: 18,
-    fontWeight: '700',
     color: '#403F3E',
+    opacity: 0.8,
     textAlign: 'center',
+    letterSpacing: 0.6,
     textShadowColor: 'rgba(255, 255, 255, 0.62)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
@@ -65,7 +66,6 @@ export const Text = ({ style, children, ...props }) => {
   const webShadow = Platform.OS === 'web'
     ? { textShadow: '0 1px 1px rgba(255, 255, 255, 0.62)' }
     : null;
-
   return (
     <RNText style={[baseStyle, { fontSize: scaledFontSize, color: fontColor }, webShadow, style]} {...props}>
       {children}

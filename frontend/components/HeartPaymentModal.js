@@ -179,8 +179,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontFamily: 'ChubbyTrail',
+    fontFamily: 'SuperStitch',
     color: '#403F3E',
+    opacity: 0.8,
   },
   closeButton: {
     padding: 5,

@@ -199,7 +199,7 @@ const CreateWeepingWillowPost = observer(({
           )}
           <View style={styles.heartHelpRow}>
             <Text style={styles.heartHelp}>Heart bounty for responders: {hearts}</Text>
-            <Heart size={14} />
+            <Heart size={21} />
           </View>
         </View>
 
@@ -214,7 +214,7 @@ const CreateWeepingWillowPost = observer(({
               maxLength={5000}
               style={{
                 fontFamily: 'Comfortaa',
-                fontSize: 14,
+                fontSize: 21,
                 padding: 10,
                 borderRadius: 8,
                 border: '1px solid rgba(92, 90, 88, 0.3)',
@@ -267,11 +267,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   explanationText: {
-    fontSize: 13,
+    fontSize: 20,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: '#403F3E',
-    lineHeight: 20,
+    lineHeight: 30,
     marginBottom: 16,
     textShadowColor: 'rgba(255, 255, 255, 0.62)',
     textShadowOffset: { width: 0, height: 1 },
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 12,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#403F3E',
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   heartHelp: {
-    fontSize: 11,
+    fontSize: 17,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: 'rgba(64, 63, 62, 0.85)',
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(92, 90, 88, 0.3)',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 14,
+    fontSize: 21,
     fontFamily: 'Comfortaa',
     color: '#403F3E',
     textAlignVertical: 'top',
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   charCount: {
-    fontSize: 10,
+    fontSize: 15,
     fontFamily: 'Comfortaa',
     color: '#5C5A58',
     textAlign: 'right',

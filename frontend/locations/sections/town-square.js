@@ -95,6 +95,20 @@ export default (width, height) => ({
       showTitle: false,
       navigateTo: '/homestead/explore/map/weeping-willow'
     },
+    {
+      id: 'help-wanted',
+      type: 'interactable',
+      x: width / 2 + 420,
+      y: height / 2 + 40,
+      width: 192,
+      height: 192,
+      label: 'Help Wanted',
+      showTitle: false,
+      image: require('../../assets/images/help-wanted.png'),
+      description: 'A bulletin board where community members share their struggles and ask for support.',
+      flow: 'weepingWillow',
+      zIndex: 2100
+    },
     // Generate weeping willow grove - 70 trees spreading up and to the left (10 per row)
     ...Array.from({ length: 70 }, (_, i) => {
       // Seeded random based on index for consistent positions
