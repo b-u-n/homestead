@@ -5,8 +5,8 @@ import Scrollbar from './Scrollbar';
 /**
  * ScrollBarView - A ScrollView wrapper that provides a MinkyPanel-styled scrollbar
  *
- * Behaves identically to ScrollView but renders a Scrollbar on the right side.
- * All ScrollView props are passed through.
+ * Behaves identically to ScrollView but renders a Scrollbar on the right side
+ * (or bottom side when horizontal). All ScrollView props are passed through.
  */
 const ScrollBarView = forwardRef(({
   children,
@@ -19,6 +19,7 @@ const ScrollBarView = forwardRef(({
   alwaysShowScrollbar = false,
   onScroll,
   onScrollbarDrag,
+  horizontal,
   ...scrollViewProps
 }, ref) => {
   const [scrollMetrics, setScrollMetrics] = useState({
@@ -41,46 +42,76 @@ const ScrollBarView = forwardRef(({
   const handleScroll = useCallback((e) => {
     const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
     setScrollMetrics({
-      offset: contentOffset.y,
-      visible: layoutMeasurement.height,
-      content: contentSize.height,
+      offset: horizontal ? contentOffset.x : contentOffset.y,
+      visible: horizontal ? layoutMeasurement.width : layoutMeasurement.height,
+      content: horizontal ? contentSize.width : contentSize.height,
     });
     onScroll?.(e);
-  }, [onScroll]);
+  }, [onScroll, horizontal]);
 
   const handleLayout = useCallback((e) => {
-    const { height } = e.nativeEvent.layout;
+    const { layout } = e.nativeEvent;
     setScrollMetrics(prev => ({
       ...prev,
-      visible: height,
+      visible: horizontal ? layout.width : layout.height,
     }));
     scrollViewProps.onLayout?.(e);
-  }, [scrollViewProps.onLayout]);
+  }, [scrollViewProps.onLayout, horizontal]);
 
   const handleContentSizeChange = useCallback((w, h) => {
     setScrollMetrics(prev => ({
       ...prev,
-      content: h,
+      content: horizontal ? w : h,
     }));
     scrollViewProps.onContentSizeChange?.(w, h);
-  }, [scrollViewProps.onContentSizeChange]);
+  }, [scrollViewProps.onContentSizeChange, horizontal]);
 
   const handleScrollbarScroll = useCallback((offset) => {
-    scrollRef.current?.scrollTo({ y: offset, animated: false });
+    if (horizontal) {
+      scrollRef.current?.scrollTo({ x: offset, animated: false });
+    } else {
+      scrollRef.current?.scrollTo({ y: offset, animated: false });
+    }
     scrollbarDragRef.current?.(offset);
-  }, []);
+  }, [horizontal]);
 
   // Determine if scrollbar should be visible
   const canScroll = scrollMetrics.content > scrollMetrics.visible && scrollMetrics.visible > 0;
   const showScrollbar = alwaysShowScrollbar || canScroll;
 
+  // Scrollbar positioning: right side for vertical, bottom for horizontal
+  const scrollbarContainerStyle = horizontal
+    ? {
+        position: 'absolute',
+        left: 8,
+        right: 8,
+        bottom: 2,
+        height: 30,
+        display: 'flex',
+        flexDirection: 'column',
+      }
+    : {
+        position: 'absolute',
+        top: 8,
+        right: 2,
+        bottom: 8,
+        width: 30,
+        display: 'flex',
+        flexDirection: 'row',
+      };
+
   return (
     <View style={[styles.container, style]}>
       <ScrollView
         ref={scrollRef}
-        style={showScrollbar ? styles.scrollViewWithBar : styles.scrollView}
+        style={showScrollbar
+          ? (horizontal ? styles.scrollViewWithBarHorizontal : styles.scrollViewWithBar)
+          : styles.scrollView
+        }
         contentContainerStyle={contentContainerStyle}
         showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        horizontal={horizontal}
         onScroll={handleScroll}
         onLayout={handleLayout}
         onContentSizeChange={handleContentSizeChange}
@@ -91,25 +122,18 @@ const ScrollBarView = forwardRef(({
       </ScrollView>
       {showScrollbar && (
         <div
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 2,
-            bottom: 8,
-            width: 30,
-            display: 'flex',
-            flexDirection: 'row',
-          }}
+          style={scrollbarContainerStyle}
           onWheel={(e) => {
             e.preventDefault();
             const maxScroll = scrollMetrics.content - scrollMetrics.visible;
             if (maxScroll <= 0) return;
-            const newOffset = scrollMetrics.offset + e.deltaY;
+            const delta = horizontal ? (e.deltaX || e.deltaY) : e.deltaY;
+            const newOffset = scrollMetrics.offset + delta;
             handleScrollbarScroll(Math.max(0, Math.min(newOffset, maxScroll)));
           }}
         >
           {/* Invisible padding area that captures wheel events */}
-          <div style={{ width: 6 }} />
+          <div style={horizontal ? { height: 6 } : { width: 6 }} />
           <Scrollbar
             contentHeight={scrollMetrics.content}
             visibleHeight={scrollMetrics.visible}
@@ -120,6 +144,7 @@ const ScrollBarView = forwardRef(({
             width={scrollbarWidth}
             style={scrollbarStyle}
             alwaysShow={alwaysShowScrollbar}
+            horizontal={horizontal}
           />
         </div>
       )}
@@ -138,6 +163,10 @@ const styles = StyleSheet.create({
   scrollViewWithBar: {
     flex: 1,
     paddingRight: 30, // Make room for scrollbar (12 * 2 + padding)
+  },
+  scrollViewWithBarHorizontal: {
+    flex: 1,
+    paddingBottom: 30, // Make room for horizontal scrollbar
   },
 });
 

@@ -16,6 +16,7 @@ const Scrollbar = ({
   width = 12,
   style,
   alwaysShow = false,
+  horizontal = false,
 }) => {
   const trackRef = useRef(null);
   const isDragging = useRef(false);
@@ -35,29 +36,29 @@ const Scrollbar = ({
   const thumbTopPercent = canScroll ? scrollProgress * (100 - thumbHeightPercent) : 0;
 
   // Handle drag move (mouse or touch)
-  const handleDragMove = useCallback((clientY) => {
+  const handleDragMove = useCallback((clientPos) => {
     if (!isDragging.current || !onScroll || !trackRef.current) return;
 
     const rect = trackRef.current.getBoundingClientRect();
-    const trackHeight = rect.height;
-    const thumbHeight = (thumbHeightPercent / 100) * trackHeight;
-    const availableTrackHeight = trackHeight - thumbHeight;
+    const trackSize = horizontal ? rect.width : rect.height;
+    const thumbSize = (thumbHeightPercent / 100) * trackSize;
+    const availableTrackSize = trackSize - thumbSize;
 
-    if (availableTrackHeight <= 0) return;
+    if (availableTrackSize <= 0) return;
 
-    const deltaY = clientY - dragStartY.current;
-    const scrollDelta = (deltaY / availableTrackHeight) * (contentHeight - visibleHeight);
+    const delta = clientPos - dragStartY.current;
+    const scrollDelta = (delta / availableTrackSize) * (contentHeight - visibleHeight);
     const newOffset = dragStartOffset.current + scrollDelta;
     const maxScroll = contentHeight - visibleHeight;
 
     onScroll(Math.max(0, Math.min(newOffset, maxScroll)));
-  }, [onScroll, contentHeight, visibleHeight, thumbHeightPercent]);
+  }, [onScroll, contentHeight, visibleHeight, thumbHeightPercent, horizontal]);
 
-  const handleMouseMove = useCallback((e) => handleDragMove(e.clientY), [handleDragMove]);
+  const handleMouseMove = useCallback((e) => handleDragMove(horizontal ? e.clientX : e.clientY), [handleDragMove, horizontal]);
   const handleTouchMove = useCallback((e) => {
     e.preventDefault();
-    handleDragMove(e.touches[0].clientY);
-  }, [handleDragMove]);
+    handleDragMove(horizontal ? e.touches[0].clientX : e.touches[0].clientY);
+  }, [handleDragMove, horizontal]);
 
   // Handle drag end
   const handleDragEnd = useCallback(() => {
@@ -78,18 +79,18 @@ const Scrollbar = ({
 
     e.preventDefault();
     const rect = trackRef.current.getBoundingClientRect();
-    const clickY = e.clientY - rect.top;
-    const clickRatio = clickY / rect.height;
+    const clickPos = horizontal ? (e.clientX - rect.left) : (e.clientY - rect.top);
+    const clickRatio = clickPos / (horizontal ? rect.width : rect.height);
     const maxScroll = contentHeight - visibleHeight;
     const newOffset = Math.max(0, Math.min(clickRatio * maxScroll, maxScroll));
     onScroll(newOffset);
 
     isDragging.current = true;
-    dragStartY.current = e.clientY;
+    dragStartY.current = horizontal ? e.clientX : e.clientY;
     dragStartOffset.current = newOffset;
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleDragEnd);
-  }, [onScroll, contentHeight, visibleHeight, handleMouseMove, handleDragEnd]);
+  }, [onScroll, contentHeight, visibleHeight, handleMouseMove, handleDragEnd, horizontal]);
 
   const handleTrackTouchStart = useCallback((e) => {
     if (!onScroll || Platform.OS !== 'web' || !trackRef.current) return;
@@ -97,18 +98,18 @@ const Scrollbar = ({
 
     const touch = e.touches[0];
     const rect = trackRef.current.getBoundingClientRect();
-    const touchY = touch.clientY - rect.top;
-    const touchRatio = touchY / rect.height;
+    const touchPos = horizontal ? (touch.clientX - rect.left) : (touch.clientY - rect.top);
+    const touchRatio = touchPos / (horizontal ? rect.width : rect.height);
     const maxScroll = contentHeight - visibleHeight;
     const newOffset = Math.max(0, Math.min(touchRatio * maxScroll, maxScroll));
     onScroll(newOffset);
 
     isDragging.current = true;
-    dragStartY.current = touch.clientY;
+    dragStartY.current = horizontal ? touch.clientX : touch.clientY;
     dragStartOffset.current = newOffset;
     document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
     document.addEventListener('touchend', handleDragEnd, { capture: true });
-  }, [onScroll, contentHeight, visibleHeight, handleTouchMove, handleDragEnd]);
+  }, [onScroll, contentHeight, visibleHeight, handleTouchMove, handleDragEnd, horizontal]);
 
   // Handle drag start (mouse)
   const handleMouseDown = useCallback((e) => {
@@ -117,12 +118,12 @@ const Scrollbar = ({
     e.preventDefault();
     e.stopPropagation();
     isDragging.current = true;
-    dragStartY.current = e.clientY;
+    dragStartY.current = horizontal ? e.clientX : e.clientY;
     dragStartOffset.current = scrollOffset;
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleDragEnd);
-  }, [scrollOffset, canScroll, handleMouseMove, handleDragEnd]);
+  }, [scrollOffset, canScroll, handleMouseMove, handleDragEnd, horizontal]);
 
   // Handle drag start (touch)
   const handleTouchStart = useCallback((e) => {
@@ -130,12 +131,12 @@ const Scrollbar = ({
 
     e.stopPropagation();
     isDragging.current = true;
-    dragStartY.current = e.touches[0].clientY;
+    dragStartY.current = horizontal ? e.touches[0].clientX : e.touches[0].clientY;
     dragStartOffset.current = scrollOffset;
 
     document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
     document.addEventListener('touchend', handleDragEnd, { capture: true });
-  }, [scrollOffset, canScroll, handleTouchMove, handleDragEnd]);
+  }, [scrollOffset, canScroll, handleTouchMove, handleDragEnd, horizontal]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -152,11 +153,11 @@ const Scrollbar = ({
     if (!onScroll || !canScroll) return;
 
     e.preventDefault();
-    const delta = e.deltaY;
+    const delta = horizontal ? (e.deltaX || e.deltaY) : e.deltaY;
     const maxScroll = contentHeight - visibleHeight;
     const newOffset = scrollOffset + delta;
     onScroll(Math.max(0, Math.min(newOffset, maxScroll)));
-  }, [onScroll, canScroll, contentHeight, visibleHeight, scrollOffset]);
+  }, [onScroll, canScroll, contentHeight, visibleHeight, scrollOffset, horizontal]);
 
   // Don't render if content fits (unless alwaysShow is true)
   if (!alwaysShow && !canScroll) {
@@ -165,6 +166,37 @@ const Scrollbar = ({
 
   const trackWidth = width * 2;
 
+  // Swap track and thumb orientation based on horizontal prop
+  const trackStyle = horizontal
+    ? { width: '100%', height: trackWidth }
+    : { height: '100%', width: trackWidth };
+
+  const thumbStyle = horizontal
+    ? {
+        position: 'absolute',
+        top: 3,
+        bottom: 3,
+        width: `calc(${thumbHeightPercent}% - 8px)`,
+        left: `calc(${thumbTopPercent}% + 4px)`,
+        cursor: canScroll ? 'grab' : 'default',
+        borderRadius: 5,
+        overflow: 'hidden',
+        backgroundColor: '#E8D4C8',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15)',
+      }
+    : {
+        position: 'absolute',
+        left: 3,
+        right: 3,
+        height: `calc(${thumbHeightPercent}% - 8px)`,
+        top: `calc(${thumbTopPercent}% + 4px)`,
+        cursor: canScroll ? 'grab' : 'default',
+        borderRadius: 5,
+        overflow: 'hidden',
+        backgroundColor: '#E8D4C8',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15)',
+      };
+
   return (
     <div
       ref={trackRef}
@@ -172,8 +204,7 @@ const Scrollbar = ({
       onTouchStart={handleTrackTouchStart}
       onWheel={handleWheel}
       style={{
-        height: '100%',
-        width: trackWidth,
+        ...trackStyle,
         cursor: canScroll ? 'pointer' : 'default',
         position: 'relative',
         ...style,
@@ -226,23 +257,12 @@ const Scrollbar = ({
         }} />
       </div>
 
-      {/* Thumb - with padding from top/bottom */}
+      {/* Thumb */}
       <div
         data-thumb="true"
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
-        style={{
-          position: 'absolute',
-          left: 3,
-          right: 3,
-          height: `calc(${thumbHeightPercent}% - 8px)`,
-          top: `calc(${thumbTopPercent}% + 4px)`,
-          cursor: canScroll ? 'grab' : 'default',
-          borderRadius: 5,
-          overflow: 'hidden',
-          backgroundColor: '#E8D4C8',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.15)',
-        }}
+        style={thumbStyle}
       >
         {/* Texture */}
         <div style={{

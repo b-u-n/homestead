@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import SoundManager from '../services/SoundManager';
+import Scroll from './Scroll';
 
 const LIBRARY_ROOMS = [
   { id: 'library', label: 'Main Lobby', description: 'Anxiety, Depression, Stress, Emotions' },
@@ -28,7 +29,7 @@ const LibraryNav = ({ currentRoom }) => {
       </View>
 
       {/* Room list */}
-      <View style={styles.roomList}>
+      <Scroll style={styles.roomListScroll} contentContainerStyle={styles.roomList}>
         {LIBRARY_ROOMS.map((room, index) => {
           const isCurrent = room.id === currentRoom;
           return (
@@ -55,7 +56,7 @@ const LibraryNav = ({ currentRoom }) => {
             </Pressable>
           );
         })}
-      </View>
+      </Scroll>
     </View>
   );
 };
@@ -67,6 +68,7 @@ const styles = StyleSheet.create({
     top: '50%',
     transform: [{ translateY: '-50%' }],
     width: 220,
+    maxHeight: Dimensions.get('window').height - 100,
     backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderRadius: 12,
     borderWidth: 2,
@@ -79,6 +81,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     userSelect: 'none',
     zIndex: 100,
+    overflow: 'hidden',
   },
   header: {
     alignItems: 'center',
@@ -92,6 +95,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#5C5A58',
     letterSpacing: 3,
+  },
+  roomListScroll: {
+    flex: 1,
   },
   roomList: {
     gap: 2,

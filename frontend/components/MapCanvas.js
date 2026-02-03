@@ -447,7 +447,7 @@ const mobileOverlayStyles = StyleSheet.create({
 // Each has its own duration (ms), delay (ms), value range, and easing curve.
 const MOVE_ANIM = {
   ghost: {
-    fade:  { duration: 126, delay: 20, from: 1, to: 0,   easing: 'easeInQuad' },
+    fade:  { duration: 126, delay: 0, from: 1, to: 0,   easing: 'easeInQuad' },
     scale: { duration: 200, delay: 0, from: 1, to: 1.2, easing: 'easeOutQuad' },
   },
   real: {
@@ -555,7 +555,8 @@ const MapCanvas = ({ location }) => {
           x: p.position?.x,
           y: p.position?.y,
           emote: p.emote,
-          emoteOpacity: p.emoteOpacity
+          emoteOpacity: p.emoteOpacity,
+          moveAnimProgress: p.moveAnimProgress,
         }));
       },
       () => {
@@ -1213,14 +1214,11 @@ const MapCanvas = ({ location }) => {
     characterStore.otherPlayersArray.forEach(player => {
       if (player.position) {
         const size = avatarSize;
-        const drawX = player.position.x - size / 2;
-        const drawY = player.position.y - size / 2;
         const borderRadius = 8 * avatarSizeMultiplier;
 
         // Get border color from player's avatar color or use default
         const getBorderColor = (hexColor, opacity = 0.7) => {
           if (!hexColor) return `rgba(92, 90, 88, ${opacity})`;
-          // Convert hex to rgb
           const hex = hexColor.replace('#', '');
           const r = parseInt(hex.substring(0, 2), 16);
           const g = parseInt(hex.substring(2, 4), 16);
@@ -1230,151 +1228,167 @@ const MapCanvas = ({ location }) => {
 
         const borderColor = getBorderColor(player.avatarColor, 0.7);
 
-        // Draw outer background (white)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
-        ctx.fill();
+        // Helper: draw this other player's avatar at a given position
+        const drawOtherAt = (pos, showExtras) => {
+          const parentAlpha = ctx.globalAlpha;
+          const dx = pos.x - size / 2;
+          const dy = pos.y - size / 2;
 
-        // Draw outer dashed border (using player's color)
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        drawRoundedRect(drawX - 2, drawY - 2, size + 4, size + 4, borderRadius + 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Draw avatar image if loaded, otherwise placeholder
-        if (player.avatarUrl && avatarImages[player.avatarUrl]) {
-          const img = avatarImages[player.avatarUrl];
-
-          // Draw avatar (clipped to rounded rectangle)
-          ctx.save();
-          drawRoundedRect(drawX, drawY, size, size, borderRadius);
-          ctx.clip();
-          ctx.drawImage(img, drawX, drawY, size, size);
-          ctx.restore();
-        } else {
-          // Draw placeholder background
-          ctx.save();
-          drawRoundedRect(drawX, drawY, size, size, borderRadius);
-          ctx.clip();
-          ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
-          ctx.fill();
-          ctx.restore();
-
-          // Draw placeholder "?"
-          ctx.save();
-          ctx.font = 'bold 32px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = 'rgba(92, 90, 88, 0.4)';
-          ctx.fillText('?', player.position.x, player.position.y);
-          ctx.restore();
-        }
-
-        // Draw inner dashed border (using player's color)
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([3, 3]);
-        drawRoundedRect(drawX + 2, drawY + 2, size - 4, size - 4, borderRadius - 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Draw emote if present
-        if (player.emote) {
-          const emoteSize = avatarSize;
-          const opacity = player.emoteOpacity !== undefined ? player.emoteOpacity : 1;
-          ctx.save();
-          ctx.globalAlpha = opacity;
-
-          // Measure emote (text or image)
-          const emoteFontSize = 20 * avatarSizeMultiplier;
-          const textWidth = measureEmote(ctx, player.emote, emoteFontSize);
-
-          // Expression bubble dimensions (offset scaled)
-          const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
-          const bubbleHeight = 28 * avatarSizeMultiplier;
-          const bubbleX = player.position.x - bubbleWidth / 2 + 16 * avatarSizeMultiplier;
-          const bubbleY = player.position.y - emoteSize / 2 - 40 * avatarSizeMultiplier;
-          const borderRadius = 6 * avatarSizeMultiplier;
-          const tailTipY = player.position.y - emoteSize / 2 - 6 * avatarSizeMultiplier; // gap above avatar
-          const tailBaseY = bubbleY + bubbleHeight;
-
-          // Draw outer background for bubble
+          // Draw outer background (white)
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-          drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+          drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
           ctx.fill();
 
-          // Draw outer dashed border for bubble
-          ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+          // Draw outer dashed border (using player's color)
+          ctx.strokeStyle = borderColor;
           ctx.lineWidth = 2;
           ctx.setLineDash([5, 5]);
-          drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, borderRadius + 2);
+          drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Draw inner bubble with clipping
-          ctx.save();
-          drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, borderRadius);
-          ctx.clip();
-          ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
-          ctx.fill();
-          ctx.restore();
+          // Draw avatar image if loaded, otherwise placeholder
+          if (player.avatarUrl && avatarImages[player.avatarUrl]) {
+            const img = avatarImages[player.avatarUrl];
+            ctx.save();
+            drawRoundedRect(dx, dy, size, size, borderRadius);
+            ctx.clip();
+            ctx.drawImage(img, dx, dy, size, size);
+            ctx.restore();
+          } else {
+            ctx.save();
+            drawRoundedRect(dx, dy, size, size, borderRadius);
+            ctx.clip();
+            ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+            ctx.fill();
+            ctx.restore();
+            ctx.save();
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'rgba(92, 90, 88, 0.4)';
+            ctx.fillText('?', pos.x, pos.y);
+            ctx.restore();
+          }
 
-          // Draw inner dashed border for bubble
-          ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+          // Draw inner dashed border (using player's color)
+          ctx.strokeStyle = borderColor;
           ctx.lineWidth = 1.5;
           ctx.setLineDash([3, 3]);
-          drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, borderRadius - 2);
+          drawRoundedRect(dx + 2, dy + 2, size - 4, size - 4, borderRadius - 2);
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Draw triangle tail (sticking out from lower left corner of bubble)
-          const tailWidth = 4;
-          const tailLeftX = bubbleX + 12; // 12px from left edge of bubble
+          if (!showExtras) return;
 
-          // Draw tail background (triangle pointing down to 2px above avatar)
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-          ctx.beginPath();
-          ctx.moveTo(tailLeftX, tailBaseY); // Top left at bubble bottom
-          ctx.lineTo(tailLeftX + tailWidth, tailBaseY); // Top right at bubble bottom
-          ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY); // Point at 2px above avatar
-          ctx.closePath();
-          ctx.fill();
+          // Draw emote if present
+          if (player.emote) {
+            const emoteSize = avatarSize;
+            const opacity = player.emoteOpacity !== undefined ? player.emoteOpacity : 1;
+            ctx.save();
+            ctx.globalAlpha = parentAlpha * opacity;
 
-          // Draw tail dashed border
-          ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([3, 3]);
-          ctx.beginPath();
-          ctx.moveTo(tailLeftX, tailBaseY);
-          ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
-          ctx.moveTo(tailLeftX + tailWidth, tailBaseY);
-          ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
-          ctx.stroke();
-          ctx.setLineDash([]);
+            const emoteFontSize = 20 * avatarSizeMultiplier;
+            const textWidth = measureEmote(ctx, player.emote, emoteFontSize);
 
-          // Draw emote (centered in the bubble)
-          drawEmote(ctx, player.emote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2, emoteFontSize);
+            const bubbleWidth = textWidth + 12 * avatarSizeMultiplier;
+            const bubbleHeight = 28 * avatarSizeMultiplier;
+            const bubbleX = pos.x - bubbleWidth / 2 + 16 * avatarSizeMultiplier;
+            const bubbleY = pos.y - emoteSize / 2 - 40 * avatarSizeMultiplier;
+            const eBorderRadius = 6 * avatarSizeMultiplier;
+            const tailTipY = pos.y - emoteSize / 2 - 6 * avatarSizeMultiplier;
+            const tailBaseY = bubbleY + bubbleHeight;
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, eBorderRadius + 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            drawRoundedRect(bubbleX - 2, bubbleY - 2, bubbleWidth + 4, bubbleHeight + 4, eBorderRadius + 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.save();
+            drawRoundedRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, eBorderRadius);
+            ctx.clip();
+            ctx.fillStyle = 'rgba(222, 134, 223, 0.15)';
+            ctx.fill();
+            ctx.restore();
+            ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            drawRoundedRect(bubbleX + 2, bubbleY + 2, bubbleWidth - 4, bubbleHeight - 4, eBorderRadius - 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const tailWidth = 4;
+            const tailLeftX = bubbleX + 12;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(tailLeftX, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(92, 90, 88, 0.55)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(tailLeftX, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+            ctx.moveTo(tailLeftX + tailWidth, tailBaseY);
+            ctx.lineTo(tailLeftX + tailWidth / 2, tailTipY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            drawEmote(ctx, player.emote, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2, emoteFontSize);
+            ctx.restore();
+          }
+
+          // Draw username below character
+          ctx.save();
+          const otherUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
+          ctx.font = `${otherUsernameFontSize}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.shadowColor = 'rgba(92, 90, 88, 0.55)';
+          ctx.shadowBlur = 0.5;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.7)');
+          ctx.fillText(player.username || 'Player', pos.x, pos.y + avatarSize / 2 + FontSettingsStore.getScaledSpacing(9) * avatarSizeMultiplier);
           ctx.restore();
+        };
+
+        // Animate move if active, otherwise draw normally
+        const ma = player.moveAnim;
+        if (ma?.active && ma.oldPos) {
+          const elapsed = Date.now() - ma.startTime;
+
+          // Ghost at old position
+          const ghostAlpha = moveAnimValue(MOVE_ANIM.ghost.fade, elapsed);
+          const ghostScale = moveAnimValue(MOVE_ANIM.ghost.scale, elapsed);
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, ghostAlpha);
+          ctx.translate(ma.oldPos.x, ma.oldPos.y);
+          ctx.scale(ghostScale, ghostScale);
+          ctx.translate(-ma.oldPos.x, -ma.oldPos.y);
+          drawOtherAt(ma.oldPos, false);
+          ctx.restore();
+
+          // Real at new position
+          const realAlpha = moveAnimValue(MOVE_ANIM.real.fade, elapsed);
+          const realScale = moveAnimValue(MOVE_ANIM.real.scale, elapsed);
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, Math.min(1, realAlpha));
+          ctx.translate(player.position.x, player.position.y);
+          ctx.scale(realScale, realScale);
+          ctx.translate(-player.position.x, -player.position.y);
+          drawOtherAt(player.position, true);
+          ctx.restore();
+        } else {
+          drawOtherAt(player.position, true);
         }
-
-        // Draw username below character
-        ctx.save();
-        const otherUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
-        ctx.font = `${otherUsernameFontSize}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-
-        // Add glow effect
-        ctx.shadowColor = 'rgba(92, 90, 88, 0.55)';
-        ctx.shadowBlur = 0.5;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-
-        ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.7)');
-        ctx.fillText(player.username || 'Player', player.position.x, player.position.y + avatarSize / 2 + FontSettingsStore.getScaledSpacing(9) * avatarSizeMultiplier);
-        ctx.restore();
       }
     });
 

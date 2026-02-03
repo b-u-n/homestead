@@ -171,32 +171,38 @@ const UsernameCreationScreen = observer(() => {
           </View>
         </View>
 
-        <View style={styles.slotMachinesContainer}>
-          <SlotMachine
-            items={wordArrays.adjectives}
-            selectedItem={selectedAdjective}
-            onItemSelect={setSelectedAdjective}
-            title=""
-            triggerSpin={isSpinning}
-            onSpinComplete={handleSpinComplete}
-          />
-          <SlotMachine
-            items={wordArrays.adverbs}
-            selectedItem={selectedAdverb}
-            onItemSelect={setSelectedAdverb}
-            title=""
-            triggerSpin={isSpinning}
-            onSpinComplete={handleSpinComplete}
-          />
-          <SlotMachine
-            items={wordArrays.nouns}
-            selectedItem={selectedNoun}
-            onItemSelect={setSelectedNoun}
-            title=""
-            triggerSpin={isSpinning}
-            onSpinComplete={handleSpinComplete}
-          />
-        </View>
+        <Scroll horizontal style={styles.slotMachinesScroll} contentContainerStyle={styles.slotMachinesContainer}>
+          <View style={styles.slotMachineWrapper}>
+            <SlotMachine
+              items={wordArrays.adjectives}
+              selectedItem={selectedAdjective}
+              onItemSelect={setSelectedAdjective}
+              title=""
+              triggerSpin={isSpinning}
+              onSpinComplete={handleSpinComplete}
+            />
+          </View>
+          <View style={styles.slotMachineWrapper}>
+            <SlotMachine
+              items={wordArrays.adverbs}
+              selectedItem={selectedAdverb}
+              onItemSelect={setSelectedAdverb}
+              title=""
+              triggerSpin={isSpinning}
+              onSpinComplete={handleSpinComplete}
+            />
+          </View>
+          <View style={styles.slotMachineWrapper}>
+            <SlotMachine
+              items={wordArrays.nouns}
+              selectedItem={selectedNoun}
+              onItemSelect={setSelectedNoun}
+              title=""
+              triggerSpin={isSpinning}
+              onSpinComplete={handleSpinComplete}
+            />
+          </View>
+        </Scroll>
 
           <View style={styles.buttonContainer}>
             <WoolButton
@@ -310,13 +316,21 @@ const styles = StyleSheet.create({
     textShadowRadius: 0,
     letterSpacing: 1,
   },
+  slotMachinesScroll: {
+    marginBottom: 40,
+    maxWidth: 1000,
+    width: '100%',
+    minHeight: 480,
+  },
   slotMachinesContainer: {
     flexDirection: 'row',
     paddingHorizontal: 10,
-    marginBottom: 40,
-    minHeight: 450,
-    maxWidth: 1000,
     gap: 10,
+    paddingVertical: 0,
+  },
+  slotMachineWrapper: {
+    minWidth: 220,
+    flex: 1,
   },
   buttonContainer: {
     width: '100%',

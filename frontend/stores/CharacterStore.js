@@ -117,10 +117,42 @@ class CharacterStore {
   // Update other player data
   updateOtherPlayer(socketId, data) {
     const existingPlayer = this.otherPlayers[socketId] || {};
+
+    // Detect position change for move animation
+    const posChanged = data.position && existingPlayer.position &&
+      (data.position.x !== existingPlayer.position.x || data.position.y !== existingPlayer.position.y);
+
     this.otherPlayers[socketId] = {
       ...existingPlayer,
-      ...data
+      ...data,
     };
+
+    // Start move animation if position changed
+    if (posChanged) {
+      const duration = 312; // matches MOVE_ANIM_DURATION in MapCanvas
+      this.otherPlayers[socketId].moveAnim = {
+        active: true,
+        startTime: Date.now(),
+        duration,
+        oldPos: { ...existingPlayer.position },
+      };
+
+      const animate = () => {
+        const player = this.otherPlayers[socketId];
+        if (!player || !player.moveAnim?.active) return;
+
+        const elapsed = Date.now() - player.moveAnim.startTime;
+        if (elapsed >= duration) {
+          player.moveAnim.active = false;
+          player.moveAnimProgress = null;
+        } else {
+          // Update observable to trigger reaction-based redraws
+          player.moveAnimProgress = elapsed / duration;
+          requestAnimationFrame(animate);
+        }
+      };
+      requestAnimationFrame(animate);
+    }
 
     // If emote was updated, start fade animation for this player
     if (data.emote && data.emote !== existingPlayer.emote) {

@@ -591,10 +591,10 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: Typography.fonts.header,
     fontSize: 42,
-    fontWeight: '800',
     textAlign: 'center',
     marginBottom: 24,
     color: Colors.cottagecore.greyDark,
+    opacity: 0.8,
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 0,
@@ -610,6 +610,9 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 0,
   },
   avatarGrid: {
     flexDirection: 'row',
