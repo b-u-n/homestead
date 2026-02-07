@@ -16,5 +16,19 @@ const getBackendDomain = () => {
   return 'https://homestead.heartsbox.com';
 };
 
+/**
+ * Resolve an avatar URL to a full URL using the current backend domain.
+ * Handles relative paths and strips hardcoded dev/prod domains.
+ */
+export const resolveAvatarUrl = (url) => {
+  if (!url) return null;
+  // Already a relative path - prepend current domain
+  if (url.startsWith('/')) return `${getBackendDomain()}${url}`;
+  // Strip any hardcoded domain and re-resolve with current domain
+  const apiIndex = url.indexOf('/api/avatars/');
+  if (apiIndex !== -1) return `${getBackendDomain()}${url.slice(apiIndex)}`;
+  return url;
+};
+
 export const domain = getBackendDomain;
 export default domain;

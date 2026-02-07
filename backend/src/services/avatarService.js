@@ -144,7 +144,7 @@ class AvatarService {
     this.generationCounts.set(userId, filteredGenerations);
   }
 
-  async generateMultipleOptions(userId, adjective, adverb, noun, color = 'blue', colorText = 'blue', baseUrl = '') {
+  async generateMultipleOptions(userId, adjective, adverb, noun, color = 'blue', colorText = 'blue') {
     try {
       // Check rate limits
       this.checkRateLimit(userId);
@@ -174,7 +174,7 @@ class AvatarService {
 
           // Save image locally immediately
           const filename = await this.saveImageLocally(openaiUrl, userId);
-          const localUrl = `${baseUrl}/api/avatars/${filename}`;
+          const localUrl = `/api/avatars/${filename}`;
 
           console.log(`[Avatar Generation] Avatar ${i + 1}/4 - SUCCESS (saved as ${filename})`);
 

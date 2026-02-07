@@ -79,19 +79,13 @@ router.post('/generate-options', async (req, res) => {
       ? userId
       : avatarService.hashIpToId(clientIp);
 
-    // Build base URL for local avatar storage
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const baseUrl = `${protocol}://${host}`;
-
     const results = await avatarService.generateMultipleOptions(
       rateLimitId,
       adjective,
       adverb,
       noun,
       color,
-      colorText,
-      baseUrl
+      colorText
     );
     
     res.json({

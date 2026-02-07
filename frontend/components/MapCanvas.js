@@ -33,6 +33,7 @@ import CharacterIcon, { isPointInCharacter } from './CharacterIcon';
 import EmoteMenu, { getClickedEmote } from './EmoteMenu';
 import { EMOTES, drawEmote, measureEmote } from '../config/emotes';
 import WebSocketService from '../services/websocket';
+import { resolveAvatarUrl } from '../utils/domain';
 // Import sections
 import townSquare from '../locations/sections/town-square';
 import marketplace from '../locations/sections/marketplace';
@@ -940,6 +941,7 @@ const MapCanvas = ({ location }) => {
     const handleMove = (data) => {
       // Don't update for our own socket
       if (data.socketId === socket.id) return;
+      data.avatarUrl = resolveAvatarUrl(data.avatarUrl);
 
       // Only update if in same room
       if (data.roomId === location) {
@@ -965,6 +967,7 @@ const MapCanvas = ({ location }) => {
     const handleEmote = (data) => {
       // Don't update for our own socket (we handle that locally)
       if (data.socketId === socket.id) return;
+      data.avatarUrl = resolveAvatarUrl(data.avatarUrl);
 
       // Only update if in same room
       if (data.roomId === location) {
@@ -994,6 +997,7 @@ const MapCanvas = ({ location }) => {
     const handleEnter = (data) => {
       // Don't update for our own socket
       if (data.socketId === socket.id) return;
+      data.avatarUrl = resolveAvatarUrl(data.avatarUrl);
 
       // Only update if in same room
       if (data.roomId === location) {

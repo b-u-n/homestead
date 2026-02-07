@@ -1,7 +1,7 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import domain from '../utils/domain';
+import domain, { resolveAvatarUrl } from '../utils/domain';
 
 class ProfileStore {
   // User profile data
@@ -26,7 +26,7 @@ class ProfileStore {
   }
 
   setProfile(profile) {
-    if (profile.avatarUrl) this.avatarUrl = profile.avatarUrl;
+    if (profile.avatarUrl) this.avatarUrl = resolveAvatarUrl(profile.avatarUrl);
     if (profile.avatarColor) this.avatarColor = profile.avatarColor;
     if (profile.username) this.username = profile.username;
     if (profile.energy !== undefined) this.energy = profile.energy;

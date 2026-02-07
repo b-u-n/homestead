@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
+import { resolveAvatarUrl } from '../utils/domain';
 
 /**
  * AvatarStamp - Styled avatar component matching the map canvas style
@@ -49,7 +50,7 @@ const AvatarStamp = ({
     >
       {avatarUrl ? (
         <Image
-          source={{ uri: avatarUrl }}
+          source={{ uri: resolveAvatarUrl(avatarUrl) }}
           style={[
             styles.avatar,
             {
