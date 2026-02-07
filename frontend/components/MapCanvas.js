@@ -231,56 +231,42 @@ const MobileOverlayPanel = observer(({
                       <Text style={mobileOverlayStyles.layerName}>{currentLayerName}</Text>
                     </View>
 
-                    <WoolButton
-                      scrollable
-                      title="Switch Layers"
-                      onPress={onShowLayerModal}
-                      variant="secondary"
-                      style={mobileOverlayStyles.menuButton}
-                    />
-                    <WoolButton
-                      scrollable
-                      title="Sound Settings"
-                      onPress={onShowSoundSettings}
-                      variant="blue"
-                      style={mobileOverlayStyles.menuButton}
-                    />
-                    <WoolButton
-                      scrollable
-                      title="Theme Settings"
-                      onPress={onShowThemeSettings}
-                      variant="purple"
-                      style={mobileOverlayStyles.menuButton}
-                    />
-                    <WoolButton
-                      scrollable
-                      title="Font Settings"
-                      onPress={onShowFontSettings}
-                      variant="green"
-                      style={mobileOverlayStyles.menuButton}
-                    />
-                    <WoolButton
-                      scrollable
-                      title="Accessibility"
-                      onPress={onShowAccessibilitySettings}
-                      variant="secondary"
-                      style={mobileOverlayStyles.menuButton}
-                    />
-                    <WoolButton
-                      scrollable
-                      title="Report Issue"
-                      onPress={onShowReportIssue}
-                      variant="coral"
-                      style={mobileOverlayStyles.menuButton}
-                    />
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowLayerModal} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Switch Layers" variant="secondary" />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowSoundSettings} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Sound Settings" variant="blue" />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowThemeSettings} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Theme Settings" variant="purple" />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowFontSettings} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Font Settings" variant="green" />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowAccessibilitySettings} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Accessibility" variant="secondary" />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowReportIssue} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Report Issue" variant="coral" />
+                      </View>
+                    </TouchableOpacity>
                     {AuthStore.isAuthenticated && (
-                      <WoolButton
-                        scrollable
-                        title="Logout"
-                        onPress={handleLogout}
-                        variant="coral"
-                        style={mobileOverlayStyles.menuButton}
-                      />
+                      <TouchableOpacity activeOpacity={0.7} onPress={handleLogout} style={mobileOverlayStyles.menuButton}>
+                        <View pointerEvents="none">
+                          <WoolButton title="Logout" variant="coral" />
+                        </View>
+                      </TouchableOpacity>
                     )}
                   </View>
                 )}

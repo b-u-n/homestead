@@ -29,7 +29,6 @@ const WoolButton = ({
   disabled = false,
   focused = false, // Selected/active state
   overlayColor = null, // Override theme color for preview purposes
-  scrollable = false, // Use TouchableOpacity for scroll-friendly touch handling
   style = {},
   contentStyle = {},
   aspectRatio,
@@ -45,7 +44,6 @@ const WoolButton = ({
       disabled={disabled}
       focused={focused}
       overlayColor={overlayColor}
-      scrollable={scrollable}
       style={style}
       contentStyle={contentStyle}
       aspectRatio={aspectRatio}

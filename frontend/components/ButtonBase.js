@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { Pressable, TouchableOpacity, Text as RNText, View, StyleSheet, ImageBackground, Platform } from 'react-native';
+import { Pressable, Text as RNText, View, StyleSheet, ImageBackground, Platform } from 'react-native';
 import StitchedBorder from './StitchedBorder';
 import { Typography } from '../constants/typography';
 import { useWoolColors } from '../hooks/useTheme';
@@ -112,7 +112,6 @@ const ButtonBase = ({
   disabled = false,
   focused = false, // Selected/active state
   overlayColor = null, // Override theme color for preview purposes
-  scrollable = false, // Use TouchableOpacity for scroll-friendly touch handling
   style = {},
   contentStyle = {},
   aspectRatio,
@@ -174,14 +173,10 @@ const ButtonBase = ({
     ],
   };
 
-  const Wrapper = scrollable ? TouchableOpacity : Pressable;
-  const wrapperProps = scrollable ? { activeOpacity: 0.8 } : {};
-
   return (
-    <Wrapper
+    <Pressable
       onPress={onPress}
       disabled={disabled}
-      {...wrapperProps}
       {...webProps}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || (isTextContent ? children : undefined)}
@@ -238,7 +233,7 @@ const ButtonBase = ({
         {/* Emboss highlight/shadow border */}
         <View style={styles.embossBorder} pointerEvents="none" />
       </View>
-    </Wrapper>
+    </Pressable>
   );
 };
 
