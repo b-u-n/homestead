@@ -312,10 +312,9 @@ const PositivityBoard = observer(({
     const hasResponses = post.responses && post.responses.length > 0;
 
     return (
-      <Pressable
+      <View
         key={post._id}
         style={styles.postWrapper}
-        onPress={() => handlePostToggle(post._id)}
       >
         <MinkyPanel
           borderRadius={8}
@@ -323,49 +322,51 @@ const PositivityBoard = observer(({
           paddingTop={12}
           overlayColor="rgba(112, 68, 199, 0.2)"
         >
-          {/* Post Header */}
-          <View style={styles.postHeader}>
-            <View style={styles.authorInfo}>
-              <AvatarStamp
-                avatarUrl={post.user?.avatar}
-                avatarColor={post.user?.color}
-                size={32}
-                borderRadius={5}
-              />
-              <Text style={[styles.authorName, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>
-                {post.user?.name}
+          <Pressable onPress={() => handlePostToggle(post._id)}>
+            {/* Post Header */}
+            <View style={styles.postHeader}>
+              <View style={styles.authorInfo}>
+                <AvatarStamp
+                  avatarUrl={post.user?.avatar}
+                  avatarColor={post.user?.color}
+                  size={32}
+                  borderRadius={5}
+                />
+                <Text style={[styles.authorName, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>
+                  {post.user?.name}
+                </Text>
+              </View>
+              <View style={styles.heartsRow}>
+                <Text style={[styles.hearts, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>
+                  {post.totalTips || 0}
+                </Text>
+                <Heart size={FontSettingsStore.getScaledFontSize(16)} />
+              </View>
+            </View>
+
+            {/* Post Content */}
+            <Text
+              style={[styles.postContent, { fontSize: FontSettingsStore.getScaledFontSize(15), lineHeight: FontSettingsStore.getScaledSpacing(21), color: FontSettingsStore.getFontColor('#403F3E') }]}
+              numberOfLines={isExpanded ? undefined : 3}
+            >
+              {post.content}
+            </Text>
+
+            {/* Post Footer */}
+            <View style={styles.postFooter}>
+              <Text style={[styles.date, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
+                {formatTimeAgo(post.createdAt)}
+              </Text>
+              <Text style={[styles.responseCount, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
+                {hasResponses ? `${post.responses.length} response${post.responses.length > 1 ? 's' : ''}` : 'No responses yet'}
               </Text>
             </View>
-            <View style={styles.heartsRow}>
-              <Text style={[styles.hearts, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>
-                {post.totalTips || 0}
-              </Text>
-              <Heart size={FontSettingsStore.getScaledFontSize(16)} />
-            </View>
-          </View>
-
-          {/* Post Content */}
-          <Text
-            style={[styles.postContent, { fontSize: FontSettingsStore.getScaledFontSize(15), lineHeight: FontSettingsStore.getScaledSpacing(21), color: FontSettingsStore.getFontColor('#403F3E') }]}
-            numberOfLines={isExpanded ? undefined : 3}
-          >
-            {post.content}
-          </Text>
-
-          {/* Post Footer */}
-          <View style={styles.postFooter}>
-            <Text style={[styles.date, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
-              {formatTimeAgo(post.createdAt)}
-            </Text>
-            <Text style={[styles.responseCount, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.85)') }]}>
-              {hasResponses ? `${post.responses.length} response${post.responses.length > 1 ? 's' : ''}` : 'No responses yet'}
-            </Text>
-          </View>
+          </Pressable>
 
           {/* Expanded content */}
           {isExpanded && renderExpandedContent(post)}
         </MinkyPanel>
-      </Pressable>
+      </View>
     );
   };
 
