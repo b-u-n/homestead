@@ -4,13 +4,13 @@ import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import FontSettingsStore from '../../stores/FontSettingsStore';
-import uxStore from '../../stores/UXStore';
 import MinkyPanel from '../MinkyPanel';
+import ScrollBarView from '../ScrollBarView';
 
 /**
  * WorkbookLanding Drop
- * Displays a grid of activity items (emoji placeholders)
- * for a specific bookshelf/workbook
+ * Single-column list of activities for a bookshelf.
+ * Each row: emoji + title on left, stitched checkbox on right.
  */
 const WorkbookLanding = observer(({
   input,
@@ -54,75 +54,17 @@ const WorkbookLanding = observer(({
   };
 
   const handleActivityClick = (activityId) => {
+    const activity = activities.find(a => a.activityId === activityId);
     onComplete({
       action: 'selectActivity',
       activityId,
+      activityTitle: activity?.title,
       bookshelfId
     });
   };
 
   const isActivityCompleted = (activityId) => {
     return progress.some(p => p.activityId === activityId && p.status === 'completed');
-  };
-
-  const isActivityInProgress = (activityId) => {
-    return progress.some(p => p.activityId === activityId && p.status === 'in-progress');
-  };
-
-  const renderActivityGrid = () => {
-    if (!workbook?.activities) return null;
-
-    const activities = workbook.activities;
-    const isMobile = uxStore.isMobile || uxStore.isPortrait;
-    const columns = isMobile ? 3 : 3;
-    const rows = [];
-
-    for (let i = 0; i < activities.length; i += columns) {
-      rows.push(activities.slice(i, i + columns));
-    }
-
-    return (
-      <View style={styles.grid}>
-        {rows.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.gridRow}>
-            {row.map((activity) => {
-              const completed = isActivityCompleted(activity.activityId);
-              const inProgress = isActivityInProgress(activity.activityId);
-
-              return (
-                <Pressable
-                  key={activity.activityId}
-                  style={[
-                    styles.activityCell,
-                    completed && styles.activityCompleted,
-                    inProgress && styles.activityInProgress
-                  ]}
-                  onPress={() => handleActivityClick(activity.activityId)}
-                >
-                  <MinkyPanel
-                    borderRadius={12}
-                    padding={16}
-                    paddingTop={16}
-                    overlayColor={completed ? 'rgba(76, 175, 80, 0.3)' : inProgress ? 'rgba(255, 193, 7, 0.3)' : 'rgba(112, 68, 199, 0.2)'}
-                  >
-                    <Text style={styles.activityEmoji}>{activity.emoji}</Text>
-                    <Text style={[styles.activityTitle, { fontSize: FontSettingsStore.getScaledFontSize(11), color: FontSettingsStore.getFontColor('#403F3E') }]}>
-                      {activity.title}
-                    </Text>
-                    {completed && (
-                      <Text style={styles.statusBadge}>Done</Text>
-                    )}
-                    {inProgress && !completed && (
-                      <Text style={[styles.statusBadge, styles.inProgressBadge]}>Started</Text>
-                    )}
-                  </MinkyPanel>
-                </Pressable>
-              );
-            })}
-          </View>
-        ))}
-      </View>
-    );
   };
 
   if (loading) {
@@ -142,17 +84,59 @@ const WorkbookLanding = observer(({
     );
   }
 
+  const activities = workbook?.activities || [];
+  const completedCount = progress.filter(p => p.status === 'completed').length;
+
   return (
     <View style={styles.container}>
       <Text style={[styles.subtitle, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
         Choose an activity to begin
       </Text>
 
-      {renderActivityGrid()}
+      <ScrollBarView style={styles.list}>
+        <View style={styles.listContent}>
+          {activities.map((activity) => {
+            const completed = isActivityCompleted(activity.activityId);
+
+            return (
+              <Pressable
+                key={activity.activityId}
+                onPress={() => handleActivityClick(activity.activityId)}
+              >
+                <MinkyPanel
+                  borderRadius={8}
+                  padding={12}
+                  paddingTop={12}
+                  overlayColor="rgba(112, 68, 199, 0.2)"
+                >
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityEmoji}>{activity.emoji}</Text>
+                    <Text
+                      style={[
+                        styles.activityTitle,
+                        {
+                          fontSize: FontSettingsStore.getScaledFontSize(14),
+                          color: FontSettingsStore.getFontColor('#2D2C2B'),
+                        },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {activity.title}
+                    </Text>
+                    <View style={[styles.checkbox, completed && styles.checkboxCompleted]}>
+                      {completed && <Text style={styles.checkmark}>{'\u2713'}</Text>}
+                    </View>
+                  </View>
+                </MinkyPanel>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollBarView>
 
       <View style={styles.progressInfo}>
         <Text style={[styles.progressText, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
-          {progress.filter(p => p.status === 'completed').length} / {workbook?.activities?.length || 0} completed
+          {completedCount} / {activities.length} completed
         </Text>
       </View>
     </View>
@@ -162,7 +146,7 @@ const WorkbookLanding = observer(({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 16,
+    gap: 12,
   },
   subtitle: {
     fontSize: 14,
@@ -174,50 +158,49 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
-  grid: {
-    gap: 12,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'center',
-  },
-  activityCell: {
+  list: {
     flex: 1,
-    maxWidth: 120,
-    minWidth: 80,
   },
-  activityCompleted: {
-    opacity: 0.8,
+  listContent: {
+    gap: 8,
   },
-  activityInProgress: {
-    opacity: 1,
+  activityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   activityEmoji: {
-    fontSize: 32,
-    textAlign: 'center',
-    marginBottom: 8,
+    fontSize: 24,
   },
   activityTitle: {
-    fontSize: 11,
+    flex: 1,
+    fontSize: 14,
     fontFamily: 'Comfortaa',
-    fontWeight: '600',
-    color: '#403F3E',
-    textAlign: 'center',
-    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    fontWeight: '700',
+    color: '#2D2C2B',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
-  statusBadge: {
-    fontSize: 9,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#4CAF50',
-    textAlign: 'center',
-    marginTop: 4,
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(92, 90, 88, 0.55)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  inProgressBadge: {
-    color: '#FF9800',
+  checkboxCompleted: {
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderColor: 'rgba(255, 255, 255, 0.55)',
+  },
+  checkmark: {
+    color: '#2D2C2B',
+    fontSize: 14,
+    fontWeight: '700',
   },
   loadingText: {
     fontSize: 14,
@@ -231,7 +214,6 @@ const styles = StyleSheet.create({
   },
   progressInfo: {
     alignItems: 'center',
-    marginTop: 8,
   },
   progressText: {
     fontSize: 12,

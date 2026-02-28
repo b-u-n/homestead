@@ -37,6 +37,22 @@ The stitched border uses StitchedBorder component with:
 - `borderStyle: 'dashed'`
 - `borderColor: 'rgba(92, 90, 88, 0.55)'`
 
+## Spacing Between Panels
+
+When stacking multiple MinkyPanels, always add a `12px` spacer between them:
+
+```jsx
+<MinkyPanel borderRadius={8} padding={16} paddingTop={16}>
+  <Text>First panel</Text>
+</MinkyPanel>
+<View style={{ height: 12 }} />
+<MinkyPanel borderRadius={8} padding={16} paddingTop={16}>
+  <Text>Second panel</Text>
+</MinkyPanel>
+```
+
+**Important**: ScrollView does not support the `gap` CSS property. Do not use `gap` on ScrollBarView/ScrollView `style` — it will not produce spacing between children. Use explicit `<View style={{ height: 12 }} />` spacers instead.
+
 ## Example with custom color
 
 ```jsx

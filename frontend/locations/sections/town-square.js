@@ -22,14 +22,14 @@ export default (width, height) => ({
       image: require('../../assets/images/sugarbee-cafe.png')
     },
     {
-      id: 'bank-door',
+      id: 'bazaar-door',
       x: width / 2 - 780,
       y: height / 2 - 280,
       width: 360,
       height: 360,
-      label: 'Bank',
+      label: 'Bazaar',
       showTitle: false,
-      navigateTo: '/homestead/explore/map/bank',
+      navigateTo: '/homestead/explore/map/bazaar',
       image: require('../../assets/images/bank.png')
     },
   ],
@@ -94,6 +94,19 @@ export default (width, height) => ({
       image: require('../../assets/images/help-wanted.png'),
       description: 'A bulletin board where community members share their struggles and ask for support.',
       flow: 'weepingWillow',
+      zIndex: 2100
+    },
+    {
+      id: 'mailbox',
+      type: 'interactable',
+      x: width / 2 + 440,
+      y: height / 2 + 260,
+      width: 120,
+      height: 160,
+      label: 'Mailbox',
+      showTitle: false,
+      image: require('../../assets/images/mailbox.png'),
+      flow: 'mailbox',
       zIndex: 2100
     },
     // Generate weeping willow grove - 70 trees spreading up and to the left (10 per row)

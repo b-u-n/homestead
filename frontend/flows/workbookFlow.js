@@ -35,6 +35,7 @@ export const workbookFlow = {
     'workbook:activity': {
       component: WorkbookActivity,
       depth: 1, // Stacked modal on top of landing
+      title: (accumulatedData) => accumulatedData?.['workbook:landing']?.activityTitle || 'Activity',
       input: {
         activityId: 'string',
         bookshelfId: 'string'

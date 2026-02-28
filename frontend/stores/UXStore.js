@@ -19,6 +19,9 @@ class UXStore {
   // Whether device is considered mobile
   isMobile = false;
 
+  // Modal request (set by drops/components that need to open a top-level modal)
+  pendingModal = null;
+
   // Render scale relative to 1080p baseline
   renderScale = 1;
 
@@ -73,6 +76,17 @@ class UXStore {
   // Base avatar size
   get avatarSize() {
     return 64 * this.avatarSizeMultiplier;
+  }
+
+  // Request a top-level modal to open (e.g. 'userSettings')
+  requestModal(name) {
+    this.pendingModal = name;
+  }
+
+  consumeModal() {
+    const modal = this.pendingModal;
+    this.pendingModal = null;
+    return modal;
   }
 }
 

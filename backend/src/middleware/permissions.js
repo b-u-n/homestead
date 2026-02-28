@@ -2,13 +2,17 @@
  * Permission middleware for WebSocket and REST routes
  */
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 /**
  * Check if account has a specific permission
+ * In development mode, all permissions are granted.
  * @param {Object} account - Account document
  * @param {string} permission - Permission to check
  * @returns {boolean}
  */
 function hasPermission(account, permission) {
+  if (isDev) return true;
   if (!account || !account.permissions) return false;
   return account.permissions.includes(permission);
 }

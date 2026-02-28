@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
@@ -7,6 +7,17 @@ import FontSettingsStore from '../../stores/FontSettingsStore';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import Scroll from '../Scroll';
+import PsychoeducationStep from '../workbook/PsychoeducationStep';
+import RatingStep from '../workbook/RatingStep';
+import LikertStep from '../workbook/LikertStep';
+import GuidedExerciseStep from '../workbook/GuidedExerciseStep';
+import PromptSequenceStep from '../workbook/PromptSequenceStep';
+import JournalStep from '../workbook/JournalStep';
+import ChecklistAssessmentStep from '../workbook/ChecklistAssessmentStep';
+import SortableListStep from '../workbook/SortableListStep';
+import ActionPlanStep from '../workbook/ActionPlanStep';
+import LikertReflectionStep from '../workbook/LikertReflectionStep';
+import StitchedProgressBar from '../workbook/StitchedProgressBar';
 
 /**
  * WorkbookActivity Drop
@@ -27,8 +38,9 @@ const WorkbookActivity = observer(({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const activityId = accumulatedData?.activityId || input?.activityId;
-  const bookshelfId = accumulatedData?.bookshelfId || input?.bookshelfId;
+  const landingData = accumulatedData?.['workbook:landing'];
+  const activityId = landingData?.activityId || accumulatedData?.activityId || input?.activityId;
+  const bookshelfId = landingData?.bookshelfId || accumulatedData?.bookshelfId || input?.bookshelfId;
 
   useEffect(() => {
     if (activityId) {
@@ -160,64 +172,93 @@ const WorkbookActivity = observer(({
 
   const renderStepContent = () => {
     if (!currentStep) return null;
+    const stepValue = stepResponses[currentStep.stepId];
 
     switch (currentStep.type) {
       case 'text':
         return (
           <TextInput
-            style={[styles.textInput, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}
+            style={[styles.textInput, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#2D2C2B') }]}
             multiline
             numberOfLines={4}
             placeholder="Type your response..."
             placeholderTextColor="rgba(64, 63, 62, 0.5)"
-            value={stepResponses[currentStep.stepId] || ''}
+            value={stepValue || ''}
             onChangeText={handleResponseChange}
           />
         );
 
       case 'checkbox':
+      case 'multiselect':
         return (
           <View style={styles.checkboxContainer}>
             {(currentStep.options || []).map((option, index) => {
-              const isChecked = (stepResponses[currentStep.stepId] || []).includes(option);
+              const isChecked = (stepValue || []).includes(option);
               return (
-                <Pressable
+                <WoolButton
                   key={index}
-                  style={styles.checkboxRow}
                   onPress={() => handleCheckboxToggle(option)}
+                  variant="purple"
+                  size="small"
+                  focused={isChecked}
                 >
-                  <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
-                    {isChecked && <Text style={styles.checkmark}>check</Text>}
-                  </View>
-                  <Text style={[styles.checkboxLabel, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#403F3E') }]}>
-                    {option}
-                  </Text>
-                </Pressable>
+                  {(isChecked ? '\u2713  ' : '') + option}
+                </WoolButton>
               );
             })}
           </View>
         );
 
       case 'slider':
-        // Placeholder for slider - using simple number buttons
         return (
           <View style={styles.sliderContainer}>
             {[1, 2, 3, 4, 5].map((num) => {
-              const isSelected = stepResponses[currentStep.stepId] === num;
+              const isSelected = stepValue === num;
               return (
-                <Pressable
-                  key={num}
-                  style={[styles.sliderButton, isSelected && styles.sliderButtonSelected]}
-                  onPress={() => handleResponseChange(num)}
-                >
-                  <Text style={[styles.sliderButtonText, isSelected && styles.sliderButtonTextSelected]}>
-                    {num}
-                  </Text>
-                </Pressable>
+                <View key={num} style={styles.sliderButtonWrapper}>
+                  <WoolButton
+                    onPress={() => handleResponseChange(num)}
+                    variant="purple"
+                    size="small"
+                    focused={isSelected}
+                  >
+                    {String(num)}
+                  </WoolButton>
+                </View>
               );
             })}
           </View>
         );
+
+      case 'psychoeducation':
+        return <PsychoeducationStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'rating':
+        return <RatingStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'likert':
+        return <LikertStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'guided-exercise':
+        return <GuidedExerciseStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'prompt-sequence':
+        return <PromptSequenceStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'journal':
+        return <JournalStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'checklist-assessment':
+        return <ChecklistAssessmentStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'sortable-list':
+        return <SortableListStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'action-plan':
+        return <ActionPlanStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+
+      case 'likert-reflection':
+        return <LikertReflectionStep step={currentStep} allResponses={stepResponses} />;
 
       default:
         return (
@@ -235,7 +276,7 @@ const WorkbookActivity = observer(({
           paddingTop={20}
           overlayColor="rgba(112, 68, 199, 0.2)"
         >
-          <Text style={[styles.loadingText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
+          <Text style={[styles.loadingText, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#454342') }]}>
             Loading activity...
           </Text>
         </MinkyPanel>
@@ -252,7 +293,7 @@ const WorkbookActivity = observer(({
           paddingTop={20}
           overlayColor="rgba(112, 68, 199, 0.2)"
         >
-          <Text style={[styles.errorText, { fontSize: FontSettingsStore.getScaledFontSize(14), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
+          <Text style={[styles.errorText, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#454342') }]}>
             Activity not found
           </Text>
         </MinkyPanel>
@@ -263,20 +304,8 @@ const WorkbookActivity = observer(({
   return (
     <View style={styles.container}>
       {/* Progress indicator */}
-      <View style={styles.progressBar}>
-        {activity.steps.map((step, index) => (
-          <View
-            key={step.stepId}
-            style={[
-              styles.progressDot,
-              index < currentStepIndex && styles.progressDotCompleted,
-              index === currentStepIndex && styles.progressDotCurrent
-            ]}
-          />
-        ))}
-      </View>
-
-      <Text style={[styles.stepCounter, { fontSize: FontSettingsStore.getScaledFontSize(12), color: FontSettingsStore.getFontColor('#5C5A58') }]}>
+      <StitchedProgressBar progress={(currentStepIndex + 1) / totalSteps} steps={totalSteps} />
+      <Text style={styles.stepCounter}>
         Step {currentStepIndex + 1} of {totalSteps}
       </Text>
 
@@ -288,8 +317,10 @@ const WorkbookActivity = observer(({
           paddingTop={16}
           overlayColor="rgba(112, 68, 199, 0.2)"
         >
-          <Text style={[styles.prompt, { fontSize: FontSettingsStore.getScaledFontSize(16), color: FontSettingsStore.getFontColor('#403F3E') }]}>
-            {currentStep?.prompt}
+          <Text style={[styles.prompt, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#2D2C2B') }]}>
+            {Array.isArray(currentStep?.prompt)
+              ? currentStep.prompt[Math.floor(Math.random() * currentStep.prompt.length)]
+              : currentStep?.prompt}
           </Text>
 
           <View style={styles.responseArea}>
@@ -302,8 +333,9 @@ const WorkbookActivity = observer(({
       <View style={styles.navigation}>
         <WoolButton
           onPress={handlePrevious}
-          variant="gray"
+          variant="purple"
           size="small"
+          overlayColor="rgba(100, 130, 195, 0.25)"
         >
           {isFirstStep ? 'Back' : 'Previous'}
         </WoolButton>
@@ -326,30 +358,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 12,
   },
-  progressBar: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 8,
-  },
-  progressDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(112, 68, 199, 0.3)',
-  },
-  progressDotCompleted: {
-    backgroundColor: '#4CAF50',
-  },
-  progressDotCurrent: {
-    backgroundColor: '#7044C7',
-  },
   stepCounter: {
     fontSize: 12,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
     color: '#5C5A58',
     textAlign: 'center',
+    marginTop: 4,
     textShadowColor: 'rgba(255, 255, 255, 0.62)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
@@ -358,12 +373,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   prompt: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
-    color: '#403F3E',
+    color: '#2D2C2B',
     marginBottom: 16,
-    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
@@ -377,72 +392,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     fontFamily: 'Comfortaa',
     fontWeight: '600',
-    fontSize: 14,
-    color: '#403F3E',
+    fontSize: 16,
+    color: '#2D2C2B',
     textAlignVertical: 'top',
   },
   checkboxContainer: {
-    gap: 12,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#7044C7',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#7044C7',
-  },
-  checkmark: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  checkboxLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Comfortaa',
-    fontWeight: '600',
-    color: '#403F3E',
-    textShadowColor: 'rgba(255, 255, 255, 0.62)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
+    gap: 8,
   },
   sliderContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
+    gap: 8,
   },
-  sliderButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderWidth: 2,
-    borderColor: '#7044C7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sliderButtonSelected: {
-    backgroundColor: '#7044C7',
-  },
-  sliderButtonText: {
-    fontSize: 18,
-    fontFamily: 'Comfortaa',
-    fontWeight: '700',
-    color: '#7044C7',
-  },
-  sliderButtonTextSelected: {
-    color: '#fff',
+  sliderButtonWrapper: {
+    minWidth: 48,
   },
   navigation: {
     flexDirection: 'row',
@@ -451,22 +414,22 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
-    color: '#5C5A58',
+    color: '#454342',
     textAlign: 'center',
-    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Comfortaa',
     fontWeight: '600',
-    color: '#5C5A58',
+    color: '#454342',
     textAlign: 'center',
-    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },

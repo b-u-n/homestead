@@ -48,14 +48,39 @@ module.exports = {
           workbook = placeholderWorkbook.toObject();
         }
 
+        // Tag-based activity resolution: if workbook has tagFilters, resolve activities by tags
+        if (workbook.tagFilters && (workbook.tagFilters.conditions?.length || workbook.tagFilters.themes?.length)) {
+          const tagQuery = { $or: [] };
+          if (workbook.tagFilters.conditions?.length) {
+            tagQuery.$or.push({ 'tags.conditions': { $in: workbook.tagFilters.conditions } });
+          }
+          if (workbook.tagFilters.themes?.length) {
+            tagQuery.$or.push({ 'tags.themes': { $in: workbook.tagFilters.themes } });
+          }
+
+          const matchedActivities = await WorkbookActivity.find(tagQuery)
+            .select('activityId title emoji')
+            .lean();
+
+          if (matchedActivities.length > 0) {
+            workbook.activities = matchedActivities.map(a => ({
+              activityId: a.activityId,
+              emoji: a.emoji || '📝',
+              title: a.title
+            }));
+          }
+        }
+
         // Get user's progress if logged in
         let progress = [];
         if (sessionId) {
           const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
           if (account) {
+            // Get progress for all matched activity IDs
+            const activityIds = (workbook.activities || []).map(a => a.activityId);
             progress = await WorkbookProgress.find({
               accountId: account._id,
-              workbookId: workbook._id
+              activityId: { $in: activityIds }
             }).lean();
           }
         }

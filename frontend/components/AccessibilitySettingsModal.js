@@ -56,7 +56,7 @@ const AccessibilitySettingsModal = observer(({ visible, onClose, onOpenFontSetti
             </View>
           </View>
 
-          {/* Font Settings Link */}
+          {/* Settings Links */}
           <View style={styles.footer}>
             <WoolButton
               onPress={() => {
@@ -64,7 +64,7 @@ const AccessibilitySettingsModal = observer(({ visible, onClose, onOpenFontSetti
                 onOpenFontSettings();
               }}
               variant="green"
-              style={styles.fontSettingsButton}
+              style={styles.settingsButton}
             >
               Font Settings
             </WoolButton>
@@ -125,8 +125,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(92, 90, 88, 0.15)',
     alignItems: 'center',
+    gap: 10,
   },
-  fontSettingsButton: {
+  settingsButton: {
     minWidth: 180,
   },
 });

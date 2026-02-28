@@ -16,7 +16,10 @@ const HamburgerMenu = observer(({
   onShowThemeSettings,
   onShowFontSettings,
   onShowAccessibilitySettings,
+  onShowUserSettings,
   onShowReportIssue,
+  onShowAdmin,
+  onShowModeration,
   onButtonPress,
 }) => {
   const router = useRouter();
@@ -77,9 +80,24 @@ const HamburgerMenu = observer(({
     onShowAccessibilitySettings?.();
   };
 
+  const handleUserSettings = () => {
+    setIsOpen(false);
+    onShowUserSettings?.();
+  };
+
   const handleReportIssue = () => {
     setIsOpen(false);
     onShowReportIssue?.();
+  };
+
+  const handleAdmin = () => {
+    setIsOpen(false);
+    onShowAdmin?.();
+  };
+
+  const handleModeration = () => {
+    setIsOpen(false);
+    onShowModeration?.();
   };
 
   const currentLayerName = LayerStore.currentLayer?.name || 'None';
@@ -200,6 +218,30 @@ const HamburgerMenu = observer(({
                       title="Accessibility"
                       onPress={handleAccessibilitySettings}
                       variant="secondary"
+                      style={styles.menuButton}
+                    />
+
+                    {/* User Settings Button */}
+                    <WoolButton
+                      title="User Settings"
+                      onPress={handleUserSettings}
+                      variant="secondary"
+                      style={styles.menuButton}
+                    />
+
+                    {/* Moderation Button */}
+                    <WoolButton
+                      title="Moderation"
+                      onPress={handleModeration}
+                      variant="green"
+                      style={styles.menuButton}
+                    />
+
+                    {/* Admin Button */}
+                    <WoolButton
+                      title="Admin"
+                      onPress={handleAdmin}
+                      variant="purple"
                       style={styles.menuButton}
                     />
 

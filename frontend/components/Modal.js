@@ -40,8 +40,11 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
     onClose();
   };
 
-  const handleOverlayPress = (event) => {
-    // Only close if clicking the overlay itself, not its children, and if close is allowed
+  // On web, we use a raw div click handler for the overlay background because
+  // React Native Web's Pressable calls preventDefault() on pointer events,
+  // which prevents TextInput elements from receiving focus.
+  // See: handleOverlayClick is used on a background div, not on Pressable.
+  const handleOverlayClick = (event) => {
     if (showClose && event.target === event.currentTarget) {
       handleClose();
     }
@@ -49,9 +52,9 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
 
   // Size presets for overlay modals
   const sizePresets = {
-    small: { maxWidth: 350, maxHeight: 320 },
-    medium: { maxWidth: 450, maxHeight: 450 },
-    large: { maxWidth: 550, maxHeight: 550 },
+    small: { maxWidth: 525, maxHeight: 480 },
+    medium: { maxWidth: 675, maxHeight: 675 },
+    large: { maxWidth: 825, maxHeight: 825 },
   };
 
   // Use custom size if provided, otherwise use defaults
@@ -67,67 +70,95 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
     { zIndex }
   ];
 
+  const modalContent = (
+    <View style={wrapperStyle}>
+      <TiledBackground>
+        <View style={styles.contentWrapper}>
+          <StitchedBorder borderRadius={12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.containerBorder}>
+            {/* Navigation buttons bar with title */}
+            <View style={styles.navBar}>
+              {/* Back button or spacer */}
+              {showBack ? (
+                <Pressable onPress={onCustomBack || onBack} style={[styles.backButtonPressable, { left: 0 }]}>
+                  <img
+                    src={typeof menuBackImage === 'string' ? menuBackImage : menuBackImage.default || menuBackImage.uri || menuBackImage}
+                    alt="Back"
+                    style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                  />
+                  {backLabel && (
+                    <Text style={[styles.backButtonLabel, {
+                      fontSize: FontSettingsStore.getScaledFontSize(12),
+                      color: FontSettingsStore.getFontColor('#403F3E'),
+                    }]}>{backLabel}</Text>
+                  )}
+                </Pressable>
+              ) : (
+                <View style={styles.navButtonSpacer} />
+              )}
+
+              {/* Title in center */}
+              {title && (
+                <Text style={[
+                  styles.titleInNav,
+                  {
+                    fontSize: FontSettingsStore.getScaledFontSize(24),
+                    color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)'),
+                  }
+                ]}>{title}</Text>
+              )}
+
+              {/* Close button */}
+              {showClose ? (
+                <Pressable onPress={handleClose} style={[styles.closeButtonPressable, { right: 0 }]}>
+                  <img
+                    src={typeof menuCloseImage === 'string' ? menuCloseImage : menuCloseImage.default || menuCloseImage.uri || menuCloseImage}
+                    alt="Close"
+                    style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                  />
+                </Pressable>
+              ) : (
+                <View style={styles.navButtonSpacer} />
+              )}
+            </View>
+
+            {/* Content */}
+            <Scroll style={styles.content} contentContainerStyle={styles.contentContainer}>
+              {children}
+            </Scroll>
+          </StitchedBorder>
+        </View>
+      </TiledBackground>
+    </View>
+  );
+
+  // On web, use a plain div for the overlay to avoid Pressable's preventDefault()
+  // which blocks TextInput focus. On native, use Pressable for touch handling.
+  if (Platform.OS === 'web') {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          zIndex,
+        }}
+        onClick={handleOverlayClick}
+      >
+        {modalContent}
+      </div>
+    );
+  }
+
   return (
-    <Pressable style={overlayStyle} onPress={handleOverlayPress}>
-      <View style={wrapperStyle}>
-        <TiledBackground>
-          <View style={styles.contentWrapper}>
-            <StitchedBorder borderRadius={12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.containerBorder}>
-              {/* Navigation buttons bar with title */}
-              <View style={styles.navBar}>
-                {/* Back button or spacer */}
-                {showBack ? (
-                  <Pressable onPress={onCustomBack || onBack} style={[styles.backButtonPressable, { left: 0 }]}>
-                    <img
-                      src={typeof menuBackImage === 'string' ? menuBackImage : menuBackImage.default || menuBackImage.uri || menuBackImage}
-                      alt="Back"
-                      style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
-                    />
-                    {backLabel && (
-                      <Text style={[styles.backButtonLabel, {
-                        fontSize: FontSettingsStore.getScaledFontSize(12),
-                        color: FontSettingsStore.getFontColor('#403F3E'),
-                      }]}>{backLabel}</Text>
-                    )}
-                  </Pressable>
-                ) : (
-                  <View style={styles.navButtonSpacer} />
-                )}
-
-                {/* Title in center */}
-                {title && (
-                  <Text style={[
-                    styles.titleInNav,
-                    {
-                      fontSize: FontSettingsStore.getScaledFontSize(24),
-                      color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)'),
-                    }
-                  ]}>{title}</Text>
-                )}
-
-                {/* Close button */}
-                {showClose ? (
-                  <Pressable onPress={handleClose} style={[styles.closeButtonPressable, { right: 0 }]}>
-                    <img
-                      src={typeof menuCloseImage === 'string' ? menuCloseImage : menuCloseImage.default || menuCloseImage.uri || menuCloseImage}
-                      alt="Close"
-                      style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
-                    />
-                  </Pressable>
-                ) : (
-                  <View style={styles.navButtonSpacer} />
-                )}
-              </View>
-
-              {/* Content */}
-              <Scroll style={styles.content} contentContainerStyle={styles.contentContainer}>
-                {children}
-              </Scroll>
-            </StitchedBorder>
-          </View>
-        </TiledBackground>
-      </View>
-    </Pressable>
+    <View style={overlayStyle}>
+      {showClose && (
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+      )}
+      {modalContent}
+    </View>
   );
 });
 
@@ -145,8 +176,8 @@ const styles = StyleSheet.create({
   wrapper: {
     width: Platform.OS === 'web' ? '85%' : '100%',
     height: Platform.OS === 'web' ? '85%' : '100%',
-    maxWidth: Platform.OS === 'web' ? 840 : undefined,
-    maxHeight: Platform.OS === 'web' ? 720 : undefined,
+    maxWidth: Platform.OS === 'web' ? 1260 : undefined,
+    maxHeight: Platform.OS === 'web' ? 1080 : undefined,
     borderRadius: Platform.OS === 'web' ? 12 : 0,
     overflow: 'hidden',
     // 3D floating/stitched effect with layered shadows

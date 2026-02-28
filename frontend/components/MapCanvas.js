@@ -28,7 +28,12 @@ import ThemeSettingsModal from './ThemeSettingsModal';
 import ReportIssueModal from './ReportIssueModal';
 import FontSettingsModal from './FontSettingsModal';
 import AccessibilitySettingsModal from './AccessibilitySettingsModal';
-import heartsFlow from '../flows/heartsFlow';
+import UserSettingsModal from './UserSettingsModal';
+import DrawingBoard from './DrawingBoard';
+import MapSpritesStall from './MapSpritesStall';
+import Mailbox from './Mailbox';
+import Admin from './Admin';
+import Moderation from './Moderation';
 import CharacterIcon, { isPointInCharacter } from './CharacterIcon';
 import EmoteMenu, { getClickedEmote } from './EmoteMenu';
 import { EMOTES, drawEmote, measureEmote } from '../config/emotes';
@@ -44,7 +49,7 @@ import garden from '../locations/sections/garden';
 // Import rooms
 import weepingWillow from '../locations/rooms/weeping-willow';
 import sugarbeeCafe from '../locations/rooms/sugarbee-cafe';
-import bank from '../locations/rooms/bank';
+import bazaar from '../locations/rooms/bazaar';
 import library from '../locations/rooms/library';
 import workshopWorried from '../locations/rooms/workshop-worried';
 import workshopSad from '../locations/rooms/workshop-sad';
@@ -82,7 +87,7 @@ const LOCATIONS = {
   // Rooms
   'weeping-willow': weepingWillow,
   'sugarbee-cafe': sugarbeeCafe,
-  'bank': bank,
+  'bazaar': bazaar,
   'library': library,
   'workshop-worried': workshopWorried,
   'workshop-sad': workshopSad,
@@ -105,6 +110,8 @@ const MobileOverlayPanel = observer(({
   onShowFontSettings,
   onShowAccessibilitySettings,
   onShowReportIssue,
+  onShowAdmin,
+  onShowModeration,
 }) => {
   const router = useRouter();
 
@@ -255,6 +262,16 @@ const MobileOverlayPanel = observer(({
                     <TouchableOpacity activeOpacity={0.7} onPress={onShowAccessibilitySettings} style={mobileOverlayStyles.menuButton}>
                       <View pointerEvents="none">
                         <WoolButton title="Accessibility" variant="secondary" />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowModeration} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Moderation" variant="green" />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.7} onPress={onShowAdmin} style={mobileOverlayStyles.menuButton}>
+                      <View pointerEvents="none">
+                        <WoolButton title="Admin" variant="purple" />
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity activeOpacity={0.7} onPress={onShowReportIssue} style={mobileOverlayStyles.menuButton}>
@@ -507,7 +524,11 @@ const MapCanvas = ({ location }) => {
   const [isWeepingWillowOpen, setIsWeepingWillowOpen] = useState(false);
   const [weepingWillowStartAt, setWeepingWillowStartAt] = useState(null);
   const [weepingWillowParams, setWeepingWillowParams] = useState({});
-  const [isBankFlowOpen, setIsBankFlowOpen] = useState(false);
+  const [isDrawingBoardFlowOpen, setIsDrawingBoardFlowOpen] = useState(false);
+  const [drawingBoardStartAt, setDrawingBoardStartAt] = useState(null);
+  const [drawingBoardParams, setDrawingBoardParams] = useState({});
+  const [isMapSpritesStallFlowOpen, setIsMapSpritesStallFlowOpen] = useState(false);
+  const [isMailboxOpen, setIsMailboxOpen] = useState(false);
   const [isWorkbookOpen, setIsWorkbookOpen] = useState(false);
   const [workbookBookshelfId, setWorkbookBookshelfId] = useState(null);
   const [workbookTitle, setWorkbookTitle] = useState('Workbook');
@@ -518,8 +539,12 @@ const MapCanvas = ({ location }) => {
   const [isFontSettingsOpen, setIsFontSettingsOpen] = useState(false);
   const [isReportIssueOpen, setIsReportIssueOpen] = useState(false);
   const [isAccessibilitySettingsOpen, setIsAccessibilitySettingsOpen] = useState(false);
+  const [isUserSettingsOpen, setIsUserSettingsOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isModerationOpen, setIsModerationOpen] = useState(false);
   const [mobileOverlay, setMobileOverlay] = useState(null); // 'menu' | 'notifications' | null
   const [characterPosition, setCharacterPosition] = useState(null);
+  const lastMoveTimeRef = useRef(0);
   const [avatarImages, setAvatarImages] = useState({});
   const [canvasWidth, setCanvasWidth] = useState(1200);
   const [canvasHeight, setCanvasHeight] = useState(800);
@@ -536,6 +561,35 @@ const MapCanvas = ({ location }) => {
     newPos: null,
   });
   const drawCanvasRef = useRef(null);
+
+  // Handle modal requests from drops/components via UXStore
+  const pending = uxStore.pendingModal;
+  if (pending) {
+    uxStore.consumeModal();
+    if (pending === 'userSettings') setIsUserSettingsOpen(true);
+  }
+
+  // Handle notification deep linking
+  const pendingNav = NotificationStore.pendingNavigation;
+  if (pendingNav) {
+    NotificationStore.clearPendingNavigation();
+    if (pendingNav.flow === 'drawingBoard') {
+      // Build initialParams so the target drop gets the itemId
+      const params = {};
+      if (pendingNav.params?.itemId) {
+        params['drawingBoard:mySubmissions'] = { itemId: pendingNav.params.itemId };
+      }
+      setDrawingBoardStartAt(pendingNav.dropId || null);
+      setDrawingBoardParams(params);
+      setIsDrawingBoardFlowOpen(true);
+    } else if (pendingNav.flow === 'weepingWillow') {
+      setWeepingWillowStartAt(pendingNav.dropId || null);
+      setWeepingWillowParams(pendingNav.params || {});
+      setIsWeepingWillowOpen(true);
+    } else if (pendingNav.flow === 'mailbox') {
+      setIsMailboxOpen(true);
+    }
+  }
 
   // Animation loop — drives redraws during poof animation
   useEffect(() => {
@@ -1725,7 +1779,9 @@ const MapCanvas = ({ location }) => {
     // Calculate avatar size (50% larger when scaled down for mobile)
     const clickAvatarSize = uxStore.avatarSize;
     if (characterPosition && isPointInCharacter(x, y, characterPosition.x, characterPosition.y, clickAvatarSize)) {
-      setIsEmoteMenuOpen(true);
+      if (Date.now() - lastMoveTimeRef.current >= 50) {
+        setIsEmoteMenuOpen(true);
+      }
       return;
     }
 
@@ -1768,8 +1824,12 @@ const MapCanvas = ({ location }) => {
           setIsWishingWellOpen(true);
         } else if (obj.flow === 'weepingWillow') {
           setIsWeepingWillowOpen(true);
-        } else if (obj.flow === 'bank' || obj.action === 'openBankModal') {
-          setIsBankFlowOpen(true);
+        } else if (obj.flow === 'drawingBoard') {
+          setIsDrawingBoardFlowOpen(true);
+        } else if (obj.flow === 'mapSpritesStall') {
+          setIsMapSpritesStallFlowOpen(true);
+        } else if (obj.flow === 'mailbox') {
+          setIsMailboxOpen(true);
         } else if (obj.flow === 'workbook') {
           setWorkbookBookshelfId(obj.flowParams?.bookshelfId || 'default');
           setWorkbookTitle(obj.flowParams?.title || 'Workbook');
@@ -1797,6 +1857,7 @@ const MapCanvas = ({ location }) => {
 
       // Update local position
       setCharacterPosition({ x, y });
+      lastMoveTimeRef.current = Date.now();
       characterStore.setPosition(location, x, y);
 
       // Send move command to server
@@ -1957,12 +2018,22 @@ const MapCanvas = ({ location }) => {
   };
 
   const handleNotificationClick = (notification, nav) => {
-    if (nav && nav.flow === 'weepingWillow') {
+    if (!nav) return;
+    if (nav.flow === 'weepingWillow') {
       setWeepingWillowStartAt(nav.dropId);
       setWeepingWillowParams(nav.params || {});
       setIsWeepingWillowOpen(true);
+    } else if (nav.flow === 'drawingBoard') {
+      const params = {};
+      if (nav.params?.itemId) {
+        params['drawingBoard:mySubmissions'] = { itemId: nav.params.itemId };
+      }
+      setDrawingBoardStartAt(nav.dropId || null);
+      setDrawingBoardParams(params);
+      setIsDrawingBoardFlowOpen(true);
+    } else if (nav.flow === 'mailbox') {
+      setIsMailboxOpen(true);
     }
-    // Add other flows here as needed
   };
 
   const handleWeepingWillowClose = () => {
@@ -2093,7 +2164,10 @@ const MapCanvas = ({ location }) => {
               onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
               onShowFontSettings={() => setIsFontSettingsOpen(true)}
               onShowAccessibilitySettings={() => setIsAccessibilitySettingsOpen(true)}
+              onShowUserSettings={() => setIsUserSettingsOpen(true)}
               onShowReportIssue={() => setIsReportIssueOpen(true)}
+              onShowAdmin={() => setIsAdminOpen(true)}
+              onShowModeration={() => setIsModerationOpen(true)}
             />
           </View>
         )}
@@ -2165,10 +2239,23 @@ const MapCanvas = ({ location }) => {
           startAt={weepingWillowStartAt}
           initialParams={weepingWillowParams}
         />
-        <FlowEngine
-          flowDefinition={heartsFlow}
-          visible={isBankFlowOpen}
-          onClose={() => setIsBankFlowOpen(false)}
+        <DrawingBoard
+          visible={isDrawingBoardFlowOpen}
+          onClose={() => {
+            setIsDrawingBoardFlowOpen(false);
+            setDrawingBoardStartAt(null);
+            setDrawingBoardParams({});
+          }}
+          startAt={drawingBoardStartAt}
+          initialParams={drawingBoardParams}
+        />
+        <MapSpritesStall
+          visible={isMapSpritesStallFlowOpen}
+          onClose={() => setIsMapSpritesStallFlowOpen(false)}
+        />
+        <Mailbox
+          visible={isMailboxOpen}
+          onClose={() => setIsMailboxOpen(false)}
         />
         <Workbook
           visible={isWorkbookOpen}
@@ -2205,9 +2292,21 @@ const MapCanvas = ({ location }) => {
             setIsFontSettingsOpen(true);
           }}
         />
+        <UserSettingsModal
+          visible={isUserSettingsOpen}
+          onClose={() => setIsUserSettingsOpen(false)}
+        />
         <ReportIssueModal
           visible={isReportIssueOpen}
           onClose={() => setIsReportIssueOpen(false)}
+        />
+        <Admin
+          visible={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
+        />
+        <Moderation
+          visible={isModerationOpen}
+          onClose={() => setIsModerationOpen(false)}
         />
       </>
     );
@@ -2237,7 +2336,10 @@ const MapCanvas = ({ location }) => {
                     onShowThemeSettings={() => { setMobileOverlay(null); setIsThemeSettingsOpen(true); }}
                     onShowFontSettings={() => { setMobileOverlay(null); setIsFontSettingsOpen(true); }}
                     onShowAccessibilitySettings={() => { setMobileOverlay(null); setIsAccessibilitySettingsOpen(true); }}
+                    onShowUserSettings={() => { setMobileOverlay(null); setIsUserSettingsOpen(true); }}
                     onShowReportIssue={() => { setMobileOverlay(null); setIsReportIssueOpen(true); }}
+                    onShowAdmin={() => { setMobileOverlay(null); setIsAdminOpen(true); }}
+                    onShowModeration={() => { setMobileOverlay(null); setIsModerationOpen(true); }}
                   />
                 )}
               </View>
@@ -2256,6 +2358,7 @@ const MapCanvas = ({ location }) => {
                     onShowThemeSettings={() => setIsThemeSettingsOpen(true)}
                     onShowFontSettings={() => setIsFontSettingsOpen(true)}
                     onShowAccessibilitySettings={() => setIsAccessibilitySettingsOpen(true)}
+                    onShowUserSettings={() => setIsUserSettingsOpen(true)}
                     onShowReportIssue={() => setIsReportIssueOpen(true)}
                     onButtonPress={() => setMobileOverlay(mobileOverlay === 'menu' ? null : 'menu')}
                   />

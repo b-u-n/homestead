@@ -119,6 +119,18 @@ const accountSchema = new mongoose.Schema({
     }
   },
 
+  copyrightPreferences: {
+    authorizeAdvertising: { type: Boolean, default: false },
+    attribution: {
+      type: String,
+      enum: ['real-name', 'username', 'none'],
+      default: 'username'
+    },
+    realName: { type: String, maxlength: 200 },
+    contactInfo: { type: String, maxlength: 500 },
+    attributionLink: { type: String, maxlength: 500 },
+  },
+
   // Active notifications (max 10, overflow goes to Notification collection as history)
   activeNotifications: [{
     notificationId: {
@@ -183,6 +195,25 @@ const accountSchema = new mongoose.Schema({
     min: 0
   },
   
+  // Purchased bazaar items
+  userItems: [{
+    shopItemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ShopItem'
+    },
+    title: String,
+    storeType: String,
+    subtype: String,
+    mediaType: String,
+    contentUrl: String,
+    textContent: String,
+    tags: [String],
+    purchasedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+
   // Timestamps
   createdAt: {
     type: Date,

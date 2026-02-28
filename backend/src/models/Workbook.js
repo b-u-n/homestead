@@ -11,6 +11,10 @@ const workbookSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  tagFilters: {
+    conditions: [String],
+    themes: [String]
+  },
   activities: [{
     activityId: {
       type: String,

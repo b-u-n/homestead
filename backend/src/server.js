@@ -31,8 +31,53 @@ app.use(cors({
 app.use(morgan('combined'));
 app.use(express.json());
 
-// Serve static files
+// Serve static files (local avatars — legacy, new ones go to GCS)
 app.use('/api/avatars', express.static(path.join(__dirname, '../public/avatars')));
+
+// Fallback: proxy avatars from GCS when not found locally
+const { Storage: AvatarStorage } = require('@google-cloud/storage');
+const avatarGcs = new AvatarStorage({
+  keyFilename: path.join(__dirname, '../config/gcs-credentials.json')
+});
+const avatarGcsBucket = avatarGcs.bucket(process.env.GCS_AVATARS_BUCKET_NAME);
+app.get('/api/avatars/:filename', async (req, res) => {
+  try {
+    const filename = req.params.filename;
+    if (!filename.startsWith('avatar_') || filename.includes('..') || filename.includes('/')) {
+      return res.status(400).send('Invalid filename');
+    }
+    const file = avatarGcsBucket.file(filename);
+    const [metadata] = await file.getMetadata();
+    res.set('Content-Type', metadata.contentType || 'image/png');
+    res.set('Cache-Control', 'public, max-age=86400');
+    file.createReadStream().pipe(res);
+  } catch (err) {
+    if (err.code === 404) return res.status(404).send('Not found');
+    console.error('Avatar GCS proxy error:', err);
+    res.status(500).send('Failed to load avatar');
+  }
+});
+
+// Proxy GCS bazaar content (bucket has uniform access, no public URLs)
+const { getFileStream } = require('./services/shopContentService');
+app.get('/api/bazaar-content/:filename', async (req, res) => {
+  try {
+    const filename = req.params.filename;
+    // Only allow bazaar_ prefixed filenames
+    if (!filename.startsWith('bazaar_') || filename.includes('..') || filename.includes('/')) {
+      return res.status(400).send('Invalid filename');
+    }
+    const file = getFileStream(filename);
+    const [metadata] = await file.getMetadata();
+    res.set('Content-Type', metadata.contentType || 'application/octet-stream');
+    res.set('Cache-Control', 'public, max-age=86400');
+    file.createReadStream().pipe(res);
+  } catch (err) {
+    if (err.code === 404) return res.status(404).send('Not found');
+    console.error('GCS proxy error:', err);
+    res.status(500).send('Failed to load content');
+  }
+});
 
 // Custom error messages per endpoint and status code
 const errorMessages = {
@@ -80,16 +125,20 @@ app.use('/api/report-issues', reportIssuesRouter);
 const flowEngine = require('./utils/FlowEngine');
 const wishingWellFlow = require('./flows/wishingWell');
 const weepingWillowFlow = require('./flows/weepingWillow');
-const heartsFlow = require('./flows/hearts');
 const notificationsFlow = require('./flows/notifications');
 const workbookFlow = require('./flows/workbook');
+const bazaarFlow = require('./flows/bazaar');
+const moderationFlow = require('./flows/moderation');
+const adminFlow = require('./flows/admin');
 
 // Register flows
 flowEngine.registerFlow(wishingWellFlow);
 flowEngine.registerFlow(weepingWillowFlow);
-flowEngine.registerFlow(heartsFlow);
 flowEngine.registerFlow(notificationsFlow);
 flowEngine.registerFlow(workbookFlow);
+flowEngine.registerFlow(bazaarFlow);
+flowEngine.registerFlow(moderationFlow);
+flowEngine.registerFlow(adminFlow);
 
 // Pass io to report issues router for notifications
 reportIssuesRouter.setIo(io);
@@ -106,14 +155,17 @@ io.on('connection', (socket) => {
   require('./routes/layers')(socket, io);
   require('./routes/soundSettings')(socket, io);
   require('./routes/themeSettings')(socket, io);
+  require('./routes/copyrightPreferences')(socket, io);
   require('./routes/map')(socket, io);
 
   // Setup Flow Engine handlers
   flowEngine.setupFlow(socket, io, 'wishingWell');
   flowEngine.setupFlow(socket, io, 'weepingWillow');
-  flowEngine.setupFlow(socket, io, 'hearts');
   flowEngine.setupFlow(socket, io, 'notifications');
   flowEngine.setupFlow(socket, io, 'workbook');
+  flowEngine.setupFlow(socket, io, 'bazaar');
+  flowEngine.setupFlow(socket, io, 'moderation');
+  flowEngine.setupFlow(socket, io, 'admin');
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);

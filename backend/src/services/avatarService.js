@@ -2,10 +2,17 @@ const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
 const OpenAI = require('openai');
+const { Storage } = require('@google-cloud/storage');
+require('dotenv').config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const gcsStorage = new Storage({
+  keyFilename: path.join(__dirname, '../../config/gcs-credentials.json')
+});
+const avatarBucket = gcsStorage.bucket(process.env.GCS_AVATARS_BUCKET_NAME);
 
 // Generate a short hash from IP for anonymous user identification
 function hashIpToId(ip) {
@@ -37,8 +44,8 @@ class AvatarService {
   }
 
   /**
-   * Download image from URL and save to local storage
-   * Returns the local filename
+   * Download image from URL and save to GCS.
+   * Returns the local filename.
    */
   async saveImageLocally(imageUrl, userId) {
     try {
@@ -52,13 +59,16 @@ class AvatarService {
 
       // Generate unique filename
       const filename = `avatar_${userId}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.png`;
-      const filePath = path.join(this.avatarDir, filename);
 
-      await fs.writeFile(filePath, imageBuffer);
+      // Save to GCS
+      const file = avatarBucket.file(filename);
+      await file.save(imageBuffer, {
+        metadata: { contentType: 'image/png' }
+      });
 
       return filename;
     } catch (error) {
-      console.error('Error saving image locally:', error);
+      console.error('Error saving avatar to GCS:', error);
       throw error;
     }
   }

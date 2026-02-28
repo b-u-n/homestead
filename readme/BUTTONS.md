@@ -105,7 +105,10 @@ You can still override styles if needed:
 | `children` | ReactNode | - | Button content (text string or React elements) |
 | `onPress` | Function | - | Press handler |
 | `variant` | String | `'primary'` | Color variant (see below) |
+| `size` | String | `'large'` | `'small'`, `'medium'`, or `'large'` |
 | `disabled` | Boolean | `false` | Disables the button |
+| `focused` | Boolean | `false` | Selected/active state — changes stitching to white border |
+| `overlayColor` | String | `null` | Override the variant's theme color for the button overlay |
 | `style` | Object | `{}` | Container style overrides |
 | `contentStyle` | Object | `{}` | Inner content style overrides |
 | `aspectRatio` | Number | - | Forces aspect ratio (e.g., `1` for square) |
@@ -123,6 +126,108 @@ You can still override styles if needed:
 | `green` | Success/positive actions |
 | `coral` | Warm accent |
 | `discord` / `blurple` | Discord-themed |
+
+## Select & Option Patterns
+
+Use WoolButton with the `focused` prop to build toggleable option buttons. When `focused` is true, the stitched border turns white to indicate selection.
+
+### Single-Select (Radio-Style)
+
+One option selected at a time. Use for ratings, sliders, single-choice questions.
+
+```javascript
+// Rating scale (1-5)
+{[1, 2, 3, 4, 5].map((num) => (
+  <WoolButton
+    key={num}
+    onPress={() => onChange(num)}
+    variant="purple"
+    size="small"
+    focused={value === num}
+  >
+    {String(num)}
+  </WoolButton>
+))}
+```
+
+### Multi-Select (Checkbox-Style)
+
+Multiple options can be selected. Use for checklists, multi-select questions.
+
+```javascript
+// Checkbox toggle list
+{options.map((option, index) => {
+  const isChecked = (selected || []).includes(option);
+  return (
+    <WoolButton
+      key={index}
+      onPress={() => handleToggle(option)}
+      variant="purple"
+      size="small"
+      focused={isChecked}
+    >
+      {(isChecked ? '\u2713  ' : '') + option}
+    </WoolButton>
+  );
+})}
+```
+
+### Custom Overlay Color
+
+Use `overlayColor` to override the variant's default color. Useful for secondary/muted buttons.
+
+```javascript
+// Muted blue button (used for Previous/Back)
+<WoolButton
+  variant="purple"
+  size="small"
+  overlayColor="rgba(100, 130, 195, 0.25)"
+  onPress={handleBack}
+>
+  Previous
+</WoolButton>
+```
+
+### Stitched Checkbox Indicator
+
+For checklist-style items that need a visual checkbox, use a stitched dashed border box:
+
+```javascript
+<View style={{
+  width: 22, height: 22, borderRadius: 4,
+  borderWidth: 2, borderStyle: 'dashed',
+  borderColor: isChecked ? 'rgba(255, 255, 255, 0.55)' : 'rgba(92, 90, 88, 0.55)',
+  backgroundColor: isChecked ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.3)',
+  alignItems: 'center', justifyContent: 'center',
+}}>
+  {isChecked && <Text style={{ color: '#2D2C2B', fontSize: 14, fontWeight: '700' }}>{'\u2713'}</Text>}
+</View>
+```
+
+This pattern is used in `ChecklistAssessmentStep.js` and `WorkbookLanding.js`.
+
+### MinkyPanel Option Pills
+
+For scale options where each option needs its own textured panel (e.g., likert scales), use MinkyPanel instead of WoolButton. Selected/unselected states controlled via `overlayColor`:
+
+```javascript
+<Pressable onPress={() => handleSelect(option.value)}>
+  <MinkyPanel
+    borderRadius={6}
+    padding={6}
+    paddingTop={6}
+    overlayColor={isSelected ? 'rgba(135, 180, 210, 0.55)' : 'rgba(100, 130, 195, 0.25)'}
+    borderColor={isSelected ? 'rgba(92, 90, 88, 0.55)' : undefined}
+  >
+    <Text style={styles.optionValue}>{option.value}</Text>
+    <Text style={styles.optionLabel}>{option.label}</Text>
+  </MinkyPanel>
+</Pressable>
+```
+
+Key difference from WoolButton: text stays black for both states (no white text on selected). Used in `LikertStep.js`.
+
+---
 
 ## Content Patterns
 

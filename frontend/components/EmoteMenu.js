@@ -57,8 +57,8 @@ export const getClickedEmote = (clickX, clickY, centerX, centerY, radius = 160) 
     Math.pow(clickX - centerX, 2) + Math.pow(clickY - centerY, 2)
   );
 
-  // Minimum radius for emote selection (inner ring) - reduced to 8px
-  const minRadius = 8;
+  // Minimum radius for emote selection (inner ring)
+  const minRadius = 128;
   // Maximum radius for emote selection (outer ring)
   const maxRadius = radius + 30;
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Modal from './Modal';
 import { FlowContext } from '../contexts/FlowContext';
@@ -40,20 +40,27 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
   // Shared context
   const [context, setContext] = useState(initialContext);
 
-  // Reset flow state when visibility changes
+  // Use refs for initialContext and initialParams so the reset effect
+  // doesn't re-fire when parent re-renders with new object references
+  const initialContextRef = useRef(initialContext);
+  initialContextRef.current = initialContext;
+  const initialParamsRef = useRef(initialParams);
+  initialParamsRef.current = initialParams;
+
+  // Reset flow state when visibility changes or startAt changes
   useEffect(() => {
     if (visible) {
       const dropToStart = startAt || flowDefinition.startAt;
       setDropsByDepth({ 0: dropToStart });
       setHistoryByDepth({ 0: [dropToStart] });
-      setAccumulatedData(initialParams || {});
+      setAccumulatedData(initialParamsRef.current || {});
       setContext({
-        ...initialContext,
+        ...initialContextRef.current,
         flowName: flowDefinition.name,
-        ...initialParams
+        ...initialParamsRef.current
       });
     }
-  }, [visible, flowDefinition.startAt, startAt, initialContext, initialParams, flowDefinition.name]);
+  }, [visible, flowDefinition.startAt, startAt, flowDefinition.name]);
 
   /**
    * Find the next drop ID based on routing conditions
@@ -202,6 +209,13 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
     setContext(prev => ({ ...prev, ...updates }));
   };
 
+  /**
+   * Update accumulated data from within a drop (e.g. clearing a selected asset)
+   */
+  const updateAccumulatedData = (updates) => {
+    setAccumulatedData(prev => ({ ...prev, ...updates }));
+  };
+
   if (!visible) {
     return null;
   }
@@ -253,7 +267,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             onBack={() => goBackAtDepth(depth)}
             canGoBack={drop.showBack !== false && history.length > 1}
             showClose={drop.showClose !== false}
-            title={drop.title || flowDefinition.title}
+            title={typeof drop.title === 'function' ? drop.title(accumulatedData) : (drop.title || flowDefinition.title)}
             size={drop.size}
             additionalOpenSound={depth === 0 ? flowDefinition.additionalOpenSound : undefined}
             backLabel={drop.backLabel}
@@ -266,6 +280,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
                   context={context}
                   updateContext={updateContext}
                   accumulatedData={accumulatedData}
+                  updateAccumulatedData={updateAccumulatedData}
                   onComplete={(output) => handleDropComplete(output, depth)}
                   onBack={() => goBackAtDepth(depth)}
                   canGoBack={drop.showBack !== false && history.length > 1}

@@ -19,6 +19,15 @@ const notificationSchema = new mongoose.Schema({
       'wishingWell:tip',         // Someone tipped your post
       'reportIssue:statusChanged', // Issue report status changed
       'reportIssue:comment',     // New comment on issue report
+      'bazaar:revisionApproved', // Bazaar revision approved by mod
+      'bazaar:revisionReturned', // Bazaar revision returned by mod
+      'bazaar:comment',          // New comment on bazaar item
+      'bazaar:purchase',         // Someone purchased your bazaar item
+      'bazaar:platformApproved', // Item approved for platform use
+      'bazaar:platformReturned', // Item returned for platform review
+      'bazaar:escalatedToAdmin', // Revision on platform-approved art sent to admin
+      'moderation:newItem',      // New item in moderation queue
+      'admin:newEscalation',     // New escalated item for admin review
       'system'                   // System notification
     ],
     index: true

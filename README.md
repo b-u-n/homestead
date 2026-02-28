@@ -1,3 +1,9 @@
+Hi & welcome to Homestead.
+
+This is a repository to help build better digital mental health infrastructure. We're building out mental health workbook activities that are available open source to integrate in your project.
+
+Don't hesitate to reach out if you need anything. <3
+
 # 🔐 SECURITY FIRST - INFORMATION SECURITY IS OUR PRIMARY CONCERN
 
 **⚠️ CRITICAL: ANY EXPOSURE OF CLIENT SECRETS, API KEYS, OR CREDENTIALS WILL RESULT IN IMMEDIATE TERMINATION**
@@ -7,10 +13,8 @@
 Before committing ANY changes, you MUST:
 
 1. **Verify .env files are NOT staged**: Run `git status` and ensure no .env files are in "Changes to be committed"
-2. **Sync .env and .env.example**: Ensure every .env file has a corresponding .env.example with the same structure but safe placeholder values
-3. **Check .env.example files are sanitized**: Ensure all example files contain placeholder values only, never real credentials
-4. **Scan for exposed secrets**: Search codebase for hardcoded credentials, API keys, or connection strings
-5. **If credentials are exposed**: HALT ALL WORK. Raise security alert and refuse to continue until operator confirms credentials have been regenerated and situation cleared
+2. **Scan for exposed secrets**: Search codebase for hardcoded credentials, API keys, or connection strings
+3. **If credentials are exposed**: HALT ALL WORK. Raise security alert and refuse to continue until operator confirms credentials have been regenerated and situation cleared
 
 ## Project Structure
 

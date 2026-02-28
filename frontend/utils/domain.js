@@ -27,6 +27,9 @@ export const resolveAvatarUrl = (url) => {
   // Strip any hardcoded domain and re-resolve with current domain
   const apiIndex = url.indexOf('/api/avatars/');
   if (apiIndex !== -1) return `${getBackendDomain()}${url.slice(apiIndex)}`;
+  // Rewrite GCS public URLs to go through backend proxy
+  const gcsMatch = url.match(/storage\.googleapis\.com\/[^/]+\/(bazaar_[^?#]+)/);
+  if (gcsMatch) return `${getBackendDomain()}/api/bazaar-content/${gcsMatch[1]}`;
   return url;
 };
 

@@ -105,6 +105,62 @@ charCount: {
 4. **boxSizing**: Must be `'border-box'` for proper width calculation
 5. **overflow**: Set to `'hidden'` to prevent scrollbars (auto-expand handles overflow)
 
+## FormStore Keys
+
+FormStore recognizes two patterns for form keys:
+- **Static**: Pre-registered keys (`bankDrop`, `avatarGeneration`) with hardcoded defaults
+- **Dynamic**: Keys matching `response:*` or `*:newPost` — created on demand
+
+If a form key doesn't match either pattern, `setField` silently does nothing and `getField` returns undefined. Inputs will appear frozen (typing does nothing).
+
+```js
+// WRONG — 'bazaar:submit' matches neither pattern, setField is a no-op
+const formKey = 'bazaar:submit';
+
+// RIGHT — ends with :newPost, treated as dynamic form
+const formKey = 'bazaar:newPost';
+```
+
+## Web Text Inputs
+
+Use raw HTML `<input>` and `<textarea>` on web instead of React Native's `<TextInput>`, which has focus issues inside modals.
+
+```jsx
+{Platform.OS === 'web' ? (
+  <input
+    type="text"
+    value={val}
+    onChange={(e) => setVal(e.target.value)}
+    placeholder="..."
+    style={webInputStyle}
+  />
+) : (
+  <TextInput value={val} onChangeText={setVal} placeholder="..." style={styles.input} />
+)}
+```
+
+For multiline, use `<textarea>` on web with `resize: 'none'`.
+
+### Web input style (inline, matches platform aesthetic)
+```js
+const webInputStyle = {
+  fontFamily: 'Comfortaa',
+  fontSize: FontSettingsStore.getScaledFontSize(14),
+  color: FontSettingsStore.getFontColor('#2D2C2B'),
+  padding: 8,
+  borderRadius: 6,
+  border: '1px solid rgba(92, 90, 88, 0.3)',
+  backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  outline: 'none',
+  width: '100%',
+  boxSizing: 'border-box',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+};
+```
+
+### Modal overlay
+Modal.js uses a raw `<div>` overlay on web instead of `<Pressable>` (which calls `preventDefault()` on pointer events, blocking focus). On native, a background `<Pressable>` with `StyleSheet.absoluteFill` sits behind the content.
+
 ## Used In
 
 - `CreateWeepingWillowPost.js` - Ask for help form
