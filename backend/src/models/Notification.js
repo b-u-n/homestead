@@ -28,6 +28,7 @@ const notificationSchema = new mongoose.Schema({
       'bazaar:escalatedToAdmin', // Revision on platform-approved art sent to admin
       'moderation:newItem',      // New item in moderation queue
       'admin:newEscalation',     // New escalated item for admin review
+      'pixelPals:creditsAvailable', // Pixels available to draw
       'system'                   // System notification
     ],
     index: true

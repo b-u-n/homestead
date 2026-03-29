@@ -17,15 +17,22 @@ const MinkyPanel = observer(({
   padding = 20,
   paddingTop = 25,
   borderInset = 0,
+  shape = 'rect', // 'rect' | 'circular'
+  transparent = false, // true = invisible background, keeps stitched border only
 }) => {
+  // Circular mode: override borderRadius to 9999 for perfect circle
+  if (shape === 'circular') {
+    borderRadius = 9999;
+    paddingTop = padding; // equal padding all around for circles
+  }
   // Get theme color (uses flow context automatically)
   const effectiveColor = useMinkyColor(variant, overlayColor);
   const isMobile = uxStore.isMobile || uxStore.isPortrait;
 
   return (
-    <View style={[styles.container, { borderRadius }, style]}>
+    <View style={[styles.container, { borderRadius, backgroundColor: transparent ? 'transparent' : '#E8D4C8' }, style]}>
       {/* Background texture */}
-      {Platform.OS === 'web' && (
+      {!transparent && Platform.OS === 'web' && (
         <div
           style={{
             position: 'absolute',
@@ -44,7 +51,7 @@ const MinkyPanel = observer(({
           }}
         />
       )}
-      {Platform.OS !== 'web' && (
+      {!transparent && Platform.OS !== 'web' && (
         <ImageBackground
           source={slotBgImage}
           style={styles.bgImage}
@@ -52,19 +59,21 @@ const MinkyPanel = observer(({
           resizeMode="repeat"
         />
       )}
-      <View style={[styles.overlay, { backgroundColor: effectiveColor, padding: 4 + borderInset }]}>
+      <View style={[styles.overlay, { backgroundColor: transparent ? 'transparent' : effectiveColor, padding: 4 + borderInset }]}>
         <StitchedBorder borderRadius={borderRadius} borderColor={borderColor} style={[styles.border, { padding, paddingTop }]}>
           {children}
         </StitchedBorder>
       </View>
-      {/* Emboss highlight/shadow border */}
-      <View
-        style={[
-          styles.embossBorder,
-          { borderRadius },
-        ]}
-        pointerEvents="none"
-      />
+      {/* Emboss highlight/shadow border — skip when transparent */}
+      {!transparent && (
+        <View
+          style={[
+            styles.embossBorder,
+            { borderRadius },
+          ]}
+          pointerEvents="none"
+        />
+      )}
     </View>
   );
 });

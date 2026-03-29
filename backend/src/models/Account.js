@@ -59,6 +59,21 @@ const accountSchema = new mongoose.Schema({
     avatarData: Object
   },
 
+  // Beta access flag
+  beta: {
+    type: Boolean,
+    default: false
+  },
+
+  // Feature level (numeric tier for progressive feature access)
+  // 0 = default/free, higher levels unlock more features
+  // Set via admin function; will integrate with payment systems later
+  featureLevel: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+
   // Permissions
   permissions: [{
     type: String,
@@ -195,7 +210,7 @@ const accountSchema = new mongoose.Schema({
     min: 0
   },
   
-  // Purchased bazaar items
+  // User items (bazaar purchases + player-created items like sketches)
   userItems: [{
     shopItemId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -208,7 +223,37 @@ const accountSchema = new mongoose.Schema({
     contentUrl: String,
     textContent: String,
     tags: [String],
+    data: {
+      type: mongoose.Schema.Types.Mixed
+    },
     purchasedAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+
+  // Asset customizations (one per platformAssetId, upsert on set)
+  assetCustomizations: [{
+    platformAssetId: {
+      type: String,
+      required: true
+    },
+    shopItemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ShopItem',
+      required: true
+    },
+    revisionIndex: {
+      type: Number,
+      required: true
+    },
+    contentUrl: String,
+    itemTitle: String,
+    appliedAt: {
       type: Date,
       default: Date.now
     }

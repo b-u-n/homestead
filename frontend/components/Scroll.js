@@ -1,6 +1,7 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState, useEffect } from 'react';
 import { StyleSheet, View, Platform } from 'react-native';
 import ScrollBarView from './ScrollBarView';
+import { getScrollEnabled, onScrollEnabledChange } from '../contexts/ScrollLockContext';
 
 /**
  * Scroll - Wrapper for scrollable content with MinkyPanel-styled scrollbar
@@ -45,8 +46,13 @@ const Scroll = forwardRef(({
   overlayColor = 'rgba(112, 68, 199, 0.25)',
   thumbOverlayColor = 'rgba(135, 180, 210, 0.5)',
   onScrollbarDrag,
+  scrollEnabled: scrollEnabledProp,
   ...props
 }, ref) => {
+  const [globalScrollEnabled, setGlobalScrollEnabled] = useState(getScrollEnabled());
+  useEffect(() => onScrollEnabledChange(setGlobalScrollEnabled), []);
+  const scrollEnabled = scrollEnabledProp !== undefined ? scrollEnabledProp : globalScrollEnabled;
+
   // Apply fade mask on web
   if (Platform.OS === 'web' && fadeEdges) {
     return (
@@ -69,6 +75,7 @@ const Scroll = forwardRef(({
             style={styles.scroll}
             contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
             horizontal={horizontal}
+            scrollEnabled={scrollEnabled}
             keyboardShouldPersistTaps={keyboardShouldPersistTaps}
             overlayColor={overlayColor}
             thumbOverlayColor={thumbOverlayColor}
@@ -88,6 +95,7 @@ const Scroll = forwardRef(({
       style={[styles.scroll, style]}
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       horizontal={horizontal}
+      scrollEnabled={scrollEnabled}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       overlayColor={overlayColor}
       thumbOverlayColor={thumbOverlayColor}

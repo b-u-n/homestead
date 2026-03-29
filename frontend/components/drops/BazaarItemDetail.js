@@ -265,12 +265,24 @@ const BazaarItemDetail = observer(({
 
         {/* Title + Info */}
         <MinkyPanel borderRadius={8} padding={16} paddingTop={16}>
-          <Text style={[styles.title, {
-            fontSize: FontSettingsStore.getScaledFontSize(20),
-            color: FontSettingsStore.getFontColor('#2D2C2B')
-          }]}>
-            {item.title}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[styles.title, {
+              fontSize: FontSettingsStore.getScaledFontSize(20),
+              color: FontSettingsStore.getFontColor('#2D2C2B'),
+              flex: 1,
+            }]}>
+              {item.title}
+            </Text>
+            <View style={[styles.getRow, { marginRight: 12 }]}>
+              <Heart size={16} />
+              <Text style={[styles.priceText, {
+                fontSize: FontSettingsStore.getScaledFontSize(15),
+                color: FontSettingsStore.getFontColor('#2D2C2B')
+              }]}>
+                {item.price}
+              </Text>
+            </View>
+          </View>
 
           {item.description && (
             <Text style={[styles.description, {
@@ -296,18 +308,9 @@ const BazaarItemDetail = observer(({
               {item.user?.name}
             </Text>
             <View style={{ flex: 1 }} />
-            <View style={styles.getRow}>
-              <Heart size={16} />
-              <Text style={[styles.priceText, {
-                fontSize: FontSettingsStore.getScaledFontSize(15),
-                color: FontSettingsStore.getFontColor('#2D2C2B')
-              }]}>
-                {item.price}
-              </Text>
-              <WoolButton variant="purple" size="small" onPress={handlePurchase} disabled={purchasing}>
-                {purchasing ? '...' : 'Get'}
-              </WoolButton>
-            </View>
+            <WoolButton variant="cyan" size="small" onPress={handlePurchase} disabled={purchasing}>
+              {purchasing ? '...' : 'Get'}
+            </WoolButton>
           </View>
 
           {item.platformStatus === 'approved-for-platform' && (

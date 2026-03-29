@@ -1,0 +1,318 @@
+# Button System
+
+This document explains the unified button system for creating consistent, textured buttons throughout the app.
+
+## Overview
+
+The button system uses a **ButtonBase** component that handles:
+- Textured backgrounds (wool, minky)
+- Color variants (primary, secondary, purple, blue, green, coral, discord)
+- Flexible content (text, images, or custom layouts)
+- **Automatic text styling** via context
+- Accessibility
+- Disabled states
+
+## Button Components
+
+### WoolButton
+
+Fuzzy wool texture. Use for primary actions and forms.
+
+```javascript
+import WoolButton, { Text } from '../components/WoolButton';
+
+// Text only
+<WoolButton onPress={handleSubmit} variant="primary">
+  Submit
+</WoolButton>
+
+// Image and text - use the exported Text component for auto-styling
+<WoolButton onPress={handleHelp} variant="purple">
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+    <Image source={helpIcon} style={{ width: 32, height: 32 }} />
+    <Text>Ask for help</Text>
+  </View>
+</WoolButton>
+
+// Image only (square)
+<WoolButton onPress={handleAction} aspectRatio={1}>
+  <Image source={icon} style={{ width: 100, height: 100 }} />
+</WoolButton>
+```
+
+### MinkyButton
+
+Soft minky texture. Use for secondary actions, slots, and cards.
+
+```javascript
+import MinkyButton, { Text } from '../components/MinkyButton';
+
+// Same API as WoolButton
+<MinkyButton onPress={handleView} variant="secondary">
+  View Details
+</MinkyButton>
+```
+
+## Auto-Styled Text
+
+Import `Text` from the button component to get automatic styling based on the button's texture:
+
+```javascript
+import WoolButton, { Text } from '../components/WoolButton';
+import MinkyButton, { Text } from '../components/MinkyButton';
+
+// Text inside WoolButton uses NeedleworkGood font with shadow
+<WoolButton onPress={fn}>
+  <View style={styles.row}>
+    <Image source={icon} />
+    <Text>Label</Text>
+  </View>
+</WoolButton>
+
+// Text inside MinkyButton uses Comfortaa font
+<MinkyButton onPress={fn}>
+  <View style={styles.row}>
+    <Image source={icon} />
+    <Text>Label</Text>
+  </View>
+</MinkyButton>
+```
+
+The `Text` component reads the texture from context, so it automatically uses the right font:
+- **wool**: NeedleworkGood font
+- **minky**: Comfortaa font
+
+Both textures now use a **white emboss text shadow** for better readability on colored backgrounds:
+
+```js
+textShadowColor: 'rgba(255, 255, 255, 0.62)',
+textShadowOffset: { width: 0, height: 1 },
+textShadowRadius: 1,
+```
+
+This creates a subtle raised/embossed look that improves contrast on the textured button backgrounds.
+
+You can still override styles if needed:
+
+```javascript
+<Text style={{ fontSize: 20 }}>Larger text</Text>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | ReactNode | - | Button content (text string or React elements) |
+| `onPress` | Function | - | Press handler |
+| `variant` | String | `'primary'` | Color variant (see below) |
+| `size` | String | `'large'` | `'small'`, `'medium'`, or `'large'` |
+| `disabled` | Boolean | `false` | Disables the button |
+| `focused` | Boolean | `false` | Selected/active state — changes stitching to white border |
+| `overlayColor` | String | `null` | Override the variant's theme color for the button overlay |
+| `style` | Object | `{}` | Container style overrides |
+| `contentStyle` | Object | `{}` | Inner content style overrides |
+| `aspectRatio` | Number | - | Forces aspect ratio (e.g., `1` for square) |
+| `accessibilityLabel` | String | - | Screen reader label (auto-generated for text content) |
+| `accessibilityHint` | String | - | Screen reader hint |
+
+## Variants
+
+| Variant | Use Case |
+|---------|----------|
+| `primary` | Default pink/purple tint |
+| `secondary` | Light blue tint |
+| `purple` | Deep purple for emphasis |
+| `blue` | Blue accent |
+| `green` | Success/positive actions |
+| `coral` | Warm accent |
+| `discord` / `blurple` | Discord-themed |
+
+## Select & Option Patterns
+
+Use WoolButton with the `focused` prop to build toggleable option buttons. When `focused` is true, the stitched border turns white to indicate selection.
+
+### Single-Select (Radio-Style)
+
+One option selected at a time. Use for ratings, sliders, single-choice questions.
+
+```javascript
+// Rating scale (1-5)
+{[1, 2, 3, 4, 5].map((num) => (
+  <WoolButton
+    key={num}
+    onPress={() => onChange(num)}
+    variant="purple"
+    size="small"
+    focused={value === num}
+  >
+    {String(num)}
+  </WoolButton>
+))}
+```
+
+### Multi-Select (Checkbox-Style)
+
+Multiple options can be selected. Use for checklists, multi-select questions.
+
+```javascript
+// Checkbox toggle list
+{options.map((option, index) => {
+  const isChecked = (selected || []).includes(option);
+  return (
+    <WoolButton
+      key={index}
+      onPress={() => handleToggle(option)}
+      variant="purple"
+      size="small"
+      focused={isChecked}
+    >
+      {(isChecked ? '\u2713  ' : '') + option}
+    </WoolButton>
+  );
+})}
+```
+
+### Custom Overlay Color
+
+Use `overlayColor` to override the variant's default color. Useful for secondary/muted buttons.
+
+```javascript
+// Muted blue button (used for Previous/Back)
+<WoolButton
+  variant="purple"
+  size="small"
+  overlayColor="rgba(100, 130, 195, 0.25)"
+  onPress={handleBack}
+>
+  Previous
+</WoolButton>
+```
+
+### Stitched Checkbox Indicator
+
+For checklist-style items that need a visual checkbox, use a stitched dashed border box:
+
+```javascript
+<View style={{
+  width: 22, height: 22, borderRadius: 4,
+  borderWidth: 2, borderStyle: 'dashed',
+  borderColor: isChecked ? 'rgba(255, 255, 255, 0.55)' : 'rgba(92, 90, 88, 0.55)',
+  backgroundColor: isChecked ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.3)',
+  alignItems: 'center', justifyContent: 'center',
+}}>
+  {isChecked && <Text style={{ color: '#2D2C2B', fontSize: 14, fontWeight: '700' }}>{'\u2713'}</Text>}
+</View>
+```
+
+This pattern is used in `ChecklistAssessmentStep.js` and `WorkbookLanding.js`.
+
+### MinkyPanel Option Pills
+
+For scale options where each option needs its own textured panel (e.g., likert scales), use MinkyPanel instead of WoolButton. Selected/unselected states controlled via `overlayColor`:
+
+```javascript
+<Pressable onPress={() => handleSelect(option.value)}>
+  <MinkyPanel
+    borderRadius={6}
+    padding={6}
+    paddingTop={6}
+    overlayColor={isSelected ? 'rgba(135, 180, 210, 0.55)' : 'rgba(100, 130, 195, 0.25)'}
+    borderColor={isSelected ? 'rgba(92, 90, 88, 0.55)' : undefined}
+  >
+    <Text style={styles.optionValue}>{option.value}</Text>
+    <Text style={styles.optionLabel}>{option.label}</Text>
+  </MinkyPanel>
+</Pressable>
+```
+
+Key difference from WoolButton: text stays black for both states (no white text on selected). Used in `LikertStep.js`.
+
+---
+
+## Content Patterns
+
+### Text Only
+
+Pass a string as children. Default text styling is applied automatically.
+
+```javascript
+<WoolButton onPress={fn}>Submit</WoolButton>
+```
+
+### Image + Text
+
+Use the exported `Text` component for automatic styling.
+
+```javascript
+import WoolButton, { Text } from '../components/WoolButton';
+
+<WoolButton onPress={fn} variant="purple">
+  <View style={styles.buttonContent}>
+    <Image source={icon} style={styles.buttonIcon} />
+    <Text style={{ fontSize: 18 }}>Button Label</Text>
+  </View>
+</WoolButton>
+
+const styles = StyleSheet.create({
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  buttonIcon: {
+    width: 32,
+    height: 32,
+  },
+});
+```
+
+### Image Only
+
+Use `aspectRatio` for consistent sizing.
+
+```javascript
+<WoolButton onPress={fn} aspectRatio={1}>
+  <Image source={icon} style={{ width: 80, height: 80 }} />
+</WoolButton>
+```
+
+### Multiple Images (Grid)
+
+Wrap in a View with flex layout.
+
+```javascript
+<MinkyButton onPress={fn} aspectRatio={1}>
+  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+    <Image source={img1} style={{ width: 40, height: 40 }} />
+    <Image source={img2} style={{ width: 40, height: 40 }} />
+    <Image source={img3} style={{ width: 40, height: 40 }} />
+    <Image source={img4} style={{ width: 40, height: 40 }} />
+  </View>
+</MinkyButton>
+```
+
+## Architecture
+
+```
+ButtonBase (texture, variant, disabled logic)
+├── WoolButton (texture="wool")
+└── MinkyButton (texture="minky")
+```
+
+**ButtonBase** handles:
+- Background texture rendering (platform-specific: web div vs native ImageBackground)
+- Color overlay based on variant
+- Stitched border decoration
+- Text vs custom children detection
+- Accessibility attributes
+- Disabled opacity
+
+## Best Practices
+
+1. **Use the right texture**: Wool for forms/actions, Minky for cards/slots
+2. **Consistent spacing**: Use `gap: 12` for icon+text layouts
+3. **Standard icon sizes**: 24px for inline, 32px for prominent, 80-100px for image-only buttons
+4. **Always set accessibilityLabel** for image-only buttons
+5. **Use aspectRatio** for square/fixed-ratio buttons instead of fixed dimensions

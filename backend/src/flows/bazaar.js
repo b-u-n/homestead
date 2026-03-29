@@ -52,7 +52,20 @@ module.exports = {
       },
 
       handler: async (data, context) => {
-        const { storeType } = data;
+        const { storeType, sessionId } = data;
+
+        // Build set of owned item IDs and get account for private filtering
+        let ownedIds = new Set();
+        let currentAccountId = null;
+        if (sessionId) {
+          const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+          if (account) {
+            currentAccountId = account._id.toString();
+            for (const ui of account.userItems) {
+              if (ui.shopItemId) ownedIds.add(ui.shopItemId.toString());
+            }
+          }
+        }
 
         const items = await ShopItem.find({
           storeType,
@@ -62,11 +75,24 @@ module.exports = {
           .limit(100)
           .lean();
 
+        // Filter: public items visible to all, private items only to owner
+        const visibleItems = items.filter(item => {
+          if (item.visibility === 'private') {
+            return currentAccountId && item.user?.id?.toString() === currentAccountId;
+          }
+          return true;
+        });
+
         // Map to include approved revision content and computed price
-        const shopItems = items.map(item => {
+        const shopItems = visibleItems.map(item => {
           const approvedRevision = item.currentApprovedRevisionIndex !== null
             ? item.revisions[item.currentApprovedRevisionIndex]
             : null;
+
+          // Participant discount: 3 hearts if buyer contributed to the board
+          const isParticipant = currentAccountId && item.participantIds &&
+            item.participantIds.some(pid => pid.toString() === currentAccountId);
+          const price = isParticipant ? 3 : getPrice(item.purchaseCount);
 
           return {
             _id: item._id,
@@ -79,10 +105,14 @@ module.exports = {
             user: item.user,
             contentUrl: approvedRevision?.contentUrl || null,
             textContent: approvedRevision?.textContent || null,
-            price: getPrice(item.purchaseCount),
+            price,
             purchaseCount: item.purchaseCount,
             platformStatus: item.platformStatus,
             platformAssetId: item.platformAssetId || null,
+            isOwned: ownedIds.has(item._id.toString()),
+            isPrivate: item.visibility === 'private',
+            isParticipant: !!isParticipant,
+            sourceBoard: item.sourceBoard || null,
             createdAt: item.createdAt
           };
         });
@@ -504,7 +534,15 @@ module.exports = {
           return { success: false, error: 'You already own this item' };
         }
 
-        const price = getPrice(item.purchaseCount);
+        // Private items cannot be purchased by others
+        if (item.visibility === 'private' && !item.user.id.equals(buyer._id)) {
+          return { success: false, error: 'This item is private' };
+        }
+
+        // Participant discount: 3 hearts if buyer contributed to the source board
+        const isParticipant = item.participantIds &&
+          item.participantIds.some(pid => pid.equals(buyer._id));
+        const price = isParticipant ? 3 : getPrice(item.purchaseCount);
         const totalHearts = buyer.hearts + buyer.heartBank;
 
         if (totalHearts < price) {
@@ -660,6 +698,242 @@ module.exports = {
 
       handler: async (data, context) => {
         return { success: true, data: PLATFORM_ASSETS };
+      }
+    },
+
+    /**
+     * List current user's purchased items, enriched with platformAssetId from ShopItem
+     */
+    'bazaar:purchases:mine': {
+      validate: (data) => {
+        if (!data.sessionId) {
+          return { valid: false, error: 'sessionId is required' };
+        }
+        return { valid: true };
+      },
+
+      handler: async (data, context) => {
+        const account = await Account.findOne({ 'activeSessions.sessionId': data.sessionId });
+        if (!account) {
+          return { success: false, error: 'Account not found' };
+        }
+
+        const shopItemIds = account.userItems
+          .map(ui => ui.shopItemId)
+          .filter(Boolean);
+
+        // Batch lookup ShopItems for platformAssetId and shopStatus
+        const shopItems = await ShopItem.find(
+          { _id: { $in: shopItemIds } },
+          { platformAssetId: 1, shopStatus: 1 }
+        ).lean();
+
+        const shopItemMap = {};
+        for (const si of shopItems) {
+          shopItemMap[si._id.toString()] = si;
+        }
+
+        const enrichedItems = account.userItems.map(ui => {
+          const si = ui.shopItemId ? shopItemMap[ui.shopItemId.toString()] : null;
+          return {
+            shopItemId: ui.shopItemId,
+            title: ui.title,
+            storeType: ui.storeType,
+            subtype: ui.subtype,
+            mediaType: ui.mediaType,
+            contentUrl: ui.contentUrl,
+            tags: ui.tags,
+            purchasedAt: ui.purchasedAt,
+            platformAssetId: si?.platformAssetId || null,
+            shopStatus: si?.shopStatus || null
+          };
+        });
+
+        return { success: true, data: enrichedItems };
+      }
+    },
+
+    /**
+     * Get approved revisions for an owned item
+     */
+    'bazaar:purchases:revisions': {
+      validate: (data) => {
+        if (!data.sessionId) {
+          return { valid: false, error: 'sessionId is required' };
+        }
+        if (!data.shopItemId) {
+          return { valid: false, error: 'shopItemId is required' };
+        }
+        return { valid: true };
+      },
+
+      handler: async (data, context) => {
+        const { sessionId, shopItemId } = data;
+
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+        if (!account) {
+          return { success: false, error: 'Account not found' };
+        }
+
+        // Verify ownership
+        const owned = account.userItems.some(
+          ui => ui.shopItemId && ui.shopItemId.toString() === shopItemId
+        );
+        if (!owned) {
+          return { success: false, error: 'You do not own this item' };
+        }
+
+        const item = await ShopItem.findById(shopItemId).lean();
+        if (!item) {
+          return { success: false, error: 'Item not found' };
+        }
+
+        // Return only approved revisions
+        const approvedRevisions = item.revisions
+          .map((rev, index) => ({
+            index,
+            contentUrl: rev.contentUrl,
+            note: rev.note,
+            status: rev.status,
+            createdAt: rev.createdAt
+          }))
+          .filter(rev => rev.status === 'approved');
+
+        return {
+          success: true,
+          data: {
+            revisions: approvedRevisions,
+            currentApprovedRevisionIndex: item.currentApprovedRevisionIndex,
+            title: item.title
+          }
+        };
+      }
+    },
+
+    /**
+     * Apply a purchased item revision to replace a platform asset
+     */
+    'bazaar:customization:set': {
+      validate: (data) => {
+        const { sessionId, platformAssetId, shopItemId, revisionIndex } = data;
+        if (!sessionId || !platformAssetId || !shopItemId || revisionIndex === undefined) {
+          return { valid: false, error: 'Missing required fields' };
+        }
+        return { valid: true };
+      },
+
+      handler: async (data, context) => {
+        const { sessionId, platformAssetId, shopItemId, revisionIndex } = data;
+
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+        if (!account) {
+          return { success: false, error: 'Account not found' };
+        }
+
+        // Verify ownership
+        const owned = account.userItems.some(
+          ui => ui.shopItemId && ui.shopItemId.toString() === shopItemId
+        );
+        if (!owned) {
+          return { success: false, error: 'You do not own this item' };
+        }
+
+        const item = await ShopItem.findById(shopItemId).lean();
+        if (!item) {
+          return { success: false, error: 'Item not found' };
+        }
+
+        // Verify ShopItem targets this platformAssetId
+        if (item.platformAssetId !== platformAssetId) {
+          return { success: false, error: 'Item does not target this platform asset' };
+        }
+
+        // Verify revision exists and is approved
+        const revision = item.revisions[revisionIndex];
+        if (!revision) {
+          return { success: false, error: 'Revision not found' };
+        }
+        if (revision.status !== 'approved') {
+          return { success: false, error: 'Revision is not approved' };
+        }
+
+        // Upsert: remove existing customization for this platformAssetId
+        account.assetCustomizations = (account.assetCustomizations || [])
+          .filter(c => c.platformAssetId !== platformAssetId);
+
+        // Add new customization
+        account.assetCustomizations.push({
+          platformAssetId,
+          shopItemId: item._id,
+          revisionIndex,
+          contentUrl: revision.contentUrl,
+          itemTitle: item.title,
+          appliedAt: new Date()
+        });
+
+        await account.save();
+
+        return {
+          success: true,
+          message: `Applied "${item.title}" to ${platformAssetId}`,
+          data: account.assetCustomizations
+        };
+      }
+    },
+
+    /**
+     * List user's active asset customizations
+     */
+    'bazaar:customization:list': {
+      validate: (data) => {
+        if (!data.sessionId) {
+          return { valid: false, error: 'sessionId is required' };
+        }
+        return { valid: true };
+      },
+
+      handler: async (data, context) => {
+        const account = await Account.findOne({ 'activeSessions.sessionId': data.sessionId });
+        if (!account) {
+          return { success: false, error: 'Account not found' };
+        }
+
+        return { success: true, data: account.assetCustomizations || [] };
+      }
+    },
+
+    /**
+     * Clear a customization (revert platform asset to default)
+     */
+    'bazaar:customization:clear': {
+      validate: (data) => {
+        if (!data.sessionId) {
+          return { valid: false, error: 'sessionId is required' };
+        }
+        if (!data.platformAssetId) {
+          return { valid: false, error: 'platformAssetId is required' };
+        }
+        return { valid: true };
+      },
+
+      handler: async (data, context) => {
+        const { sessionId, platformAssetId } = data;
+
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+        if (!account) {
+          return { success: false, error: 'Account not found' };
+        }
+
+        account.assetCustomizations = (account.assetCustomizations || [])
+          .filter(c => c.platformAssetId !== platformAssetId);
+
+        await account.save();
+
+        return {
+          success: true,
+          message: `Cleared customization for ${platformAssetId}`,
+          data: account.assetCustomizations
+        };
       }
     }
   }

@@ -3,8 +3,12 @@ import { Platform } from 'react-native';
 const getBackendDomain = () => {
   // Check if we're in development or production
   if (__DEV__) {
-    // Development: use local IP for testing on physical devices
-    return 'http://192.168.0.198:9000';
+    // Development: on web, use the same host the page was loaded from;
+    // on mobile devices, use the local network IP
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      return `http://${window.location.hostname}:9000`;
+    }
+    return 'http://192.168.0.199:9000';
   }
 
   // Production web: use same origin (nginx handles proxy)

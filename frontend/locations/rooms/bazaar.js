@@ -38,6 +38,17 @@ export default (width, height) => ({
       label: 'Map Sprites',
       description: 'Browse and purchase community-created map sprites.',
       flow: 'mapSpritesStall'
+    },
+    {
+      id: 'customization-table',
+      type: 'interactable',
+      x: width / 2 - 90,
+      y: height / 2 + 20,
+      width: 200,
+      height: 80,
+      label: 'Customization Table',
+      description: 'Customize platform assets with your purchased items.',
+      flow: 'customizationTable'
     }
   ]
 });

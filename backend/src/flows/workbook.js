@@ -27,6 +27,14 @@ module.exports = {
       handler: async (data, context) => {
         const { bookshelfId, sessionId } = data;
 
+        // Beta gate: only beta users can access activities
+        if (sessionId) {
+          const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+          if (!account || !account.beta) {
+            return { success: true, data: { workbook: { bookshelfId, title: bookshelfId, activities: [] }, progress: [] } };
+          }
+        }
+
         // Find workbook by bookshelfId
         let workbook = await Workbook.findOne({ bookshelfId }).lean();
 

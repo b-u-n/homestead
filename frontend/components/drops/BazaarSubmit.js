@@ -56,7 +56,7 @@ const BazaarSubmit = observer(({
   const setField = (field, value) => FormStore.setField(formKey, field, value);
 
   // Web uses raw HTML inputs (textarea/input) because React Native Web's
-  // TextInput has focus issues inside modals. See readme/TEXTBOX.md.
+  // TextInput has focus issues inside modals. See md/TEXTBOX.md.
   const webInputStyle = {
     fontFamily: 'Comfortaa',
     fontSize: FontSettingsStore.getScaledFontSize(14),

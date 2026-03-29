@@ -31,13 +31,16 @@ import AccessibilitySettingsModal from './AccessibilitySettingsModal';
 import UserSettingsModal from './UserSettingsModal';
 import DrawingBoard from './DrawingBoard';
 import MapSpritesStall from './MapSpritesStall';
+import CustomizationTable from './CustomizationTable';
 import Mailbox from './Mailbox';
+import PixelPals from './PixelPals';
 import Admin from './Admin';
 import Moderation from './Moderation';
 import CharacterIcon, { isPointInCharacter } from './CharacterIcon';
 import EmoteMenu, { getClickedEmote } from './EmoteMenu';
 import { EMOTES, drawEmote, measureEmote } from '../config/emotes';
 import WebSocketService from '../services/websocket';
+import CustomizationStore from '../stores/CustomizationStore';
 import { resolveAvatarUrl } from '../utils/domain';
 // Import sections
 import townSquare from '../locations/sections/town-square';
@@ -58,6 +61,7 @@ import workshopAssertiveness from '../locations/rooms/workshop-assertiveness';
 import libraryRecovery from '../locations/rooms/library-recovery';
 import libraryBalance from '../locations/rooms/library-balance';
 import libraryConnection from '../locations/rooms/library-connection';
+import gamesParlor from '../locations/rooms/games-parlor';
 
 // Import images
 const knapsackImage = require('../assets/images/knapsack.png');
@@ -97,6 +101,7 @@ const LOCATIONS = {
   'library-recovery': libraryRecovery,
   'library-balance': libraryBalance,
   'library-connection': libraryConnection,
+  'games-parlor': gamesParlor,
 };
 
 // Mobile Overlay Panel component for sidebar mode
@@ -514,7 +519,7 @@ const trailBrightnessMul = (hex) => {
 };
 // ────────────────────────────────────────────────────────────────────
 
-const MapCanvas = ({ location }) => {
+const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) => {
   const canvasRef = useRef(null);
   const router = useRouter();
   const [roomData, setRoomData] = useState(null);
@@ -524,11 +529,15 @@ const MapCanvas = ({ location }) => {
   const [isWeepingWillowOpen, setIsWeepingWillowOpen] = useState(false);
   const [weepingWillowStartAt, setWeepingWillowStartAt] = useState(null);
   const [weepingWillowParams, setWeepingWillowParams] = useState({});
+  const [pixelPalsStartAt, setPixelPalsStartAt] = useState(null);
+  const [pixelPalsParams, setPixelPalsParams] = useState({});
   const [isDrawingBoardFlowOpen, setIsDrawingBoardFlowOpen] = useState(false);
   const [drawingBoardStartAt, setDrawingBoardStartAt] = useState(null);
   const [drawingBoardParams, setDrawingBoardParams] = useState({});
   const [isMapSpritesStallFlowOpen, setIsMapSpritesStallFlowOpen] = useState(false);
+  const [isCustomizationTableOpen, setIsCustomizationTableOpen] = useState(false);
   const [isMailboxOpen, setIsMailboxOpen] = useState(false);
+  const [isPixelPalsFlowOpen, setIsPixelPalsFlowOpen] = useState(false);
   const [isWorkbookOpen, setIsWorkbookOpen] = useState(false);
   const [workbookBookshelfId, setWorkbookBookshelfId] = useState(null);
   const [workbookTitle, setWorkbookTitle] = useState('Workbook');
@@ -551,6 +560,39 @@ const MapCanvas = ({ location }) => {
   const [touchStart, setTouchStart] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [playersRefresh, setPlayersRefresh] = useState(0);
+
+  // Open flow from URL query params on mount
+  useEffect(() => {
+    if (!initialFlow) return;
+    const flowMap = {
+      'pixelPals': () => {
+        if (initialFlowParams?.boardId) {
+          setPixelPalsStartAt('pixelPals:canvas');
+          setPixelPalsParams({ boardId: initialFlowParams.boardId });
+        }
+        setIsPixelPalsFlowOpen(true);
+      },
+      'drawingBoard': () => setIsDrawingBoardFlowOpen(true),
+      'mapSpritesStall': () => setIsMapSpritesStallFlowOpen(true),
+      'customizationTable': () => setIsCustomizationTableOpen(true),
+      'mailbox': () => setIsMailboxOpen(true),
+      'weepingWillow': () => setIsWeepingWillowOpen(true),
+      'workbook': () => setIsWorkbookOpen(true),
+    };
+    if (flowMap[initialFlow]) flowMap[initialFlow]();
+  }, [initialFlow]);
+
+  // Update URL when a flow opens/closes (without full navigation)
+  const updateFlowInUrl = (flowName, extraParams) => {
+    if (Platform.OS !== 'web') return;
+    const base = `/homestead/explore/map/${location}`;
+    if (flowName) {
+      const params = new URLSearchParams({ flow: flowName, ...extraParams });
+      window.history.replaceState(null, '', `${base}?${params.toString()}`);
+    } else {
+      window.history.replaceState(null, '', base);
+    }
+  };
 
   // Avatar move animation state
   const moveAnimRef = useRef({
@@ -953,11 +995,19 @@ const MapCanvas = ({ location }) => {
     ];
 
     allEntities.forEach(entity => {
-      if (entity.image) {
-        const img = new window.Image();
-        let imageSrc;
-        let imageKey;
+      const img = new window.Image();
+      let imageSrc;
+      let imageKey;
 
+      // Check for customization override
+      const overrideUrl = entity.platformAssetId
+        ? CustomizationStore.getOverrideUrl(entity.platformAssetId)
+        : null;
+
+      if (overrideUrl) {
+        imageKey = entity.id;
+        imageSrc = resolveAvatarUrl(overrideUrl);
+      } else if (entity.image) {
         // Check if entity.image is a string key for imageMap
         if (typeof entity.image === 'string' && imageMap[entity.image]) {
           imageKey = entity.image;
@@ -971,19 +1021,40 @@ const MapCanvas = ({ location }) => {
             ? entity.image
             : entity.image.default || entity.image.uri || entity.image;
         }
+      }
 
-        if (imageSrc) {
-          img.onload = () => {
-            setLoadedImages(prev => ({
-              ...prev,
-              [imageKey]: img
-            }));
-          };
-          img.src = imageSrc;
-        }
+      if (imageSrc) {
+        img.onerror = () => {
+          // Fallback: reload with default image on error
+          if (overrideUrl && entity.image) {
+            const fallbackImg = new window.Image();
+            const fallbackKey = typeof entity.image === 'string' && imageMap[entity.image]
+              ? entity.image : entity.id;
+            const fallbackSrc = typeof entity.image === 'string' && imageMap[entity.image]
+              ? (typeof imageMap[entity.image] === 'string'
+                ? imageMap[entity.image]
+                : imageMap[entity.image].default || imageMap[entity.image].uri || imageMap[entity.image])
+              : (typeof entity.image === 'string'
+                ? entity.image
+                : entity.image.default || entity.image.uri || entity.image);
+            if (fallbackSrc) {
+              fallbackImg.onload = () => {
+                setLoadedImages(prev => ({ ...prev, [fallbackKey]: fallbackImg }));
+              };
+              fallbackImg.src = fallbackSrc;
+            }
+          }
+        };
+        img.onload = () => {
+          setLoadedImages(prev => ({
+            ...prev,
+            [imageKey]: img
+          }));
+        };
+        img.src = imageSrc;
       }
     });
-  }, [roomData]);
+  }, [roomData, CustomizationStore.version]);
 
   // Set up websocket listeners for map events
   useEffect(() => {
@@ -1828,6 +1899,13 @@ const MapCanvas = ({ location }) => {
           setIsDrawingBoardFlowOpen(true);
         } else if (obj.flow === 'mapSpritesStall') {
           setIsMapSpritesStallFlowOpen(true);
+        } else if (obj.flow === 'customizationTable') {
+          setIsCustomizationTableOpen(true);
+        } else if (obj.flow === 'pixelPals') {
+          setPixelPalsStartAt(null);
+          setPixelPalsParams({});
+          setIsPixelPalsFlowOpen(true);
+          updateFlowInUrl('pixelPals');
         } else if (obj.flow === 'mailbox') {
           setIsMailboxOpen(true);
         } else if (obj.flow === 'workbook') {
@@ -2253,9 +2331,27 @@ const MapCanvas = ({ location }) => {
           visible={isMapSpritesStallFlowOpen}
           onClose={() => setIsMapSpritesStallFlowOpen(false)}
         />
+        <CustomizationTable
+          visible={isCustomizationTableOpen}
+          onClose={() => setIsCustomizationTableOpen(false)}
+        />
         <Mailbox
           visible={isMailboxOpen}
           onClose={() => setIsMailboxOpen(false)}
+        />
+        <PixelPals
+          visible={isPixelPalsFlowOpen}
+          onClose={() => {
+            setIsPixelPalsFlowOpen(false);
+            setPixelPalsStartAt(null);
+            setPixelPalsParams({});
+            updateFlowInUrl(null);
+          }}
+          startAt={pixelPalsStartAt}
+          initialParams={pixelPalsParams}
+          onBoardChange={(boardId) => {
+            updateFlowInUrl('pixelPals', boardId ? { boardId } : undefined);
+          }}
         />
         <Workbook
           visible={isWorkbookOpen}

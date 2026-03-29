@@ -19,18 +19,32 @@ export default (width, height) => ({
       label: 'Sugarbee Cafe',
       showTitle: false,
       navigateTo: '/homestead/explore/map/sugarbee-cafe',
-      image: require('../../assets/images/sugarbee-cafe.png')
+      image: require('../../assets/images/sugarbee-cafe.png'),
+      platformAssetId: 'entity-sugarbee-cafe'
+    },
+    {
+      id: 'games-parlor-door',
+      x: width / 2 - 780,
+      y: height / 2 - 580,
+      width: 360,
+      height: 360,
+      label: 'Games Parlor',
+      showTitle: false,
+      navigateTo: '/homestead/explore/map/games-parlor',
+      image: require('../../assets/images/games-parlor.jpeg'),
+      platformAssetId: 'entity-games-parlor'
     },
     {
       id: 'bazaar-door',
       x: width / 2 - 780,
-      y: height / 2 - 280,
+      y: height / 2 - 180,
       width: 360,
       height: 360,
       label: 'Bazaar',
       showTitle: false,
       navigateTo: '/homestead/explore/map/bazaar',
-      image: require('../../assets/images/bank.png')
+      image: require('../../assets/images/bazaar.png'),
+      platformAssetId: 'entity-bazaar'
     },
   ],
 
@@ -46,6 +60,7 @@ export default (width, height) => ({
       label: 'Wishing Well',
       showTitle: false,
       image: 'wishing-well.png',
+      platformAssetId: 'entity-wishing-well',
       description: 'A beautiful wishing well in the center of town.'
     },
     // Campfire between wishing well and sugarbee cafe
@@ -59,6 +74,7 @@ export default (width, height) => ({
       label: 'Campfire',
       showTitle: false,
       image: require('../../assets/images/campfire.png'),
+      platformAssetId: 'entity-campfire',
       description: 'A warm campfire where travelers gather.',
       sounds: [
         'campfire',
@@ -79,6 +95,7 @@ export default (width, height) => ({
       zIndex: 1805,
       label: 'Journal',
       image: require('../../assets/images/journal.png'),
+      platformAssetId: 'entity-journal',
       showTitle: false,
       navigateTo: '/homestead/explore/map/weeping-willow'
     },
@@ -92,6 +109,7 @@ export default (width, height) => ({
       label: 'Help Wanted',
       showTitle: false,
       image: require('../../assets/images/help-wanted.png'),
+      platformAssetId: 'entity-help-wanted',
       description: 'A bulletin board where community members share their struggles and ask for support.',
       flow: 'weepingWillow',
       zIndex: 2100
@@ -106,6 +124,7 @@ export default (width, height) => ({
       label: 'Mailbox',
       showTitle: false,
       image: require('../../assets/images/mailbox.png'),
+      platformAssetId: 'entity-knapsack',
       flow: 'mailbox',
       zIndex: 2100
     },

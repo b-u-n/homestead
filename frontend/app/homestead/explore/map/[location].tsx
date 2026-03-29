@@ -4,7 +4,7 @@ import MapCanvas from '../../../../components/MapCanvas';
 
 export default function MapLocation() {
   const params = useLocalSearchParams();
-  const { location } = params;
+  const { location, flow, dropId, ...flowParams } = params;
 
   // Handle different types of location parameter
   let locationStr = 'town-square';
@@ -12,11 +12,14 @@ export default function MapLocation() {
   if (Array.isArray(location)) {
     locationStr = location[0];
   } else if (typeof location === 'object' && location !== null) {
-    // If it's an object, try common properties
     locationStr = location.pathname || location.path || location.name || 'town-square';
   } else if (typeof location === 'string') {
     locationStr = location;
   }
 
-  return <MapCanvas location={locationStr} />;
+  // Pass flow query params to MapCanvas for deep-linking
+  const initialFlow = typeof flow === 'string' ? flow : undefined;
+  const initialDropId = typeof dropId === 'string' ? dropId : undefined;
+
+  return <MapCanvas location={locationStr} initialFlow={initialFlow} initialDropId={initialDropId} initialFlowParams={flowParams} />;
 }

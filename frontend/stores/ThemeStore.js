@@ -69,6 +69,12 @@ const defaultWoolColors = {
     focused: 'rgba(130, 140, 255, 0.5)',
     inactive: 'rgba(68, 71, 90, 0.21)',
   },
+  cyan: {
+    default: 'rgba(139, 233, 253, 0.4)',
+    hover: 'rgba(139, 233, 253, 0.55)',
+    focused: 'rgba(139, 233, 253, 0.65)',
+    inactive: 'rgba(68, 71, 90, 0.21)',
+  },
 };
 
 /**

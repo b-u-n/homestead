@@ -51,10 +51,12 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
   };
 
   // Size presets for overlay modals
+  const isFullscreen = size === 'fullscreen';
   const sizePresets = {
     small: { maxWidth: 525, maxHeight: 480 },
     medium: { maxWidth: 675, maxHeight: 675 },
     large: { maxWidth: 825, maxHeight: 825 },
+    fullscreen: { width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', borderRadius: 0 },
   };
 
   // Use custom size if provided, otherwise use defaults
@@ -74,52 +76,65 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
     <View style={wrapperStyle}>
       <TiledBackground>
         <View style={styles.contentWrapper}>
-          <StitchedBorder borderRadius={12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.containerBorder}>
-            {/* Navigation buttons bar with title */}
-            <View style={styles.navBar}>
-              {/* Back button or spacer */}
-              {showBack ? (
-                <Pressable onPress={onCustomBack || onBack} style={[styles.backButtonPressable, { left: 0 }]}>
-                  <img
-                    src={typeof menuBackImage === 'string' ? menuBackImage : menuBackImage.default || menuBackImage.uri || menuBackImage}
-                    alt="Back"
-                    style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
-                  />
-                  {backLabel && (
-                    <Text style={[styles.backButtonLabel, {
-                      fontSize: FontSettingsStore.getScaledFontSize(12),
-                      color: FontSettingsStore.getFontColor('#403F3E'),
-                    }]}>{backLabel}</Text>
-                  )}
-                </Pressable>
-              ) : (
-                <View style={styles.navButtonSpacer} />
-              )}
+          <StitchedBorder borderRadius={isFullscreen ? 0 : 12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.containerBorder}>
+            {/* Navigation buttons bar with title — hidden in fullscreen */}
+            {!isFullscreen && (
+              <View style={styles.navBar}>
+                {/* Back button or spacer */}
+                {showBack ? (
+                  <Pressable onPress={onCustomBack || onBack} style={[styles.backButtonPressable, { left: 0 }]}>
+                    <img
+                      src={typeof menuBackImage === 'string' ? menuBackImage : menuBackImage.default || menuBackImage.uri || menuBackImage}
+                      alt="Back"
+                      style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                    />
+                    {backLabel && (
+                      <Text style={[styles.backButtonLabel, {
+                        fontSize: FontSettingsStore.getScaledFontSize(12),
+                        color: FontSettingsStore.getFontColor('#403F3E'),
+                      }]}>{backLabel}</Text>
+                    )}
+                  </Pressable>
+                ) : (
+                  <View style={styles.navButtonSpacer} />
+                )}
 
-              {/* Title in center */}
-              {title && (
-                <Text style={[
-                  styles.titleInNav,
-                  {
-                    fontSize: FontSettingsStore.getScaledFontSize(24),
-                    color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)'),
-                  }
-                ]}>{title}</Text>
-              )}
+                {/* Title in center */}
+                {title && (
+                  <Text style={[
+                    styles.titleInNav,
+                    {
+                      fontSize: FontSettingsStore.getScaledFontSize(24),
+                      color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)'),
+                    }
+                  ]}>{title}</Text>
+                )}
 
-              {/* Close button */}
-              {showClose ? (
-                <Pressable onPress={handleClose} style={[styles.closeButtonPressable, { right: 0 }]}>
-                  <img
-                    src={typeof menuCloseImage === 'string' ? menuCloseImage : menuCloseImage.default || menuCloseImage.uri || menuCloseImage}
-                    alt="Close"
-                    style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
-                  />
-                </Pressable>
-              ) : (
-                <View style={styles.navButtonSpacer} />
-              )}
-            </View>
+                {/* Close button */}
+                {showClose ? (
+                  <Pressable onPress={handleClose} style={[styles.closeButtonPressable, { right: 0 }]}>
+                    <img
+                      src={typeof menuCloseImage === 'string' ? menuCloseImage : menuCloseImage.default || menuCloseImage.uri || menuCloseImage}
+                      alt="Close"
+                      style={{ width: 50, height: 50, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                    />
+                  </Pressable>
+                ) : (
+                  <View style={styles.navButtonSpacer} />
+                )}
+              </View>
+            )}
+
+            {/* Fullscreen: minimal close button */}
+            {isFullscreen && showClose && (
+              <Pressable onPress={handleClose} style={styles.fullscreenClose}>
+                <img
+                  src={typeof menuCloseImage === 'string' ? menuCloseImage : menuCloseImage.default || menuCloseImage.uri || menuCloseImage}
+                  alt="Close"
+                  style={{ width: 36, height: 36, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                />
+              </Pressable>
+            )}
 
             {/* Content */}
             <Scroll style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -205,6 +220,13 @@ const styles = StyleSheet.create({
     minHeight: 50,
     width: '100%',
     zIndex: 10,
+  },
+  fullscreenClose: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 100,
+    opacity: 0.7,
   },
   navButtonSpacer: {
     width: 50,

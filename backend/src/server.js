@@ -18,7 +18,8 @@ const io = socketIo(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
-  }
+  },
+  maxHttpBufferSize: 10e6 // 10MB — needed for base64 image uploads via WebSocket
 });
 
 // Middleware
@@ -130,6 +131,9 @@ const workbookFlow = require('./flows/workbook');
 const bazaarFlow = require('./flows/bazaar');
 const moderationFlow = require('./flows/moderation');
 const adminFlow = require('./flows/admin');
+const featuresFlow = require('./flows/features');
+const knapsackFlow = require('./flows/knapsack');
+const pixelPalsFlow = require('./flows/pixelPals');
 
 // Register flows
 flowEngine.registerFlow(wishingWellFlow);
@@ -139,9 +143,55 @@ flowEngine.registerFlow(workbookFlow);
 flowEngine.registerFlow(bazaarFlow);
 flowEngine.registerFlow(moderationFlow);
 flowEngine.registerFlow(adminFlow);
+flowEngine.registerFlow(featuresFlow);
+flowEngine.registerFlow(knapsackFlow);
+flowEngine.registerFlow(pixelPalsFlow);
 
 // Pass io to report issues router for notifications
 reportIssuesRouter.setIo(io);
+
+// Pixel Pals credit notification cron — every 30 seconds
+const cron = require('node-cron');
+const PixelBoard = require('./models/PixelBoard');
+const { createNotification } = require('./flows/notifications');
+
+console.log('pixelPals credit cron registered (every 30s)');
+cron.schedule('*/30 * * * * *', async () => {
+  try {
+    const now = new Date();
+    const boards = await PixelBoard.find({
+      status: 'active',
+      contributorStats: {
+        $elemMatch: {
+          nextCreditAt: { $lte: now },
+          creditNotified: false
+        }
+      }
+    });
+
+    for (const board of boards) {
+      for (const stat of board.contributorStats) {
+        if (stat.nextCreditAt && stat.nextCreditAt <= now && !stat.creditNotified) {
+          stat.creditNotified = true;
+          await createNotification(io, {
+            recipientId: stat.userId,
+            type: 'pixelPals:creditsAvailable',
+            message: 'pixels available',
+            navigation: {
+              flow: 'pixelPals',
+              dropId: 'pixelPals:canvas',
+              params: { boardId: board._id.toString() }
+            },
+            actor: null
+          });
+        }
+      }
+      await board.save();
+    }
+  } catch (err) {
+    console.error('pixelPals credit cron error:', err.message);
+  }
+});
 
 // Socket connection handling
 io.on('connection', (socket) => {
@@ -166,6 +216,9 @@ io.on('connection', (socket) => {
   flowEngine.setupFlow(socket, io, 'bazaar');
   flowEngine.setupFlow(socket, io, 'moderation');
   flowEngine.setupFlow(socket, io, 'admin');
+  flowEngine.setupFlow(socket, io, 'features');
+  flowEngine.setupFlow(socket, io, 'knapsack');
+  flowEngine.setupFlow(socket, io, 'pixelPals');
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);

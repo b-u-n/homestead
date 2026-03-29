@@ -92,7 +92,7 @@ const shopItemSchema = new mongoose.Schema({
   storeType: {
     type: String,
     required: true,
-    enum: ['map-sprite', 'toy', 'emoji', 'decoration', 'avvie', 'spell']
+    enum: ['map-sprite', 'toy', 'emoji', 'decoration', 'avvie', 'spell', 'sketch']
   },
   subtype: {
     type: String // e.g. 'plushie' for toys
@@ -159,6 +159,26 @@ const shopItemSchema = new mongoose.Schema({
   },
   purchasedBy: [purchaseSchema],
   comments: [commentSchema],
+
+  // Visibility: public (normal) or private (personal gallery, owner-only)
+  visibility: {
+    type: String,
+    enum: ['public', 'private'],
+    default: 'public'
+  },
+
+  // Source game board (for completed Pixel Pals boards)
+  sourceBoard: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PixelBoard',
+    default: null
+  },
+
+  // Participants who contributed (get discount on purchase)
+  participantIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account'
+  }],
 
   createdAt: {
     type: Date,

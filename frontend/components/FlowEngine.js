@@ -268,7 +268,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             canGoBack={drop.showBack !== false && history.length > 1}
             showClose={drop.showClose !== false}
             title={typeof drop.title === 'function' ? drop.title(accumulatedData) : (drop.title || flowDefinition.title)}
-            size={drop.size}
+            size={drop.size || flowDefinition.size}
             additionalOpenSound={depth === 0 ? flowDefinition.additionalOpenSound : undefined}
             backLabel={drop.backLabel}
             onCustomBack={customBackHandler}

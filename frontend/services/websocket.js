@@ -5,6 +5,9 @@ import ProfileStore from '../stores/ProfileStore';
 import RoomStore from '../stores/RoomStore';
 import SessionStore from '../stores/SessionStore';
 import SoundSettingsStore from '../stores/SoundSettingsStore';
+import CustomizationStore from '../stores/CustomizationStore';
+import FeatureStore from '../stores/FeatureStore';
+import InventoryStore from '../stores/InventoryStore';
 import domain from '../utils/domain';
 
 class WebSocketService {
@@ -32,6 +35,27 @@ class WebSocketService {
         await SoundSettingsStore.loadFromServer();
       } catch (error) {
         console.error('Failed to load sound settings on connect:', error);
+      }
+
+      // Load asset customizations from server
+      try {
+        await CustomizationStore.loadFromServer();
+      } catch (error) {
+        console.error('Failed to load customizations on connect:', error);
+      }
+
+      // Load feature levels
+      try {
+        await FeatureStore.loadFromServer();
+      } catch (error) {
+        console.error('Failed to load features on connect:', error);
+      }
+
+      // Load knapsack inventory
+      try {
+        await InventoryStore.loadFromServer();
+      } catch (error) {
+        console.error('Failed to load inventory on connect:', error);
       }
     });
 

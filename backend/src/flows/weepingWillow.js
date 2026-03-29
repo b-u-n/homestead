@@ -4,7 +4,7 @@ const { createNotification } = require('./notifications');
 
 /**
  * Build a user object from an Account document
- * See readme/ARCHITECTURE.md for the user object pattern
+ * See md/ARCHITECTURE.md for the user object pattern
  */
 function buildUserObject(account) {
   return {

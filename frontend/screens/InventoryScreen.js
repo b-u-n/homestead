@@ -1,146 +1,169 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Scroll from '../components/Scroll';
 import { observer } from 'mobx-react-lite';
 import InventoryStore from '../stores/InventoryStore';
 import ErrorStore from '../stores/ErrorStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
+import MinkyPanel from '../components/MinkyPanel';
+import WoolButton from '../components/WoolButton';
+import FlowEngine from '../components/FlowEngine';
+import { pixelSketchFlow } from '../flows/pixelSketchFlow';
+import { PixelThumbnail } from '../components/PixelEditor';
+import SessionStore from '../stores/SessionStore';
+import WebSocketService from '../services/websocket';
 
-const InventoryItem = observer(({ item, index, onUse, onMove }) => {
-  const getRarityColor = (rarity) => {
-    switch (rarity) {
-      case 'common': return '#8E8E93';
-      case 'rare': return '#007AFF';
-      case 'epic': return '#9500FF';
-      case 'legendary': return '#FF9500';
-      default: return '#8E8E93';
-    }
-  };
-
-  const handleUse = () => {
-    if (item.type === 'consumable') {
-      Alert.alert(
-        'Use Item',
-        `Use ${item.name}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Use', onPress: () => onUse(item.id) }
-        ]
-      );
-    } else {
-      ErrorStore.addError(`${item.name} cannot be used here`);
-    }
-  };
-
-  return (
-    <TouchableOpacity style={styles.itemSlot} onPress={handleUse} activeOpacity={0.7}>
-      <View style={[styles.itemBorder, { borderColor: getRarityColor(item.rarity) }]}>
-        <Text style={styles.itemIcon}>{item.icon}</Text>
-        {item.quantity > 1 && (
-          <View style={styles.quantityBadge}>
-            <Text style={styles.quantityText}>{item.quantity}</Text>
+const SketchItem = observer(({ item, onOpen, onSubmit }) => (
+  <TouchableOpacity
+    style={styles.itemSlot}
+    onPress={() => onOpen(item)}
+    activeOpacity={0.7}
+  >
+    <MinkyPanel overlayColor="rgba(112, 68, 199, 0.15)" padding={4} borderRadius={8}>
+      <View style={styles.sketchItemInner}>
+        {item.data?.pixels ? (
+          <PixelThumbnail
+            pixels={item.data.pixels}
+            width={item.data.width || 32}
+            height={item.data.height || 32}
+            size={56}
+          />
+        ) : (
+          <View style={styles.emptySketchPlaceholder}>
+            <Text style={styles.placeholderText}>New</Text>
           </View>
         )}
       </View>
-      <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-    </TouchableOpacity>
-  );
-});
-
-const EmptySlot = () => (
-  <View style={styles.emptySlot}>
-    <View style={styles.emptySlotInner} />
-  </View>
-);
+    </MinkyPanel>
+    <Text style={[styles.itemName, { fontSize: FontSettingsStore.getScaledFontSize(10) }]} numberOfLines={1}>
+      {item.title || 'Sketch'}
+    </Text>
+    {onSubmit && item.data?.pixels && (
+      <TouchableOpacity onPress={() => onSubmit(item)} style={styles.submitBtn}>
+        <Text style={styles.submitBtnText}>Shop</Text>
+      </TouchableOpacity>
+    )}
+  </TouchableOpacity>
+));
 
 const InventoryScreen = observer(({ navigation }) => {
-  const [selectedTab, setSelectedTab] = useState('all');
+  const [sketchFlowOpen, setSketchFlowOpen] = useState(false);
+  const [activeSketchId, setActiveSketchId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleUseItem = (itemId) => {
-    const success = InventoryStore.useItem(itemId);
-    if (success) {
-      ErrorStore.addError('Item used!', 2000);
+  useEffect(() => {
+    if (!InventoryStore.loaded) {
+      loadItems();
+    }
+  }, []);
+
+  const loadItems = async () => {
+    setLoading(true);
+    await InventoryStore.loadFromServer();
+    setLoading(false);
+  };
+
+  const handleCreateSketch = async () => {
+    try {
+      const item = await InventoryStore.createPixelSketch('New Sketch');
+      setActiveSketchId(item._id);
+      setSketchFlowOpen(true);
+    } catch (err) {
+      ErrorStore.addError(err.message || 'Failed to create sketch');
     }
   };
 
-  const getFilteredItems = () => {
-    if (selectedTab === 'all') return InventoryStore.items;
-    return InventoryStore.getItemsByType(selectedTab);
+  const handleOpenSketch = (item) => {
+    setActiveSketchId(item._id);
+    setSketchFlowOpen(true);
   };
 
-  const renderInventoryGrid = () => {
-    const filteredItems = getFilteredItems();
-    const slots = [];
-    
-    // Add items
-    filteredItems.forEach((item, index) => {
-      slots.push(
-        <InventoryItem 
-          key={item.id} 
-          item={item} 
-          index={index}
-          onUse={handleUseItem}
-        />
-      );
-    });
-    
-    // Fill remaining slots if showing all items
-    if (selectedTab === 'all') {
-      const remainingSlots = InventoryStore.maxSlots - InventoryStore.items.length;
-      for (let i = 0; i < remainingSlots; i++) {
-        slots.push(<EmptySlot key={`empty-${i}`} />);
-      }
+  const handleDeleteSketch = async (itemId) => {
+    try {
+      await InventoryStore.deleteItem(itemId);
+    } catch (err) {
+      ErrorStore.addError(err.message || 'Failed to delete sketch');
     }
-    
-    return slots;
   };
 
-  const tabs = [
-    { id: 'all', name: 'All', icon: '📦' },
-    { id: 'tool', name: 'Tools', icon: '🔧' },
-    { id: 'consumable', name: 'Items', icon: '🧪' },
-    { id: 'key', name: 'Keys', icon: '🗝️' },
-    { id: 'food', name: 'Food', icon: '🍎' },
-  ];
+  const handleSubmitToShop = async (item, visibility = 'public') => {
+    try {
+      const data = await WebSocketService.emit('knapsack:items:submitToShop', {
+        sessionId: SessionStore.sessionId,
+        itemId: item._id,
+        visibility,
+      });
+      ErrorStore.addError(data?.message || 'Submitted for review!');
+    } catch (err) {
+      ErrorStore.addError(err.message || 'Failed to submit');
+    }
+  };
+
+  const sketches = InventoryStore.sketches;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Inventory</Text>
-        <Text style={styles.subtitle}>
-          {InventoryStore.itemCount}/{InventoryStore.maxSlots} slots
+        <Text style={[styles.title, { fontSize: FontSettingsStore.getScaledFontSize(20) }]}>
+          Knapsack
+        </Text>
+        <Text style={[styles.subtitle, { fontSize: FontSettingsStore.getScaledFontSize(12) }]}>
+          {InventoryStore.itemCount} item{InventoryStore.itemCount !== 1 ? 's' : ''}
         </Text>
       </View>
 
-      <View style={styles.tabContainer}>
-        <Scroll horizontal showsHorizontalScrollIndicator={false}>
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[styles.tab, selectedTab === tab.id && styles.tabActive]}
-              onPress={() => setSelectedTab(tab.id)}
-            >
-              <Text style={styles.tabIcon}>{tab.icon}</Text>
-              <Text style={[styles.tabText, selectedTab === tab.id && styles.tabTextActive]}>
-                {tab.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </Scroll>
+      {/* New Sketch button */}
+      <View style={styles.actionBar}>
+        <WoolButton
+          variant="purple"
+          size="small"
+          onPress={handleCreateSketch}
+        >
+          New Pixel Sketch
+        </WoolButton>
       </View>
 
+      {/* Items grid */}
       <Scroll style={styles.inventoryContainer} contentContainerStyle={styles.inventoryContent}>
-        <View style={styles.inventoryGrid}>
-          {renderInventoryGrid()}
-        </View>
+        {loading ? (
+          <Text style={styles.loadingText}>Loading...</Text>
+        ) : InventoryStore.isEmpty ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>🎒</Text>
+            <Text style={[styles.emptyText, { fontSize: FontSettingsStore.getScaledFontSize(14) }]}>
+              Your knapsack is empty
+            </Text>
+            <Text style={[styles.emptySubtext, { fontSize: FontSettingsStore.getScaledFontSize(12) }]}>
+              Create a pixel sketch to get started!
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.inventoryGrid}>
+            {sketches.map((item) => (
+              <SketchItem
+                key={item._id}
+                item={item}
+                onOpen={handleOpenSketch}
+                onSubmit={handleSubmitToShop}
+              />
+            ))}
+          </View>
+        )}
       </Scroll>
 
-      {InventoryStore.isEmpty && (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🎒</Text>
-          <Text style={styles.emptyText}>Your inventory is empty</Text>
-          <Text style={styles.emptySubtext}>Explore the world to find items!</Text>
-        </View>
-      )}
+      {/* Sketch editor flow */}
+      <FlowEngine
+        flowDefinition={pixelSketchFlow}
+        visible={sketchFlowOpen}
+        onClose={() => {
+          setSketchFlowOpen(false);
+          setActiveSketchId(null);
+        }}
+        initialContext={{
+          sessionId: SessionStore.sessionId,
+          itemId: activeSketchId
+        }}
+      />
     </View>
   );
 });
@@ -148,128 +171,86 @@ const InventoryScreen = observer(({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    gap: 8,
   },
   header: {
-    padding: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    padding: 16,
+    alignItems: 'center',
+    gap: 2,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontFamily: 'ChubbyTrail',
+    color: '#2D2C2B',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontFamily: 'Comfortaa',
+    color: '#5C5A58',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
-  tabContainer: {
-    backgroundColor: 'white',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginHorizontal: 4,
-    borderRadius: 20,
-    backgroundColor: '#f8f8f8',
+  actionBar: {
     alignItems: 'center',
-    minWidth: 70,
-  },
-  tabActive: {
-    backgroundColor: '#007AFF',
-  },
-  tabIcon: {
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  tabText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
-  tabTextActive: {
-    color: 'white',
+    paddingHorizontal: 16,
   },
   inventoryContainer: {
     flex: 1,
   },
   inventoryContent: {
+    padding: 16,
+  },
+  loadingText: {
+    fontFamily: 'Comfortaa',
+    fontSize: 13,
+    color: '#5C5A58',
+    textAlign: 'center',
     padding: 20,
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   inventoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    gap: 12,
   },
   itemSlot: {
-    width: '18%',
-    aspectRatio: 1,
-    marginBottom: 16,
+    width: 80,
     alignItems: 'center',
+    gap: 4,
   },
-  itemBorder: {
-    width: '100%',
-    height: '80%',
-    borderRadius: 8,
-    borderWidth: 2,
-    backgroundColor: 'white',
+  sketchItemInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+    minHeight: 64,
   },
-  itemIcon: {
-    fontSize: 24,
+  emptySketchPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 4,
+    backgroundColor: 'rgba(112, 68, 199, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderText: {
+    fontFamily: 'Comfortaa',
+    fontSize: 10,
+    color: '#7044C7',
   },
   itemName: {
-    fontSize: 10,
+    fontFamily: 'Comfortaa',
+    color: '#454342',
     textAlign: 'center',
-    marginTop: 4,
-    color: '#333',
-  },
-  quantityBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quantityText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  emptySlot: {
-    width: '18%',
-    aspectRatio: 1,
-    marginBottom: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptySlotInner: {
-    width: '80%',
-    height: '80%',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#ddd',
-    borderStyle: 'dashed',
-    backgroundColor: '#f9f9f9',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   emptyState: {
-    position: 'absolute',
-    top: '40%',
-    left: 0,
-    right: 0,
     alignItems: 'center',
-    pointerEvents: 'none',
+    paddingTop: 40,
   },
   emptyIcon: {
     fontSize: 48,
@@ -277,14 +258,36 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#999',
+    fontFamily: 'Comfortaa',
+    color: '#5C5A58',
+    fontWeight: '700',
     marginBottom: 8,
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#ccc',
+    fontFamily: 'Comfortaa',
+    color: '#999',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  submitBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(112, 68, 199, 0.2)',
+    marginTop: 2,
+  },
+  submitBtnText: {
+    fontFamily: 'Comfortaa',
+    fontSize: 9,
+    color: '#7044C7',
+    fontWeight: '700',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
 });
 

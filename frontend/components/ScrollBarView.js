@@ -20,8 +20,12 @@ const ScrollBarView = forwardRef(({
   onScroll,
   onScrollbarDrag,
   horizontal,
+  scrollEnabled = true,
   ...scrollViewProps
 }, ref) => {
+  const scrollEnabledRef = useRef(scrollEnabled);
+  scrollEnabledRef.current = scrollEnabled;
+
   const [scrollMetrics, setScrollMetrics] = useState({
     offset: 0,
     visible: 0,
@@ -89,6 +93,7 @@ const ScrollBarView = forwardRef(({
     const scrollbarSize = 32; // scrollbar width/height + margin
 
     const handleTouchStart = (e) => {
+      if (!scrollEnabledRef.current) return;
       const touch = e.touches[0];
       const rect = node.getBoundingClientRect();
 
@@ -108,6 +113,7 @@ const ScrollBarView = forwardRef(({
     };
 
     const handleTouchMove = (e) => {
+      if (!scrollEnabledRef.current) return;
       if (!touchScrollRef.current.active) return;
       const touch = e.touches[0];
       const pos = horizontal ? touch.clientX : touch.clientY;
@@ -187,6 +193,7 @@ const ScrollBarView = forwardRef(({
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         horizontal={horizontal}
+        scrollEnabled={scrollEnabled}
         onScroll={handleScroll}
         onLayout={handleLayout}
         onContentSizeChange={handleContentSizeChange}
@@ -200,6 +207,7 @@ const ScrollBarView = forwardRef(({
           style={scrollbarContainerStyle}
           onWheel={(e) => {
             e.preventDefault();
+            if (!scrollEnabled) return;
             const maxScroll = scrollMetrics.content - scrollMetrics.visible;
             if (maxScroll <= 0) return;
             const delta = horizontal ? (e.deltaX || e.deltaY) : e.deltaY;
@@ -213,7 +221,7 @@ const ScrollBarView = forwardRef(({
             contentHeight={scrollMetrics.content}
             visibleHeight={scrollMetrics.visible}
             scrollOffset={scrollMetrics.offset}
-            onScroll={handleScrollbarScroll}
+            onScroll={scrollEnabled ? handleScrollbarScroll : undefined}
             overlayColor={overlayColor}
             thumbOverlayColor={thumbOverlayColor}
             width={scrollbarWidth}

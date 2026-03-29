@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
+import SessionStore from '../../stores/SessionStore';
 import ErrorStore from '../../stores/ErrorStore';
 import FontSettingsStore from '../../stores/FontSettingsStore';
 import uxStore from '../../stores/UXStore';
@@ -67,7 +68,7 @@ const BazaarShop = observer(({
 
     try {
       setLoading(true);
-      const result = await WebSocketService.emit('bazaar:shop:list', { storeType });
+      const result = await WebSocketService.emit('bazaar:shop:list', { storeType, sessionId: SessionStore.sessionId });
       setItems(result || []);
     } catch (error) {
       console.error('Error loading shop items:', error);
@@ -181,6 +182,15 @@ const BazaarShop = observer(({
                     fontSize: FontSettingsStore.getScaledFontSize(10)
                   }]}>
                     Platform Approved
+                  </Text>
+                </View>
+              )}
+              {item.isOwned && (
+                <View style={styles.ownedBadge}>
+                  <Text style={[styles.ownedBadgeText, {
+                    fontSize: FontSettingsStore.getScaledFontSize(10)
+                  }]}>
+                    Owned
                   </Text>
                 </View>
               )}
@@ -302,6 +312,21 @@ const styles = StyleSheet.create({
   platformBadgeText: {
     fontFamily: 'Comfortaa',
     color: '#2E7D32',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  ownedBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(135, 180, 210, 0.3)',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  ownedBadgeText: {
+    fontFamily: 'Comfortaa',
+    fontWeight: '600',
+    color: '#1565C0',
     textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,

@@ -1,91 +1,99 @@
 import { makeAutoObservable } from 'mobx';
+import WebSocketService from '../services/websocket';
+import SessionStore from './SessionStore';
+
+// Portable types that show in the knapsack (must match backend itemHelpers.js)
+const PORTABLE_TYPES = ['sketch', 'toy', 'emoji', 'spell'];
+
+function isPortable(storeType) {
+  return PORTABLE_TYPES.includes(storeType);
+}
 
 class InventoryStore {
   items = [];
   maxSlots = 20;
   isOpen = false;
+  loaded = false;
 
   constructor() {
     makeAutoObservable(this);
-
-    // Initialize with some sample items
-    this.items = [
-      { itemId: 'magic-wand', uniqueId: 'wand-001', name: 'Magic Wand', type: 'tool', icon: '🪄', quantity: 1, rarity: 'rare', stackable: false },
-      { itemId: 'health-potion', name: 'Health Potion', type: 'consumable', icon: '🧪', quantity: 3, rarity: 'common', stackable: true },
-      { itemId: 'golden-key', uniqueId: 'key-123', name: 'Golden Key', type: 'key', icon: '🗝️', quantity: 1, rarity: 'legendary', stackable: false },
-      { itemId: 'apple', name: 'Apple', type: 'food', icon: '🍎', quantity: 5, rarity: 'common', stackable: true },
-    ];
   }
 
-  addItem(item) {
-    // Stackable items can be combined
-    if (item.stackable) {
-      const existingItem = this.items.find(i => i.itemId === item.itemId);
-
-      if (existingItem) {
-        existingItem.quantity += item.quantity || 1;
-        return;
-      }
-    }
-
-    // Non-stackable or new stackable items get their own slot
-    if (this.items.length < this.maxSlots) {
-      this.items.push({
-        ...item,
-        quantity: item.quantity || 1,
-        // Generate unique ID if not provided and item is not stackable
-        uniqueId: item.uniqueId || (!item.stackable ? `${item.itemId}-${Date.now()}` : undefined)
+  /**
+   * Load portable items from server
+   */
+  async loadFromServer() {
+    if (!SessionStore.sessionId) return;
+    try {
+      const data = await WebSocketService.emit('knapsack:items:list', {
+        sessionId: SessionStore.sessionId
       });
-    } else {
-      throw new Error('Inventory is full!');
+      this.items = data || [];
+      this.loaded = true;
+    } catch (err) {
+      console.error('Failed to load inventory:', err);
     }
   }
 
-  removeItem(itemId, quantity = 1, uniqueId = null) {
-    let itemIndex;
-
-    // If uniqueId provided, find that specific item
-    if (uniqueId) {
-      itemIndex = this.items.findIndex(item => item.uniqueId === uniqueId);
-    } else {
-      // Otherwise find by itemId
-      itemIndex = this.items.findIndex(item => item.itemId === itemId);
+  /**
+   * Create a blank pixel sketch and add to inventory
+   */
+  async createPixelSketch(title = 'New Sketch') {
+    try {
+      const data = await WebSocketService.emit('knapsack:items:create', {
+        sessionId: SessionStore.sessionId,
+        storeType: 'sketch',
+        title,
+        itemData: {
+          width: 32,
+          height: 32,
+          pixels: new Array(32 * 32).fill(null)
+        }
+      });
+      this.items.push(data);
+      return data;
+    } catch (err) {
+      console.error('Failed to create pixel sketch:', err);
+      throw err;
     }
-
-    if (itemIndex === -1) return false;
-
-    const item = this.items[itemIndex];
-
-    if (item.quantity > quantity) {
-      item.quantity -= quantity;
-    } else {
-      this.items.splice(itemIndex, 1);
-    }
-
-    return true;
   }
 
-  useItem(itemId, uniqueId = null) {
-    const item = uniqueId
-      ? this.items.find(item => item.uniqueId === uniqueId)
-      : this.items.find(item => item.itemId === itemId);
-
-    if (!item) return false;
-
-    if (item.type === 'consumable') {
-      this.removeItem(item.itemId, 1, item.uniqueId);
-      return true;
+  /**
+   * Save/update item data on server
+   */
+  async saveItem(itemId, updates = {}) {
+    try {
+      const data = await WebSocketService.emit('knapsack:items:update', {
+        sessionId: SessionStore.sessionId,
+        itemId,
+        ...updates,
+      });
+      // Update local item
+      const index = this.items.findIndex(i => (i._id || i.id) === itemId);
+      if (index !== -1) {
+        this.items[index] = data;
+      }
+      return data;
+    } catch (err) {
+      console.error('Failed to save item:', err);
+      throw err;
     }
-
-    return false;
   }
 
-  moveItem(fromIndex, toIndex) {
-    if (fromIndex < 0 || fromIndex >= this.items.length) return;
-    if (toIndex < 0 || toIndex >= this.maxSlots) return;
-    
-    const [movedItem] = this.items.splice(fromIndex, 1);
-    this.items.splice(toIndex, 0, movedItem);
+  /**
+   * Delete an item from server and local list
+   */
+  async deleteItem(itemId) {
+    try {
+      await WebSocketService.emit('knapsack:items:remove', {
+        sessionId: SessionStore.sessionId,
+        itemId,
+      });
+      this.items = this.items.filter(i => (i._id || i.id) !== itemId);
+    } catch (err) {
+      console.error('Failed to delete item:', err);
+      throw err;
+    }
   }
 
   toggleInventory() {
@@ -104,10 +112,6 @@ class InventoryStore {
     return this.items.length;
   }
 
-  get totalQuantity() {
-    return this.items.reduce((total, item) => total + item.quantity, 0);
-  }
-
   get isEmpty() {
     return this.items.length === 0;
   }
@@ -116,8 +120,18 @@ class InventoryStore {
     return this.items.length >= this.maxSlots;
   }
 
-  getItemsByType(type) {
-    return this.items.filter(item => item.type === type);
+  getByType(storeType) {
+    return this.items.filter(item => item.storeType === storeType);
+  }
+
+  get sketches() {
+    return this.getByType('sketch');
+  }
+
+  reset() {
+    this.items = [];
+    this.loaded = false;
+    this.isOpen = false;
   }
 }
 

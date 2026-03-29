@@ -12,10 +12,12 @@ export const PLATFORM_ASSETS = [
   { id: 'entity-journal', category: 'Sprites', name: 'Journal', image: require('../assets/images/journal.png') },
   { id: 'entity-weeping-willow', category: 'Sprites', name: 'Weeping Willow Tree', image: require('../assets/images/weeping-willow.png') },
   { id: 'entity-sugarbee-cafe', category: 'Sprites', name: 'Sugarbee Cafe Door', image: require('../assets/images/sugarbee-cafe.png') },
-  { id: 'entity-bazaar', category: 'Sprites', name: 'Bazaar Door', image: require('../assets/images/bank.png') },
+  { id: 'entity-bazaar', category: 'Sprites', name: 'Bazaar Door', image: require('../assets/images/bazaar.png') },
   { id: 'entity-cafe-couch', category: 'Sprites', name: 'Cafe Couch', image: require('../assets/images/sugarbee-cafe-couch.png') },
   { id: 'entity-back-button', category: 'Sprites', name: 'Back Button Sign', image: require('../assets/images/map-back-button.png') },
   { id: 'entity-knapsack', category: 'Sprites', name: 'Knapsack', image: require('../assets/images/knapsack.png') },
+  { id: 'entity-games-parlor', category: 'Sprites', name: 'Games Parlor Door', image: require('../assets/images/games-parlor.jpeg') },
+  { id: 'entity-pixel-pals', category: 'Sprites', name: 'Pixel Pals Table', image: require('../assets/images/pixel-pals.png') },
 
   // Bookshelves — library room interactive shelves
   { id: 'bookshelf-emotions', category: 'Bookshelves', name: 'Emotions', image: require('../assets/images/bookshelf-emotions.png') },
