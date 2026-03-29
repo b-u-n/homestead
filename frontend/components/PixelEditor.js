@@ -688,13 +688,10 @@ const PixelEditor = ({
     );
   }
 
-  // Force layout reflow on desktop — briefly zoom to kick browser into measuring correctly
+  // Force layout reflow on desktop — zoom to 90% to fix initial measurement
   useEffect(() => {
     if (Platform.OS !== 'web' || isMobile) return;
-    document.body.style.zoom = '0.99';
-    requestAnimationFrame(() => {
-      document.body.style.zoom = '';
-    });
+    document.body.style.zoom = '0.9';
   }, []);
 
   if (!containerSize) {
