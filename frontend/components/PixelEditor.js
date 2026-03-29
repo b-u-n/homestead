@@ -469,8 +469,15 @@ const PixelEditor = ({
         e.preventDefault();
         const el = gridScrollRef.current;
         if (el) {
-          el.scrollLeft += manualScrollRef.current.lastX - touch.clientX;
-          el.scrollTop += manualScrollRef.current.lastY - touch.clientY;
+          const dx = manualScrollRef.current.lastX - touch.clientX;
+          const dy = manualScrollRef.current.lastY - touch.clientY;
+          if (uxStore.isPortrait) {
+            el.scrollLeft += dy;
+            el.scrollTop += dx;
+          } else {
+            el.scrollLeft += dx;
+            el.scrollTop += dy;
+          }
         }
         manualScrollRef.current.lastX = touch.clientX;
         manualScrollRef.current.lastY = touch.clientY;
@@ -484,8 +491,15 @@ const PixelEditor = ({
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
-      const cx = (touch.clientX - rect.left) * scaleX;
-      const cy = (touch.clientY - rect.top) * scaleY;
+      let cx, cy;
+      if (uxStore.isPortrait) {
+        // Content is rotated 90deg — physical X/Y are swapped, short axis inverted
+        cx = (touch.clientY - rect.top) * scaleY;
+        cy = canvas.height - (touch.clientX - rect.left) * scaleX;
+      } else {
+        cx = (touch.clientX - rect.left) * scaleX;
+        cy = (touch.clientY - rect.top) * scaleY;
+      }
       const r = canvas.width / 2;
       if (Math.sqrt((cx - r) ** 2 + (cy - r) ** 2) > r) {
         // Outside wheel — dismiss and start manual scrolling
@@ -786,16 +800,28 @@ const PixelEditor = ({
                       latestPickedColorRef.current = currentColor;
                       const cellEl = e.currentTarget;
                       const contEl = containerRef.current;
-                      let overlayX = 0, overlayY = 0;
+                      let overlayX = 0, overlayY = 0, contW = containerSize.width, contH = containerSize.height;
                       if (cellEl && contEl) {
                         const cellRect = cellEl.getBoundingClientRect();
                         const contRect = contEl.getBoundingClientRect();
-                        overlayX = (cellRect.left + cellRect.width / 2) - contRect.left;
-                        overlayY = (cellRect.top + cellRect.height / 2) - contRect.top;
+                        const physX = (cellRect.left + cellRect.width / 2) - contRect.left;
+                        const physY = (cellRect.top + cellRect.height / 2) - contRect.top;
+                        if (actuallyPortraitMode) {
+                          overlayX = physY;
+                          overlayY = contRect.width - physX;
+                          contW = contRect.height;
+                          contH = contRect.width;
+                        } else {
+                          overlayX = physX;
+                          overlayY = physY;
+                          contW = contRect.width;
+                          contH = contRect.height;
+                        }
                       }
+                      const overlaySize = Math.min(contW * 0.49, 196);
                       setWheelOverlay({
                         pixelX: x, pixelY: y,
-                        overlayX, overlayY,
+                        overlayX, overlayY, contW, contH, overlaySize,
                         previewColor: currentColor,
                       });
                       setMobileDragEnabled(false);
@@ -855,11 +881,7 @@ const PixelEditor = ({
 
         {/* Mobile wheel overlay — absolute within container, positioned on selected pixel */}
         {wheelOverlay && (() => {
-          const contEl = containerRef.current;
-          const contRect = contEl?.getBoundingClientRect();
-          const containerW = contRect ? contRect.width : containerSize.width;
-          const containerH = contRect ? contRect.height : containerSize.height;
-          const mobileOverlaySize = Math.min(containerW * 0.49, 196);
+          const { contW, contH, overlaySize } = wheelOverlay;
           return (
             <>
               {/* Backdrop — tap to dismiss wheel */}
@@ -885,10 +907,10 @@ const PixelEditor = ({
               {/* Wheel — positioned over the tapped pixel, clamped to container */}
               <div ref={mobileWheelRef} style={{
                 position: 'absolute',
-                left: Math.max(8, Math.min(containerW - mobileOverlaySize - 8, (wheelOverlay.overlayX || 0) - mobileOverlaySize / 2)),
-                top: Math.max(8, Math.min(containerH - mobileOverlaySize - 8, (wheelOverlay.overlayY || 0) - mobileOverlaySize / 2)),
-                width: mobileOverlaySize,
-                height: mobileOverlaySize,
+                left: Math.max(8, Math.min(contW - overlaySize - 8, (wheelOverlay.overlayX || 0) - overlaySize / 2)),
+                top: Math.max(8, Math.min(contH - overlaySize - 8, (wheelOverlay.overlayY || 0) - overlaySize / 2)),
+                width: overlaySize,
+                height: overlaySize,
                 pointerEvents: 'auto',
                 opacity: wheelFading ? 0 : 1,
                 transition: 'opacity 0.3s ease-out',
@@ -907,7 +929,7 @@ const PixelEditor = ({
                     }}
                     visible={true}
                     hideToggle={true}
-                    size={mobileOverlaySize}
+                    size={overlaySize}
                     singleIndex={selectedWheelIndex}
                     alwaysTrack={true}
                     externalPickPos={sharedPickPos}
@@ -927,8 +949,8 @@ const PixelEditor = ({
                 {wheelOverlay.indicatorX != null && (
                   <div style={{
                     position: 'absolute',
-                    left: wheelOverlay.indicatorX * mobileOverlaySize - 6,
-                    top: wheelOverlay.indicatorY * mobileOverlaySize - 6,
+                    left: wheelOverlay.indicatorX * overlaySize - 6,
+                    top: wheelOverlay.indicatorY * overlaySize - 6,
                     width: 12, height: 12,
                     borderRadius: '50%',
                     border: '2.5px solid #fff',
@@ -1274,16 +1296,28 @@ const PixelEditor = ({
                       latestPickedColorRef.current = currentColor;
                       const cellEl = e.currentTarget;
                       const contEl = containerRef.current;
-                      let overlayX = 0, overlayY = 0;
+                      let overlayX = 0, overlayY = 0, contW = containerSize.width, contH = containerSize.height;
                       if (cellEl && contEl) {
                         const cellRect = cellEl.getBoundingClientRect();
                         const contRect = contEl.getBoundingClientRect();
-                        overlayX = (cellRect.left + cellRect.width / 2) - contRect.left;
-                        overlayY = (cellRect.top + cellRect.height / 2) - contRect.top;
+                        const physX = (cellRect.left + cellRect.width / 2) - contRect.left;
+                        const physY = (cellRect.top + cellRect.height / 2) - contRect.top;
+                        if (actuallyPortraitMode) {
+                          overlayX = physY;
+                          overlayY = contRect.width - physX;
+                          contW = contRect.height;
+                          contH = contRect.width;
+                        } else {
+                          overlayX = physX;
+                          overlayY = physY;
+                          contW = contRect.width;
+                          contH = contRect.height;
+                        }
                       }
+                      const overlaySize = Math.min(contW * 0.49, 196);
                       setWheelOverlay({
                         pixelX: x, pixelY: y,
-                        overlayX, overlayY,
+                        overlayX, overlayY, contW, contH, overlaySize,
                         previewColor: currentColor,
                       });
                       setMobileDragEnabled(false);
@@ -1346,11 +1380,7 @@ const PixelEditor = ({
 
         {/* Wheel overlay — absolute within container, positioned on selected pixel */}
         {wheelOverlay && (() => {
-          const contEl = containerRef.current;
-          const contRect = contEl?.getBoundingClientRect();
-          const containerW = contRect ? contRect.width : containerSize.width;
-          const containerH = contRect ? contRect.height : containerSize.height;
-          const mobileOverlaySize = Math.min(containerW * 0.49, 196);
+          const { contW, contH, overlaySize } = wheelOverlay;
           return (
             <>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
@@ -1359,9 +1389,9 @@ const PixelEditor = ({
               />
               <div ref={mobileWheelRef} style={{
                 position: 'absolute',
-                left: Math.max(8, Math.min(containerW - mobileOverlaySize - 8, (wheelOverlay.overlayX || 0) - mobileOverlaySize / 2)),
-                top: Math.max(8, Math.min(containerH - mobileOverlaySize - 8, (wheelOverlay.overlayY || 0) - mobileOverlaySize / 2)),
-                width: mobileOverlaySize, height: mobileOverlaySize,
+                left: Math.max(8, Math.min(contW - overlaySize - 8, (wheelOverlay.overlayX || 0) - overlaySize / 2)),
+                top: Math.max(8, Math.min(contH - overlaySize - 8, (wheelOverlay.overlayY || 0) - overlaySize / 2)),
+                width: overlaySize, height: overlaySize,
                 pointerEvents: 'auto', opacity: wheelFading ? 0 : 1,
                 transition: 'opacity 0.3s ease-out', zIndex: 10000,
               }}>
@@ -1370,14 +1400,14 @@ const PixelEditor = ({
                     color={wheelOverlay.previewColor}
                     onChange={(c) => { setWheelOverlay(prev => prev ? { ...prev, previewColor: c } : null); setCurrentColor(c); }}
                     onCommit={() => { if (wheelOverlay?.previewColor) setCurrentColor(wheelOverlay.previewColor); closeWheelOverlay(); }}
-                    visible={true} hideToggle={true} size={mobileOverlaySize}
+                    visible={true} hideToggle={true} size={overlaySize}
                     singleIndex={selectedWheelIndex} alwaysTrack={true}
                     externalPickPos={sharedPickPos} onExternalPickPos={setSharedPickPos}
                   />
                 </div>
                 <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 24, height: 24, backgroundColor: wheelOverlay.previewColor, boxShadow: '0 0 0 2px rgba(255,255,255,0.8), 0 0 6px rgba(0,0,0,0.4)', borderRadius: 12, pointerEvents: 'none', zIndex: 11 }} />
                 {wheelOverlay.indicatorX != null && (
-                  <div style={{ position: 'absolute', left: wheelOverlay.indicatorX * mobileOverlaySize - 6, top: wheelOverlay.indicatorY * mobileOverlaySize - 6, width: 12, height: 12, borderRadius: '50%', border: '2.5px solid #fff', boxShadow: '0 0 4px rgba(0,0,0,0.6)', pointerEvents: 'none', zIndex: 12 }} />
+                  <div style={{ position: 'absolute', left: wheelOverlay.indicatorX * overlaySize - 6, top: wheelOverlay.indicatorY * overlaySize - 6, width: 12, height: 12, borderRadius: '50%', border: '2.5px solid #fff', boxShadow: '0 0 4px rgba(0,0,0,0.6)', pointerEvents: 'none', zIndex: 12 }} />
                 )}
               </div>
             </>
