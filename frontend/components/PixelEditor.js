@@ -274,7 +274,8 @@ const PixelEditor = ({
   const [containerSize, setContainerSize] = useState(null);
   const [gridAreaSize, setGridAreaSize] = useState({ width: 300, height: 400 });
   const [internalColor, setInternalColor] = useState('#000000');
-  const isMobile = uxStore.isMobile;
+  const hasTouchScreen = typeof navigator !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const isMobile = uxStore.isMobile && hasTouchScreen;
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const gridScrollRef = useRef(null);
   const [gridScroll, setGridScroll] = useState({ scrollLeft: 0, scrollTop: 0, clientWidth: 0, clientHeight: 0, scrollWidth: 0, scrollHeight: 0 });
@@ -688,6 +689,17 @@ const PixelEditor = ({
     );
   }
 
+
+  // DEBUG: global mousedown logger — remove later
+  useEffect(() => {
+    const handler = (e) => {
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const hasPx = !!(el?.dataset?.px);
+      console.log(`[PixelEditor DEBUG] mousedown x=${e.clientX} y=${e.clientY} pixel=${hasPx} button=${e.button} tool=${tool} readOnly=${readOnly} wheelOverlay=${!!wheelOverlay} containerSize=${JSON.stringify(containerSize)} isMobile=${isMobile}`);
+    };
+    document.addEventListener('mousedown', handler, true);
+    return () => document.removeEventListener('mousedown', handler, true);
+  }, [tool, readOnly, wheelOverlay, containerSize, isMobile]);
 
   if (!containerSize) {
     return <View style={[styles.container, style]} onLayout={handleContainerLayout} />;
@@ -1697,12 +1709,6 @@ const PixelEditor = ({
                 gap: `${pixelGap}px`,
                 cursor: TOOL_CURSORS[tool] || 'default',
                 userSelect: 'none',
-              }}
-              onClick={(e) => {
-                // DEBUG: log click position and whether a pixel cell is under it
-                const el = document.elementFromPoint(e.clientX, e.clientY);
-                const hasPx = !!(el?.dataset?.px);
-                console.log(`[PixelEditor DEBUG] click x=${e.clientX} y=${e.clientY} pixel=${hasPx} el=${el?.tagName}.${el?.className || ''} dataset=${JSON.stringify(el?.dataset || {})}`);
               }}
               onMouseUp={handleMouseUp}
               onMouseLeave={() => {
