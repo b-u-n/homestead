@@ -148,14 +148,17 @@ const CottagecoreDial = ({ currentColor, onColorChange }) => {
   );
 };
 
-const TouchSlider = ({ value, max, gradient, onChange }) => {
+const TouchSlider = ({ value, max, gradient, onChange, rotated }) => {
   const trackRef = useRef(null);
-  const pick = useCallback((clientX) => {
+  const pick = useCallback((clientX, clientY) => {
     if (!trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
-    const t = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    // In portrait rotation, local horizontal = physical vertical (clientY), short axis inverted
+    const t = rotated
+      ? Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
+      : Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     onChange(Math.round(t * max));
-  }, [max, onChange]);
+  }, [max, onChange, rotated]);
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
     <div
@@ -165,10 +168,10 @@ const TouchSlider = ({ value, max, gradient, onChange }) => {
         background: `linear-gradient(to right, ${gradient})`,
         cursor: 'pointer', touchAction: 'none',
       }}
-      onMouseDown={(e) => { e.preventDefault(); pick(e.clientX); }}
-      onMouseMove={(e) => { if (e.buttons === 1) pick(e.clientX); }}
-      onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
-      onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
+      onMouseDown={(e) => { e.preventDefault(); pick(e.clientX, e.clientY); }}
+      onMouseMove={(e) => { if (e.buttons === 1) pick(e.clientX, e.clientY); }}
+      onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX, e.touches[0].clientY); }}
+      onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX, e.touches[0].clientY); }}
     >
       <div style={{
         position: 'absolute', top: 1, left: `calc(${pct}% - 8px)`,
@@ -176,14 +179,14 @@ const TouchSlider = ({ value, max, gradient, onChange }) => {
         background: 'white', border: '2px solid rgba(112, 68, 199, 0.6)',
         boxShadow: '0 1px 3px rgba(0,0,0,0.3)', touchAction: 'none',
       }}
-        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
-        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
+        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX, e.touches[0].clientY); }}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX, e.touches[0].clientY); }}
       />
     </div>
   );
 };
 
-const HSBSlidersInline = ({ currentColor, sliderCenterRef, hexToHsl, hslToHex, setCurrentColorFromSlider }) => {
+const HSBSlidersInline = ({ currentColor, sliderCenterRef, hexToHsl, hslToHex, setCurrentColorFromSlider, rotated }) => {
   const hsl = hexToHsl(currentColor);
   const center = sliderCenterRef.current || hsl;
   const levels = 16;
@@ -215,7 +218,7 @@ const HSBSlidersInline = ({ currentColor, sliderCenterRef, hexToHsl, hslToHex, s
     <View style={{ gap: 3, alignSelf: 'stretch', paddingHorizontal: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
         <Text style={{ fontFamily: 'Comfortaa', fontSize: 8, color: '#5C5A58', fontWeight: '700', width: 10 }}>H</Text>
-        <TouchSlider value={Math.max(0, Math.min(hueLevels, hSliderVal))} max={hueLevels} gradient={hueStops}
+        <TouchSlider value={Math.max(0, Math.min(hueLevels, hSliderVal))} max={hueLevels} gradient={hueStops} rotated={rotated}
           onChange={(v) => {
             const h = ((center.h - hRange + (v / hueLevels) * hRange * 2) % 360 + 360) % 360;
             setCurrentColorFromSlider(hslToHex(h, hsl.s, hsl.l));
@@ -223,7 +226,7 @@ const HSBSlidersInline = ({ currentColor, sliderCenterRef, hexToHsl, hslToHex, s
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
         <Text style={{ fontFamily: 'Comfortaa', fontSize: 8, color: '#5C5A58', fontWeight: '700', width: 10 }}>S</Text>
-        <TouchSlider value={Math.max(0, Math.min(levels, sSliderVal))} max={levels} gradient={satStops}
+        <TouchSlider value={Math.max(0, Math.min(levels, sSliderVal))} max={levels} gradient={satStops} rotated={rotated}
           onChange={(v) => {
             const s = sMin + (v / levels) * (sMax - sMin);
             setCurrentColorFromSlider(hslToHex(hsl.h, s, hsl.l));
@@ -231,7 +234,7 @@ const HSBSlidersInline = ({ currentColor, sliderCenterRef, hexToHsl, hslToHex, s
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
         <Text style={{ fontFamily: 'Comfortaa', fontSize: 8, color: '#5C5A58', fontWeight: '700', width: 10 }}>B</Text>
-        <TouchSlider value={Math.max(0, Math.min(levels, bSliderVal))} max={levels} gradient={briStops}
+        <TouchSlider value={Math.max(0, Math.min(levels, bSliderVal))} max={levels} gradient={briStops} rotated={rotated}
           onChange={(v) => {
             const l = bMin + (v / levels) * (bMax - bMin);
             setCurrentColorFromSlider(hslToHex(hsl.h, hsl.s, l));
@@ -501,6 +504,12 @@ const PixelEditor = ({
         cy = (touch.clientY - rect.top) * scaleY;
       }
       const r = canvas.width / 2;
+      if (!mobileWheelInteractedRef.current) {
+        // First touchmove after wheel open — mark as interacted but don't pick yet
+        mobileWheelInteractedRef.current = true;
+        e.preventDefault();
+        return;
+      }
       if (Math.sqrt((cx - r) ** 2 + (cy - r) ** 2) > r) {
         // Outside wheel — dismiss and start manual scrolling
         const finalColor = latestPickedColorRef.current || latestWheelOverlayRef.current?.previewColor;
@@ -794,10 +803,8 @@ const PixelEditor = ({
                         paintDriftRef.current = requestAnimationFrame(driftLoop);
                         return;
                       }
-                      // DRAW mode: open wheel
-                      wheelOpenTimeRef.current = Date.now();
-                      wheelTouchIdRef.current = touch?.identifier ?? null;
-                      latestPickedColorRef.current = currentColor;
+                      // DRAW mode: quick tap paints, hold opens wheel
+                      // Capture rects synchronously — e.currentTarget is null after handler returns
                       const cellEl = e.currentTarget;
                       const contEl = containerRef.current;
                       let overlayX = 0, overlayY = 0, contW = containerSize.width, contH = containerSize.height;
@@ -819,18 +826,21 @@ const PixelEditor = ({
                         }
                       }
                       const overlaySize = Math.min(contW * 0.49, 196);
-                      setWheelOverlay({
-                        pixelX: x, pixelY: y,
-                        overlayX, overlayY, contW, contH, overlaySize,
-                        previewColor: currentColor,
-                      });
-                      setMobileDragEnabled(false);
+                      tapStartRef.current = { cellX: x, cellY: y };
                       if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
                       holdTimerRef.current = setTimeout(() => {
-                        setMobileDragEnabled(true);
-                        setIsDrawing(true);
-                        closeWheelOverlay();
-                      }, 4000);
+                        tapStartRef.current = null;
+                        wheelOpenTimeRef.current = Date.now();
+                        wheelTouchIdRef.current = touch?.identifier ?? null;
+                        const pixelColor = localPixels[y * width + x] || currentColor;
+                        latestPickedColorRef.current = pixelColor;
+                        setWheelOverlay({
+                          pixelX: x, pixelY: y,
+                          overlayX, overlayY, contW, contH, overlaySize,
+                          previewColor: pixelColor,
+                        });
+                        setMobileDragEnabled(false);
+                      }, 212);
                     }}
                     onTouchMove={(e) => {
                       if (isDrawing) {
@@ -860,9 +870,22 @@ const PixelEditor = ({
                       if (el?.dataset?.px) handlePixelAction({ x: +el.dataset.px, y: +el.dataset.py });
                     }}
                     onTouchEnd={() => {
+                      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+                      if (tapStartRef.current) {
+                        const tx = tapStartRef.current.cellX;
+                        const ty = tapStartRef.current.cellY;
+                        setSelectedPixel({ x: tx, y: ty });
+                        const c = currentColor;
+                        setLocalPixels(prev => {
+                          const next = [...prev];
+                          next[ty * width + tx] = c;
+                          return next;
+                        });
+                        onPixelsChanged?.([{ x: tx, y: ty, color: c }]);
+                        tapStartRef.current = null;
+                      }
                       paintTouchRef.current = null;
                       if (paintDriftRef.current) { cancelAnimationFrame(paintDriftRef.current); paintDriftRef.current = null; }
-                      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
                       if (isDrawing || mobileDragEnabled) { setIsDrawing(false); commitPixels(); }
                       setMobileDragEnabled(false);
                     }}
@@ -1148,7 +1171,7 @@ const PixelEditor = ({
           </View>
           {/* HSB sliders + minimap */}
           <View style={{ justifyContent: 'center', alignItems: 'center', gap: 8 }}>
-            <HSBSlidersInline currentColor={currentColor} sliderCenterRef={sliderCenterRef} hexToHsl={hexToHsl} hslToHex={hslToHex} setCurrentColorFromSlider={setCurrentColorFromSlider} />
+            <HSBSlidersInline currentColor={currentColor} sliderCenterRef={sliderCenterRef} hexToHsl={hexToHsl} hslToHex={hslToHex} setCurrentColorFromSlider={setCurrentColorFromSlider} rotated={actuallyPortraitMode} />
             <div style={{
               position: 'relative',
               width: minimapSize,
@@ -1290,10 +1313,8 @@ const PixelEditor = ({
                         paintDriftRef.current = requestAnimationFrame(driftLoop);
                         return;
                       }
-                      // DRAW mode: open wheel
-                      wheelOpenTimeRef.current = Date.now();
-                      wheelTouchIdRef.current = touch?.identifier ?? null;
-                      latestPickedColorRef.current = currentColor;
+                      // DRAW mode: quick tap paints, hold opens wheel
+                      // Capture rects synchronously — e.currentTarget is null after handler returns
                       const cellEl = e.currentTarget;
                       const contEl = containerRef.current;
                       let overlayX = 0, overlayY = 0, contW = containerSize.width, contH = containerSize.height;
@@ -1315,18 +1336,21 @@ const PixelEditor = ({
                         }
                       }
                       const overlaySize = Math.min(contW * 0.49, 196);
-                      setWheelOverlay({
-                        pixelX: x, pixelY: y,
-                        overlayX, overlayY, contW, contH, overlaySize,
-                        previewColor: currentColor,
-                      });
-                      setMobileDragEnabled(false);
+                      tapStartRef.current = { cellX: x, cellY: y };
                       if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
                       holdTimerRef.current = setTimeout(() => {
-                        setMobileDragEnabled(true);
-                        setIsDrawing(true);
-                        closeWheelOverlay();
-                      }, 4000);
+                        tapStartRef.current = null;
+                        wheelOpenTimeRef.current = Date.now();
+                        wheelTouchIdRef.current = touch?.identifier ?? null;
+                        const pixelColor = localPixels[y * width + x] || currentColor;
+                        latestPickedColorRef.current = pixelColor;
+                        setWheelOverlay({
+                          pixelX: x, pixelY: y,
+                          overlayX, overlayY, contW, contH, overlaySize,
+                          previewColor: pixelColor,
+                        });
+                        setMobileDragEnabled(false);
+                      }, 212);
                     }}
                     onTouchMove={(e) => {
                       if (isDrawing) {
@@ -1358,10 +1382,22 @@ const PixelEditor = ({
                       if (el?.dataset?.px) handlePixelAction({ x: +el.dataset.px, y: +el.dataset.py });
                     }}
                     onTouchEnd={() => {
-                      tapStartRef.current = null;
+                      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+                      if (tapStartRef.current) {
+                        const tx = tapStartRef.current.cellX;
+                        const ty = tapStartRef.current.cellY;
+                        setSelectedPixel({ x: tx, y: ty });
+                        const c = currentColor;
+                        setLocalPixels(prev => {
+                          const next = [...prev];
+                          next[ty * width + tx] = c;
+                          return next;
+                        });
+                        onPixelsChanged?.([{ x: tx, y: ty, color: c }]);
+                        tapStartRef.current = null;
+                      }
                       paintTouchRef.current = null;
                       if (paintDriftRef.current) { cancelAnimationFrame(paintDriftRef.current); paintDriftRef.current = null; }
-                      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
                       if (isDrawing || mobileDragEnabled) { setIsDrawing(false); commitPixels(); }
                       setMobileDragEnabled(false);
                     }}
@@ -1593,7 +1629,7 @@ const PixelEditor = ({
           })()}
 
           {isLandscapeMobile && (
-            <HSBSlidersInline currentColor={currentColor} sliderCenterRef={sliderCenterRef} hexToHsl={hexToHsl} hslToHex={hslToHex} setCurrentColorFromSlider={setCurrentColorFromSlider} />
+            <HSBSlidersInline currentColor={currentColor} sliderCenterRef={sliderCenterRef} hexToHsl={hexToHsl} hslToHex={hslToHex} setCurrentColorFromSlider={setCurrentColorFromSlider} rotated={actuallyPortraitMode} />
           )}
           {isLandscapeMobile && (
             <MinkyPanel transparent padding={2} borderRadius={4}>
