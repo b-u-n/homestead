@@ -131,7 +131,7 @@ class PixelPalsStore {
     }
   }
 
-  // Apply incoming pixel broadcast to current board
+  // Apply incoming pixel broadcast to current board (mutate in place — don't replace array)
   applyPixelUpdate(boardId, pixels) {
     if (this.currentBoard && this.currentBoard._id === boardId) {
       for (const p of pixels) {

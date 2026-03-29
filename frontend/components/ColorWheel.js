@@ -56,6 +56,43 @@ const MiniWheel = ({ colors, size, currentColor, onChange, onCommit, centerBrigh
   const canvasRef = useRef(null);
   const diskRef = useRef(null);
   const lastPickRef = useRef({ x: -999, y: -999 });
+  const [colorIndicator, setColorIndicator] = useState(null);
+  const colorScanRef = useRef(null);
+
+  // Find closest color match on this wheel's canvas
+  useEffect(() => {
+    if (!showIndicator || !canvasRef.current || !currentColor) {
+      setColorIndicator(null);
+      return;
+    }
+    // Debounce: cancel previous scan
+    if (colorScanRef.current) cancelAnimationFrame(colorScanRef.current);
+    colorScanRef.current = requestAnimationFrame(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const r = size / 2;
+      const targetRgb = hexToRgb(currentColor);
+      let bestDist = Infinity;
+      let bestX = r, bestY = r;
+      const step = Math.max(2, Math.floor(size / 20)); // ~20 samples per axis
+      const data = ctx.getImageData(0, 0, size, size).data;
+      for (let sy = 0; sy < size; sy += step) {
+        for (let sx = 0; sx < size; sx += step) {
+          if (Math.sqrt((sx - r) ** 2 + (sy - r) ** 2) > r) continue;
+          const off = (sy * size + sx) * 4;
+          if (data[off + 3] < 128) continue;
+          const dr = data[off] - targetRgb[0];
+          const dg = data[off + 1] - targetRgb[1];
+          const db = data[off + 2] - targetRgb[2];
+          const d = dr * dr + dg * dg + db * db;
+          if (d < bestDist) { bestDist = d; bestX = sx; bestY = sy; }
+        }
+      }
+      setColorIndicator(bestDist < 2000 ? { x: bestX, y: bestY } : null);
+    });
+    return () => { if (colorScanRef.current) cancelAnimationFrame(colorScanRef.current); };
+  }, [currentColor, showIndicator, size]);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || !canvasRef.current) return;
@@ -138,7 +175,8 @@ const MiniWheel = ({ colors, size, currentColor, onChange, onCommit, centerBrigh
     const pixel = ctx.getImageData(px, py, 1, 1).data;
     if (pixel[3] === 0) return;
 
-    // Report normalized position (0-1 range) to parent for mirroring
+    // Set indicator directly on this wheel for instant feedback
+    setColorIndicator({ x: px, y: py });
     onPickPos?.({ nx: px / size, ny: py / size });
     onChange?.(rgbToHex(pixel[0], pixel[1], pixel[2]));
   }, [size, onChange]);
@@ -187,19 +225,14 @@ const MiniWheel = ({ colors, size, currentColor, onChange, onCommit, centerBrigh
         ref={canvasRef}
         style={{ width: size, height: size, display: 'block' }}
       />
-      {mirrorPos && (() => {
-        const ix = mirrorPos.nx * size;
-        const iy = mirrorPos.ny * size;
-        const r = size / 2;
-        const inCircle = Math.sqrt((ix - r) ** 2 + (iy - r) ** 2) <= r;
-        if (!inCircle) return null;
+      {colorIndicator && (() => {
         const dotSize = isActiveWheel ? 8 : 5;
-        const opacity = isActiveWheel ? 1 : 0.6;
+        const opacity = isActiveWheel ? 1 : 0.5;
         return (
           <div style={{
             position: 'absolute',
-            left: ix - dotSize / 2,
-            top: iy - dotSize / 2,
+            left: colorIndicator.x - dotSize / 2,
+            top: colorIndicator.y - dotSize / 2,
             width: dotSize,
             height: dotSize,
             borderRadius: '50%',

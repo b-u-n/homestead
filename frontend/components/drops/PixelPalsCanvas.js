@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
@@ -21,6 +21,7 @@ const PixelPalsCanvas = observer(({
 
   const [loading, setLoading] = useState(true);
   const [currentColor, setCurrentColor] = useState('#000000');
+  const remotePixelsRef = useRef(null);
 
   useEffect(() => {
     if (boardId) {
@@ -56,6 +57,10 @@ const PixelPalsCanvas = observer(({
   const handlePixelUpdate = useCallback(({ boardId: updatedBoardId, pixels, user }) => {
     if (updatedBoardId === boardId) {
       PixelPalsStore.applyPixelUpdate(updatedBoardId, pixels);
+      // Push directly into PixelEditor's local state (no prop change needed)
+      if (remotePixelsRef.current) {
+        remotePixelsRef.current(pixels);
+      }
     }
   }, [boardId]);
 
@@ -125,6 +130,7 @@ const PixelPalsCanvas = observer(({
         onSaveColor={handleSaveColor}
         onRemoveColor={handleRemoveColor}
         showSaveButton={false}
+        onRemotePixelsRef={remotePixelsRef}
         style={styles.editor}
       />
     </View>

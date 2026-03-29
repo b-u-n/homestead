@@ -4,11 +4,9 @@ import { Stack } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../../../services/websocket';
 import LayerStore from '../../../../stores/LayerStore';
-import LayerSelectModal from '../../../../components/LayerSelectModal';
 
 const MapLayout = observer(() => {
   const [isConnecting, setIsConnecting] = useState(true);
-  const [showLayerModal, setShowLayerModal] = useState(false);
 
   useEffect(() => {
     const initConnection = async () => {
@@ -41,20 +39,23 @@ const MapLayout = observer(() => {
       await waitForSocket();
       setIsConnecting(false);
 
-      // Check if user needs to select a layer
+      // Auto-join layer if not already in one
       if (!LayerStore.hasSelectedLayer) {
-        // Try to restore from saved layer
         try {
           const currentLayer = await WebSocketService.getCurrentLayer();
           if (currentLayer) {
             LayerStore.setCurrentLayer(currentLayer);
           } else {
-            // No current layer, show selection modal
-            setShowLayerModal(true);
+            // No current layer — auto-join Hopeful (default)
+            const layers = await WebSocketService.emit('layers:list');
+            const hopeful = layers?.find((l: any) => l.name === 'Hopeful') || layers?.[0];
+            if (hopeful) {
+              const joined = await WebSocketService.joinLayer(hopeful._id);
+              LayerStore.setCurrentLayer(joined);
+            }
           }
         } catch (err) {
-          console.error('Failed to get current layer:', err);
-          setShowLayerModal(true);
+          console.error('Failed to auto-join layer:', err);
         }
       }
     };
@@ -62,38 +63,12 @@ const MapLayout = observer(() => {
     initConnection();
   }, []);
 
-  const handleLayerSelected = (layer: any) => {
-    setShowLayerModal(false);
-  };
-
   // Show loading while connecting
   if (isConnecting) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#DE86DF" />
         <Text style={styles.loadingText}>Connecting...</Text>
-      </View>
-    );
-  }
-
-  // Show layer selection if no layer selected
-  if (showLayerModal || !LayerStore.hasSelectedLayer) {
-    return (
-      <View style={styles.container}>
-        <LayerSelectModal
-          visible={true}
-          onClose={() => {
-            // If they close without selecting, use default
-            const defaultLayer = LayerStore.getDefaultLayer();
-            if (defaultLayer) {
-              WebSocketService.joinLayer(defaultLayer._id).then((layer) => {
-                LayerStore.setCurrentLayer(layer);
-                setShowLayerModal(false);
-              });
-            }
-          }}
-          onLayerSelected={handleLayerSelected}
-        />
       </View>
     );
   }

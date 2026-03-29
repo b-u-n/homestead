@@ -111,12 +111,18 @@ Three layout modes detected automatically. Mode detection uses `uxStore.isPortra
 - Mouse cursors: custom SVG cursors per tool
 
 ### Mobile Landscape
-- Uses the **same left panel + grid layout as desktop**, but with a scrollable grid container (`overflow: scroll` div wrapping the grid, using `display: contents` passthrough on desktop).
-- Minimum cell size 32px for finger taps. Grid scrolls both axes when it exceeds the viewport.
-- Tapping a pixel opens the color wheel immediately (same as portrait — no DRAW/PAINT distinction at touch level).
-- **Scroll-through behavior**: same global `touchmove` listener as portrait — drag inside wheel picks colors, drag outside dismisses wheel and enters manual scroll mode.
-- **Color wheel popup**: `position: fixed`, screen-edge clamped (same as portrait), rendered outside the scroll container so it doesn't scroll away.
-- **Interactive minimap** in left panel above color wheels: stitched border, viewport indicator, click/touch-to-navigate, drag-to-pan (same as portrait minimap).
+Separate early-return layout (not shared with desktop). Horizontal layout: side panel on left, scrollable grid on right.
+
+- **Side panel** split into two sub-panels (50/50, `flexDirection: 'row'`):
+  - **Left sub-panel**: tools (horizontal row), color swatch (full-width bar), budget, color wheels (4 columns)
+  - **Right sub-panel**: interactive minimap with viewport indicator, click/touch-to-navigate, drag-to-pan
+- **Scrollable grid**: `overflow: scroll` div, height set to `containerSize.height` (explicit pixels to prevent modal overflow). Minimum cell size 32px.
+- **Tool modes**:
+  - **Draw**: tap opens color wheel immediately (`preventDefault`). Scroll-through behavior via global `touchmove` listener (same as portrait — drag outside wheel dismisses + manual scroll).
+  - **Paint/Erase**: `preventDefault`, paints immediately. Square hitbox samples cells at half-cell intervals within a 144%-cell-sized area (`paintHalf = mobileCellSize * 0.72`). Centering drift loop (`requestAnimationFrame`) continuously scrolls the grid to center the finger: `offsetFromCenter * 0.048`, capped at 7px/frame. Loop starts on `touchStart`, tracks finger via `paintTouchRef`, stops on `touchEnd`.
+  - **Pick**: tap samples color, switches to Draw mode.
+- **Color wheel popup**: `position: fixed`, screen-edge clamped (same as portrait), rendered outside the scroll container.
+- **Wheel indicator sync**: shared `pickPos` state between popup and panel wheels via `externalPickPos`/`onExternalPickPos` props.
 
 ### Mobile Portrait
 - **Scrollable grid** (80% height, minus 16px gap): full-width pixels, scrollable in both axes if grid exceeds viewport. Minimum cell size 32px for finger taps.

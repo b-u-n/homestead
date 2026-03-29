@@ -163,6 +163,7 @@ const PixelEditor = ({
   onSaveColor,
   onRemoveColor,
   showSaveButton = true,
+  onRemotePixelsRef,
   style,
 }) => {
   const canvasRef = useRef(null);
@@ -204,6 +205,22 @@ const PixelEditor = ({
     else setInternalColor(c);
   }, [onColorChange]);
 
+  // Expose a function for the parent to push remote pixel updates directly
+  useEffect(() => {
+    if (onRemotePixelsRef) {
+      onRemotePixelsRef.current = (pixels) => {
+        setLocalPixels(prev => {
+          const next = [...prev];
+          for (const p of pixels) {
+            next[p.y * width + p.x] = p.color;
+          }
+          return next;
+        });
+      };
+    }
+    return () => { if (onRemotePixelsRef) onRemotePixelsRef.current = null; };
+  }, [onRemotePixelsRef, width]);
+
   // Sync external pixels
   useEffect(() => {
     setLocalPixels([...externalPixels]);
@@ -235,7 +252,7 @@ const PixelEditor = ({
   // Three modes: desktop, landscape mobile, portrait mobile
   // Use uxStore.isPortrait for mode detection (reactive, correct before first layout)
   // and containerSize for sizing calculations (updated via onLayout)
-  const pixelGap = 1;
+  const pixelGap = 0;
   const isPortraitMode = isMobile && uxStore.isPortrait;
   const isLandscapeMobile = isMobile && !isPortraitMode;
 
@@ -591,6 +608,39 @@ const PixelEditor = ({
                       e.stopPropagation();
                       const touch = e.touches[0];
                       if (!touch) return;
+                      if (tool === TOOLS.EYEDROPPER) {
+                        const c = localPixels[y * width + x];
+                        if (c) setCurrentColor(c);
+                        setTool(TOOLS.DRAW);
+                        return;
+                      }
+                      if (tool === TOOLS.PAINT || tool === TOOLS.ERASER) {
+                        setIsDrawing(true);
+                        paintTouchRef.current = { x: touch.clientX, y: touch.clientY };
+                        handlePixelAction({ x, y });
+                        // Start centering drift loop
+                        const driftLoop = () => {
+                          const scrollEl = gridScrollRef.current;
+                          const pt = paintTouchRef.current;
+                          if (!scrollEl || !pt) return;
+                          const rect = scrollEl.getBoundingClientRect();
+                          const centerX = rect.left + rect.width / 2;
+                          const centerY = rect.top + rect.height / 2;
+                          const offsetX = pt.x - centerX;
+                          const offsetY = pt.y - centerY;
+                          const speed = 0.048;
+                          const maxDrift = 7;
+                          const driftX = Math.max(-maxDrift, Math.min(maxDrift, offsetX * speed));
+                          const driftY = Math.max(-maxDrift, Math.min(maxDrift, offsetY * speed));
+                          if (Math.abs(offsetX) > 4) scrollEl.scrollLeft += driftX;
+                          if (Math.abs(offsetY) > 4) scrollEl.scrollTop += driftY;
+                          paintDriftRef.current = requestAnimationFrame(driftLoop);
+                        };
+                        if (paintDriftRef.current) cancelAnimationFrame(paintDriftRef.current);
+                        paintDriftRef.current = requestAnimationFrame(driftLoop);
+                        return;
+                      }
+                      // DRAW mode: open wheel
                       wheelOpenTimeRef.current = Date.now();
                       wheelTouchIdRef.current = touch?.identifier ?? null;
                       latestPickedColorRef.current = currentColor;
@@ -609,17 +659,37 @@ const PixelEditor = ({
                       }, 4000);
                     }}
                     onTouchMove={(e) => {
+                      if (isDrawing) {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const paintHalf = mobileCellSize * 0.72;
+                        const step = mobileCellSize * 0.5;
+                        const seen = new Set();
+                        for (let ox = -paintHalf; ox <= paintHalf; ox += step) {
+                          for (let oy = -paintHalf; oy <= paintHalf; oy += step) {
+                            const el = document.elementFromPoint(touch.clientX + ox, touch.clientY + oy);
+                            if (el?.dataset?.px) {
+                              const key = `${el.dataset.px},${el.dataset.py}`;
+                              if (!seen.has(key)) {
+                                seen.add(key);
+                                handlePixelAction({ x: +el.dataset.px, y: +el.dataset.py });
+                              }
+                            }
+                          }
+                        }
+                        paintTouchRef.current = { x: touch.clientX, y: touch.clientY };
+                        return;
+                      }
                       if (!mobileDragEnabled) return;
                       const touch = e.touches[0];
                       const el = document.elementFromPoint(touch.clientX, touch.clientY);
                       if (el?.dataset?.px) handlePixelAction({ x: +el.dataset.px, y: +el.dataset.py });
                     }}
                     onTouchEnd={() => {
+                      paintTouchRef.current = null;
+                      if (paintDriftRef.current) { cancelAnimationFrame(paintDriftRef.current); paintDriftRef.current = null; }
                       if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
-                      if (mobileDragEnabled) {
-                        setIsDrawing(false);
-                        commitPixels();
-                      }
+                      if (isDrawing || mobileDragEnabled) { setIsDrawing(false); commitPixels(); }
                       setMobileDragEnabled(false);
                     }}
                     data-px={x} data-py={y}
@@ -1034,8 +1104,8 @@ const PixelEditor = ({
                           const centerY = rect.top + rect.height / 2;
                           const offsetX = pt.x - centerX;
                           const offsetY = pt.y - centerY;
-                          const speed = 0.05;
-                          const maxDrift = 6;
+                          const speed = 0.048;
+                          const maxDrift = 7;
                           const driftX = Math.max(-maxDrift, Math.min(maxDrift, offsetX * speed));
                           const driftY = Math.max(-maxDrift, Math.min(maxDrift, offsetY * speed));
                           if (Math.abs(offsetX) > 4) scrollEl.scrollLeft += driftX;
@@ -1068,7 +1138,7 @@ const PixelEditor = ({
                         e.preventDefault();
                         const touch = e.touches[0];
                         // Paint cells under finger — sample grid at cell-size intervals
-                        const paintHalf = mobileCellSize * 0.6;
+                        const paintHalf = mobileCellSize * 0.72;
                         const step = mobileCellSize * 0.5;
                         const seen = new Set();
                         for (let ox = -paintHalf; ox <= paintHalf; ox += step) {
