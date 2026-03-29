@@ -688,11 +688,6 @@ const PixelEditor = ({
     );
   }
 
-  // Force layout reflow on desktop — zoom to 90% to fix initial measurement
-  useEffect(() => {
-    if (Platform.OS !== 'web' || isMobile) return;
-    document.body.style.zoom = '0.9';
-  }, []);
 
   if (!containerSize) {
     return <View style={[styles.container, style]} onLayout={handleContainerLayout} />;
@@ -1703,6 +1698,12 @@ const PixelEditor = ({
                 cursor: TOOL_CURSORS[tool] || 'default',
                 userSelect: 'none',
               }}
+              onClick={(e) => {
+                // DEBUG: log click position and whether a pixel cell is under it
+                const el = document.elementFromPoint(e.clientX, e.clientY);
+                const hasPx = !!(el?.dataset?.px);
+                console.log(`[PixelEditor DEBUG] click x=${e.clientX} y=${e.clientY} pixel=${hasPx} el=${el?.tagName}.${el?.className || ''} dataset=${JSON.stringify(el?.dataset || {})}`);
+              }}
               onMouseUp={handleMouseUp}
               onMouseLeave={() => {
                 if (isDrawing) {
@@ -2174,6 +2175,7 @@ const styles = StyleSheet.create({
     borderColor: '#7044C7',
   },
   gridArea: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
