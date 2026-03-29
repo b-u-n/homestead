@@ -789,9 +789,10 @@ const PixelEditor = ({
                           const rect = scrollEl.getBoundingClientRect();
                           const physX = pt.x - (rect.left + rect.width / 2);
                           const physY = pt.y - (rect.top + rect.height / 2);
-                          // Convert physical offset to local offset (same pattern as wheel positioning)
-                          const offsetX = actuallyPortraitMode ? physY : physX;
-                          const offsetY = actuallyPortraitMode ? -physX : physY;
+                          // Convert physical offset to local offset (read uxStore directly for live value)
+                          const rotated = uxStore.isPortrait;
+                          const offsetX = rotated ? physY : physX;
+                          const offsetY = rotated ? -physX : physY;
                           const speed = 0.048;
                           const maxDrift = 7;
                           const driftX = Math.max(-maxDrift, Math.min(maxDrift, offsetX * speed));
@@ -1300,9 +1301,10 @@ const PixelEditor = ({
                           const rect = scrollEl.getBoundingClientRect();
                           const physX = pt.x - (rect.left + rect.width / 2);
                           const physY = pt.y - (rect.top + rect.height / 2);
-                          // Convert physical offset to local offset (same pattern as wheel positioning)
-                          const offsetX = actuallyPortraitMode ? physY : physX;
-                          const offsetY = actuallyPortraitMode ? -physX : physY;
+                          // Convert physical offset to local offset (read uxStore directly for live value)
+                          const rotated = uxStore.isPortrait;
+                          const offsetX = rotated ? physY : physX;
+                          const offsetY = rotated ? -physX : physY;
                           const speed = 0.048;
                           const maxDrift = 7;
                           const driftX = Math.max(-maxDrift, Math.min(maxDrift, offsetX * speed));
