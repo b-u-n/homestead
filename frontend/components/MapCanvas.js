@@ -688,8 +688,15 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       uxStore.updateDimensions(w, h);
 
       // Sync local state from store
-      setCanvasWidth(uxStore.screenWidth);
-      setCanvasHeight(uxStore.screenHeight);
+      // On mobile with sidebar, expand canvas to fill available space
+      const sidebarW = uxStore.effectiveSidebarWidth;
+      if (sidebarW > 0 && uxStore.isMobile) {
+        setCanvasWidth(uxStore.fullWidth - sidebarW);
+        setCanvasHeight(uxStore.fullHeight);
+      } else {
+        setCanvasWidth(uxStore.screenWidth);
+        setCanvasHeight(uxStore.screenHeight);
+      }
       setIsMobile(uxStore.isMobile);
     };
 
@@ -1190,6 +1197,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
     const width = canvas.width;
     const height = canvas.height;
 
@@ -2124,7 +2132,8 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
   if (Platform.OS === 'web') {
     // Check if we have a meaningful side panel (letterbox > 60px)
-    const hasSidePanel = uxStore.letterboxWidth > 60;
+    const hasSidePanel = uxStore.effectiveSidebarWidth > 0;
+    const sidePanelWidth = uxStore.effectiveSidebarWidth;
 
     // Container style — portrait uses rotation, landscape uses straight flexbox
     const containerStyle = uxStore.isPortrait ? {
@@ -2142,7 +2151,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     } : hasSidePanel ? {
       // Landscape with sidebar: no rotation, flexbox row
       ...styles.container,
-      width: uxStore.fullWidth,
+      width: canvasWidth + sidePanelWidth,
       height: canvasHeight,
       display: 'flex',
       flexDirection: 'row',
@@ -2155,13 +2164,16 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
     // Side panel style for mobile letterbox area (only used when hasSidePanel)
     const sidePanelStyle = hasSidePanel ? {
-      width: uxStore.letterboxWidth,
+      width: sidePanelWidth,
+      flexBasis: sidePanelWidth,
+      flexShrink: 0,
+      flexGrow: 0,
       height: '100%',
       backgroundColor: 'rgba(255, 255, 255, 0.15)',
       borderLeftWidth: 2,
       borderLeftColor: 'rgba(92, 90, 88, 0.3)',
       borderLeftStyle: 'dashed',
-      padding: 12,
+      padding: uxStore.isMobile ? 4 : 12,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -2294,7 +2306,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       <button onClick={handleKnapsackClick} style={{
         ...styles.knapsackButton,
         width: '100%',
-        maxWidth: uxStore.letterboxWidth - 24,
+        maxWidth: sidePanelWidth - 24,
       }}>
         <img
           src={typeof knapsackImage === 'string' ? knapsackImage : knapsackImage.default || knapsackImage.uri || knapsackImage}
@@ -2415,6 +2427,31 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
               transform: scale(1.06) !important;
             }
           `}</style>
+          {/* Sidebar toggle button */}
+          {uxStore.letterboxWidth > 60 && !uxStore.isMobile && (
+            <Pressable
+              onPress={() => uxStore.toggleSidebar()}
+              style={{
+                position: 'absolute',
+                bottom: 12,
+                right: hasSidePanel ? sidePanelWidth + 12 : 12,
+                zIndex: 50,
+                backgroundColor: 'rgba(112, 68, 199, 0.15)',
+                borderRadius: 8,
+                padding: 6,
+                borderWidth: 1.5,
+                borderColor: 'rgba(92, 90, 88, 0.3)',
+                borderStyle: 'dashed',
+              }}
+            >
+              <Text style={{
+                fontFamily: 'Comfortaa',
+                fontSize: 10,
+                fontWeight: '700',
+                color: '#5C5A58',
+              }}>{uxStore.sidebarCollapsed ? '◀' : '▶'}</Text>
+            </Pressable>
+          )}
           {hasSidePanel ? (
             <>
               {/* Canvas area wrapped for flex layout */}
@@ -2441,9 +2478,10 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
               </View>
               {/* Side panel */}
               <View style={sidePanelStyle}>
+                <View style={uxStore.isMobile ? { transform: 'scale(0.75)', transformOrigin: 'center center', flex: 1, alignItems: 'center', justifyContent: 'center' } : { flex: 1, alignItems: 'center' }}>
                 <UserStatus compact />
                 {/* Menu buttons in side panel */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                <View style={{ flexDirection: uxStore.isMobile ? 'column' : 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
                   <NotificationHeart
                     onNotificationClick={handleNotificationClick}
                     onButtonPress={() => setMobileOverlay(mobileOverlay === 'notifications' ? null : 'notifications')}
@@ -2462,6 +2500,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
                 {/* Knapsack in side panel */}
                 <View style={{ marginTop: 'auto', paddingTop: 12 }}>
                   {knapsackButton}
+                </View>
                 </View>
               </View>
             </>

@@ -8,6 +8,7 @@
 - Before adding a prop, check how existing similar props are consumed end-to-end.
 - Before fixing a bug, reproduce the exact code path that fails — don't guess at the cause.
 - If a fix doesn't work, re-read the code rather than layering on more assumptions.
+- Before working on any new problem area, read ALL relevant documentation in the `md/` folder first. Check existing patterns and implementations before writing new code.
 
 ## AI Service Abstraction (CRITICAL)
 

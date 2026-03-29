@@ -44,9 +44,11 @@ const PixelPalsCreate = observer(({
   const [customHeight, setCustomHeight] = useState(32);
   const [creating, setCreating] = useState(false);
 
-  // Filter size options by feature level - invisible if not available
-  const availableSizes = SIZE_OPTIONS.filter(opt => FeatureStore.has(opt.featureId));
-  const hasCustom = FeatureStore.has('pixelPals:size:custom');
+  // Filter size options by feature level - if features haven't loaded, show level-0 sizes
+  const availableSizes = FeatureStore.loaded
+    ? SIZE_OPTIONS.filter(opt => FeatureStore.has(opt.featureId))
+    : SIZE_OPTIONS.filter(opt => opt.featureId === 'pixelPals:size:16x16' || opt.featureId === 'pixelPals:size:32x32');
+  const hasCustom = FeatureStore.loaded && FeatureStore.has('pixelPals:size:custom');
 
   const handleCreate = async () => {
     if (!title.trim()) {

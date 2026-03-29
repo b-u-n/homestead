@@ -10,6 +10,38 @@ function hexToRgb(hex) {
   ];
 }
 
+function hslToHex(h, s, l) {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function hexToHsl(hex) {
+  if (!hex || hex.length < 7) return { h: 0, s: 0, l: 50 };
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) * 60; break;
+      case g: h = ((b - r) / d + 2) * 60; break;
+      case b: h = ((r - g) / d + 4) * 60; break;
+    }
+  }
+  return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
 function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(v =>
     Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')
@@ -58,9 +90,11 @@ const MiniWheel = ({ colors, size, currentColor, onChange, onCommit, centerBrigh
   const lastPickRef = useRef({ x: -999, y: -999 });
   const [colorIndicator, setColorIndicator] = useState(null);
   const colorScanRef = useRef(null);
+  const directInteractRef = useRef(false); // suppress scan during direct interaction
 
   // Find closest color match on this wheel's canvas
   useEffect(() => {
+    if (directInteractRef.current) return; // skip scan while user is dragging on this wheel
     if (!showIndicator || !canvasRef.current || !currentColor) {
       setColorIndicator(null);
       return;
@@ -176,6 +210,7 @@ const MiniWheel = ({ colors, size, currentColor, onChange, onCommit, centerBrigh
     if (pixel[3] === 0) return;
 
     // Set indicator directly on this wheel for instant feedback
+    directInteractRef.current = true;
     setColorIndicator({ x: px, y: py });
     onPickPos?.({ nx: px / size, ny: py / size });
     onChange?.(rgbToHex(pixel[0], pixel[1], pixel[2]));
@@ -204,6 +239,8 @@ const MiniWheel = ({ colors, size, currentColor, onChange, onCommit, centerBrigh
       onMouseMove={(e) => {
         if (isDragging || alwaysTrack) handleInteraction(e.clientX, e.clientY);
       }}
+      onMouseUp={() => { directInteractRef.current = false; }}
+      onMouseLeave={() => { directInteractRef.current = false; }}
       onTouchStart={(e) => {
         e.stopPropagation();
         onDragStart?.();
@@ -218,6 +255,7 @@ const MiniWheel = ({ colors, size, currentColor, onChange, onCommit, centerBrigh
       }}
       onTouchEnd={(e) => {
         e.stopPropagation();
+        directInteractRef.current = false;
         onCommit?.();
       }}
     >
@@ -375,4 +413,5 @@ const styles = StyleSheet.create({
   },
 });
 
+export { hexToRgb, rgbToHex, hslToHex, hexToHsl };
 export default ColorWheel;

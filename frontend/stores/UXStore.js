@@ -29,6 +29,9 @@ class UXStore {
   letterboxWidth = 0;
   letterboxHeight = 0;
 
+  // Sidebar collapsed state
+  sidebarCollapsed = false;
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -87,6 +90,15 @@ class UXStore {
     const modal = this.pendingModal;
     this.pendingModal = null;
     return modal;
+  }
+
+  toggleSidebar() {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
+  get effectiveSidebarWidth() {
+    if (this.sidebarCollapsed || this.letterboxWidth <= 60) return 0;
+    return this.isMobile ? Math.min(this.letterboxWidth, 80) : this.letterboxWidth;
   }
 }
 

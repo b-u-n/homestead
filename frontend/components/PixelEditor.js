@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Platform, ScrollView } from 'react-native';
 import { Text } from './ButtonBase';
-import ColorWheel from './ColorWheel';
+import ColorWheel, { hexToHsl, hslToHex } from './ColorWheel';
 import MinkyPanel from './MinkyPanel';
 import ScrollBarView from './ScrollBarView';
 import FontSettingsStore from '../stores/FontSettingsStore';
@@ -148,6 +148,99 @@ const CottagecoreDial = ({ currentColor, onColorChange }) => {
   );
 };
 
+const TouchSlider = ({ value, max, gradient, onChange }) => {
+  const trackRef = useRef(null);
+  const pick = useCallback((clientX) => {
+    if (!trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const t = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    onChange(Math.round(t * max));
+  }, [max, onChange]);
+  const pct = max > 0 ? (value / max) * 100 : 0;
+  return (
+    <div
+      ref={trackRef}
+      style={{
+        flex: 1, height: 18, borderRadius: 9, position: 'relative',
+        background: `linear-gradient(to right, ${gradient})`,
+        cursor: 'pointer', touchAction: 'none',
+      }}
+      onMouseDown={(e) => { e.preventDefault(); pick(e.clientX); }}
+      onMouseMove={(e) => { if (e.buttons === 1) pick(e.clientX); }}
+      onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
+      onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
+    >
+      <div style={{
+        position: 'absolute', top: 1, left: `calc(${pct}% - 8px)`,
+        width: 16, height: 16, borderRadius: '50%',
+        background: 'white', border: '2px solid rgba(112, 68, 199, 0.6)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)', touchAction: 'none',
+      }}
+        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); pick(e.touches[0].clientX); }}
+      />
+    </div>
+  );
+};
+
+const HSBSlidersInline = ({ currentColor, sliderCenterRef, hexToHsl, hslToHex, setCurrentColorFromSlider }) => {
+  const hsl = hexToHsl(currentColor);
+  const center = sliderCenterRef.current || hsl;
+  const levels = 16;
+  const hueLevels = 8;
+  const hRange = 28.8;
+  const sRange = 20;
+  const sMin = Math.max(0, center.s - sRange);
+  const sMax = Math.min(100, center.s + sRange);
+  const bRange = 20;
+  const bMin = Math.max(0, center.l - bRange);
+  const bMax = Math.min(100, center.l + bRange);
+  const hueStops = Array.from({ length: 8 }, (_, i) => {
+    const t = i / 7;
+    const h = ((center.h - hRange + t * hRange * 2) % 360 + 360) % 360;
+    return `${hslToHex(h, hsl.s, hsl.l)} ${Math.round(t * 100)}%`;
+  }).join(', ');
+  const satStops = Array.from({ length: 5 }, (_, i) => {
+    const t = i / 4;
+    return `${hslToHex(hsl.h, sMin + t * (sMax - sMin), hsl.l)} ${Math.round(t * 100)}%`;
+  }).join(', ');
+  const briStops = Array.from({ length: 5 }, (_, i) => {
+    const t = i / 4;
+    return `${hslToHex(hsl.h, hsl.s, bMin + t * (bMax - bMin))} ${Math.round(t * 100)}%`;
+  }).join(', ');
+  const hSliderVal = Math.round(((hsl.h - (center.h - hRange) + 360) % 360) / (hRange * 2) * hueLevels);
+  const sSliderVal = Math.round((hsl.s - sMin) / (sMax - sMin || 1) * levels);
+  const bSliderVal = Math.round((hsl.l - bMin) / (bMax - bMin || 1) * levels);
+  return (
+    <View style={{ gap: 3, alignSelf: 'stretch', paddingHorizontal: 2 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontFamily: 'Comfortaa', fontSize: 8, color: '#5C5A58', fontWeight: '700', width: 10 }}>H</Text>
+        <TouchSlider value={Math.max(0, Math.min(hueLevels, hSliderVal))} max={hueLevels} gradient={hueStops}
+          onChange={(v) => {
+            const h = ((center.h - hRange + (v / hueLevels) * hRange * 2) % 360 + 360) % 360;
+            setCurrentColorFromSlider(hslToHex(h, hsl.s, hsl.l));
+          }} />
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontFamily: 'Comfortaa', fontSize: 8, color: '#5C5A58', fontWeight: '700', width: 10 }}>S</Text>
+        <TouchSlider value={Math.max(0, Math.min(levels, sSliderVal))} max={levels} gradient={satStops}
+          onChange={(v) => {
+            const s = sMin + (v / levels) * (sMax - sMin);
+            setCurrentColorFromSlider(hslToHex(hsl.h, s, hsl.l));
+          }} />
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontFamily: 'Comfortaa', fontSize: 8, color: '#5C5A58', fontWeight: '700', width: 10 }}>B</Text>
+        <TouchSlider value={Math.max(0, Math.min(levels, bSliderVal))} max={levels} gradient={briStops}
+          onChange={(v) => {
+            const l = bMin + (v / levels) * (bMax - bMin);
+            setCurrentColorFromSlider(hslToHex(hsl.h, hsl.s, l));
+          }} />
+      </View>
+    </View>
+  );
+};
+
 const PixelEditor = ({
   pixels: externalPixels = [],
   width = 32,
@@ -178,7 +271,7 @@ const PixelEditor = ({
   const [containerSize, setContainerSize] = useState(null);
   const [gridAreaSize, setGridAreaSize] = useState({ width: 300, height: 400 });
   const [internalColor, setInternalColor] = useState('#000000');
-  const isMobile = uxStore.isMobile || uxStore.isPortrait;
+  const isMobile = uxStore.isMobile;
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const gridScrollRef = useRef(null);
   const [gridScroll, setGridScroll] = useState({ scrollLeft: 0, scrollTop: 0, clientWidth: 0, clientHeight: 0, scrollWidth: 0, scrollHeight: 0 });
@@ -191,6 +284,7 @@ const PixelEditor = ({
   const tapStartRef = useRef(null); // { x, y } of initial touch for scroll detection
   const manualScrollRef = useRef(null); // { lastX, lastY } — active when wheel dismissed mid-drag
   const paintDriftRef = useRef(null); // rAF id for paint-mode centering drift
+  const [selectedPixel, setSelectedPixel] = useState(null); // { x, y } — selected pixel for live color edit
   const paintTouchRef = useRef(null); // current touch position for drift loop
   const [selectedWheelIndex, setSelectedWheelIndex] = useState(2); // which wheel the overlay uses
   const [wheelOverlay, setWheelOverlay] = useState(null); // { pixelX, pixelY, previewColor }
@@ -200,10 +294,21 @@ const PixelEditor = ({
   const wheelTimerRef = useRef(null);
 
   const currentColor = externalColor !== undefined ? externalColor : internalColor;
+  const sliderCenterRef = useRef(null); // HSL center point for constrained sliders
+  const isSliderChangeRef = useRef(false);
   const setCurrentColor = useCallback((c) => {
+    if (!isSliderChangeRef.current) {
+      // External source (wheel, eyedropper, swatch) — update slider center
+      sliderCenterRef.current = hexToHsl(c);
+    }
+    isSliderChangeRef.current = false;
     if (onColorChange) onColorChange(c);
     else setInternalColor(c);
   }, [onColorChange]);
+  const setCurrentColorFromSlider = useCallback((c) => {
+    isSliderChangeRef.current = true;
+    setCurrentColor(c);
+  }, [setCurrentColor]);
 
   // Expose a function for the parent to push remote pixel updates directly
   useEffect(() => {
@@ -225,6 +330,26 @@ const PixelEditor = ({
   useEffect(() => {
     setLocalPixels([...externalPixels]);
   }, [externalPixels]);
+
+  // Live color edit: when currentColor changes with a pixel selected, update that pixel
+  const prevColorRef = useRef(currentColor);
+  // Live color edit: ONLY when color changes (not on selection change)
+  const selectedPixelRef = useRef(null);
+  useEffect(() => { selectedPixelRef.current = selectedPixel; }, [selectedPixel]);
+  useEffect(() => {
+    const sp = selectedPixelRef.current;
+    if (!sp) return;
+    if (currentColor === prevColorRef.current) return;
+    prevColorRef.current = currentColor;
+    const idx = sp.y * width + sp.x;
+    setLocalPixels(prev => {
+      if (prev[idx] === currentColor) return prev;
+      const next = [...prev];
+      next[idx] = currentColor;
+      return next;
+    });
+    onPixelsChanged?.([{ x: sp.x, y: sp.y, color: currentColor }]);
+  }, [currentColor, width, onPixelsChanged]);
 
   // Ensure scroll is enabled on mount and restored on unmount
   useEffect(() => {
@@ -253,8 +378,9 @@ const PixelEditor = ({
   // Use uxStore.isPortrait for mode detection (reactive, correct before first layout)
   // and containerSize for sizing calculations (updated via onLayout)
   const pixelGap = 0;
-  const isPortraitMode = isMobile && uxStore.isPortrait;
-  const isLandscapeMobile = isMobile && !isPortraitMode;
+  // Portrait mode disabled for now — always use landscape on mobile
+  const isPortraitMode = false;
+  const isLandscapeMobile = isMobile;
 
   // Reset container measurement when orientation changes so layout
   // waits for fresh onLayout before rendering with stale dimensions
@@ -430,6 +556,9 @@ const PixelEditor = ({
   const handlePixelAction = useCallback((cell) => {
     if (!cell || readOnly) return;
 
+    // Select this pixel
+    setSelectedPixel({ x: cell.x, y: cell.y });
+
     if (tool === TOOLS.EYEDROPPER) {
       const color = localPixels[cell.y * width + cell.x];
       if (color) setCurrentColor(color);
@@ -535,7 +664,17 @@ const PixelEditor = ({
     );
   }
 
-  // Wait for real container measurement before rendering layout
+  // Wait for real container measurement — fallback to window size if onLayout doesn't fire
+  useEffect(() => {
+    if (containerSize || Platform.OS !== 'web') return;
+    const timer = setTimeout(() => {
+      if (!containerSize) {
+        setContainerSize({ width: window.innerWidth, height: window.innerHeight });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [containerSize]);
+
   if (!containerSize) {
     return <View style={[styles.container, style]} onLayout={handleContainerLayout} />;
   }
@@ -697,6 +836,7 @@ const PixelEditor = ({
                     {mobileCellSize >= 6 && <div style={{ position: 'absolute', top: 1, left: 1, right: 1, bottom: 1, border: '1px dashed rgba(92, 90, 88, 0.55)', pointerEvents: 'none' }} />}
                     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderTop: '1px solid rgba(255,255,255,0.5)', borderLeft: '1px solid rgba(255,255,255,0.5)', borderBottom: '1px solid rgba(0,0,0,0.15)', borderRight: '1px solid rgba(0,0,0,0.15)', pointerEvents: 'none', boxSizing: 'border-box' }} />
                     {phantomColor && <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: phantomColor, opacity: 0.1, pointerEvents: 'none' }} />}
+                    {selectedPixel && selectedPixel.x === x && selectedPixel.y === y && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 4, height: 4, borderRadius: '50%', backgroundColor: 'rgba(92, 90, 88, 0.5)', pointerEvents: 'none', zIndex: 3 }} />}
                   </div>
                 );
               })}
@@ -973,8 +1113,9 @@ const PixelEditor = ({
               onExternalPickPos={setSharedPickPos}
             />
           </View>
-          {/* Right sub-panel: minimap */}
-          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          {/* HSB sliders + minimap */}
+          <View style={{ justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+            <HSBSlidersInline currentColor={currentColor} sliderCenterRef={sliderCenterRef} hexToHsl={hexToHsl} hslToHex={hslToHex} setCurrentColorFromSlider={setCurrentColorFromSlider} />
             <div style={{
               position: 'relative',
               width: minimapSize,
@@ -1175,6 +1316,7 @@ const PixelEditor = ({
                     {mobileCellSize >= 6 && <div style={{ position: 'absolute', top: 1, left: 1, right: 1, bottom: 1, border: '1px dashed rgba(92, 90, 88, 0.55)', pointerEvents: 'none' }} />}
                     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderTop: '1px solid rgba(255,255,255,0.5)', borderLeft: '1px solid rgba(255,255,255,0.5)', borderBottom: '1px solid rgba(0,0,0,0.15)', borderRight: '1px solid rgba(0,0,0,0.15)', pointerEvents: 'none', boxSizing: 'border-box' }} />
                     {phantomColor && <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: phantomColor, opacity: 0.1, pointerEvents: 'none' }} />}
+                    {selectedPixel && selectedPixel.x === x && selectedPixel.y === y && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 4, height: 4, borderRadius: '50%', backgroundColor: 'rgba(92, 90, 88, 0.5)', pointerEvents: 'none', zIndex: 3 }} />}
                   </div>
                 );
               })}
@@ -1228,7 +1370,7 @@ const PixelEditor = ({
     <View style={[styles.container, style]} onLayout={handleContainerLayout}>
       <View style={styles.mainRow}>
         {/* Left panel: tools, budget, color, wheels, swatches */}
-        <View style={styles.leftPanel}>
+        <View style={styles.leftPanel} {...(Platform.OS === 'web' && !isMobile ? { onClick: (e) => { if (e.target === e.currentTarget) setSelectedPixel(null); } } : {})}>
           {/* Tool bar: horizontal icons on landscape mobile, vertical with labels on desktop */}
           <View style={styles.landscapeToolbar}>
             {[
@@ -1301,7 +1443,106 @@ const PixelEditor = ({
             <View style={[styles.bigSwatch, { backgroundColor: currentColor }]} />
           )}
 
-          {/* Landscape mobile: mini preview ABOVE color wheels */}
+          {/* HSB Sliders — constrained to range around center point */}
+          {Platform.OS === 'web' && (() => {
+            const hsl = hexToHsl(currentColor);
+            const center = sliderCenterRef.current || hsl;
+
+            const levels = 16;
+            const hueLevels = 8;
+
+            // Hue: +/-8% of 360 = +/-28.8°
+            const hRange = 28.8;
+            const hueStops = Array.from({ length: 8 }, (_, i) => {
+              const t = i / 7;
+              const h = ((center.h - hRange + t * hRange * 2) % 360 + 360) % 360;
+              return `${hslToHex(h, hsl.s, hsl.l)} ${Math.round(t * 100)}%`;
+            }).join(', ');
+
+            // Saturation: +/-20%
+            const sRange = 20;
+            const sMin = Math.max(0, center.s - sRange);
+            const sMax = Math.min(100, center.s + sRange);
+            const satStops = Array.from({ length: 5 }, (_, i) => {
+              const t = i / 4;
+              const s = sMin + t * (sMax - sMin);
+              return `${hslToHex(hsl.h, s, hsl.l)} ${Math.round(t * 100)}%`;
+            }).join(', ');
+
+            // Brightness: +/-20%
+            const bRange = 20;
+            const bMin = Math.max(0, center.l - bRange);
+            const bMax = Math.min(100, center.l + bRange);
+            const briStops = Array.from({ length: 5 }, (_, i) => {
+              const t = i / 4;
+              const l = bMin + t * (bMax - bMin);
+              return `${hslToHex(hsl.h, hsl.s, l)} ${Math.round(t * 100)}%`;
+            }).join(', ');
+
+            // Map slider 0-16 to constrained range
+            const hSliderVal = Math.round(((hsl.h - (center.h - hRange) + 360) % 360) / (hRange * 2) * hueLevels);
+            const sSliderVal = Math.round((hsl.s - sMin) / (sMax - sMin || 1) * levels);
+            const bSliderVal = Math.round((hsl.l - bMin) / (bMax - bMin || 1) * levels);
+
+            const sliderStyle = (gradient) => ({
+              flex: 1, height: 14, borderRadius: 7,
+              WebkitAppearance: 'none', appearance: 'none',
+              background: `linear-gradient(to right, ${gradient})`,
+              outline: 'none', cursor: 'pointer',
+            });
+
+            return (
+              <View style={styles.sliderGroup}>
+                <style dangerouslySetInnerHTML={{ __html: `
+                  .hsb-slider::-webkit-slider-thumb {
+                    -webkit-appearance: none; appearance: none;
+                    width: 14px; height: 14px; border-radius: 50%;
+                    background: white; border: 2px solid rgba(112, 68, 199, 0.6);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
+                  }
+                  .hsb-slider::-moz-range-thumb {
+                    width: 14px; height: 14px; border-radius: 50%;
+                    background: white; border: 2px solid rgba(112, 68, 199, 0.6);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
+                  }
+                `}} />
+                <View style={styles.sliderRow}>
+                  <Text style={styles.sliderLabel}>H</Text>
+                  <input type="range" className="hsb-slider" min={0} max={hueLevels} step={1}
+                    value={Math.max(0, Math.min(hueLevels, hSliderVal))}
+                    onChange={(e) => {
+                      const h = ((center.h - hRange + (parseInt(e.target.value) / hueLevels) * hRange * 2) % 360 + 360) % 360;
+                      setCurrentColorFromSlider(hslToHex(h, hsl.s, hsl.l));
+                    }}
+                    style={sliderStyle(hueStops)} />
+                </View>
+                <View style={styles.sliderRow}>
+                  <Text style={styles.sliderLabel}>S</Text>
+                  <input type="range" className="hsb-slider" min={0} max={levels} step={1}
+                    value={Math.max(0, Math.min(levels, sSliderVal))}
+                    onChange={(e) => {
+                      const s = sMin + (parseInt(e.target.value) / levels) * (sMax - sMin);
+                      setCurrentColorFromSlider(hslToHex(hsl.h, s, hsl.l));
+                    }}
+                    style={sliderStyle(satStops)} />
+                </View>
+                <View style={styles.sliderRow}>
+                  <Text style={styles.sliderLabel}>B</Text>
+                  <input type="range" className="hsb-slider" min={0} max={levels} step={1}
+                    value={Math.max(0, Math.min(levels, bSliderVal))}
+                    onChange={(e) => {
+                      const l = bMin + (parseInt(e.target.value) / levels) * (bMax - bMin);
+                      setCurrentColorFromSlider(hslToHex(hsl.h, hsl.s, l));
+                    }}
+                    style={sliderStyle(briStops)} />
+                </View>
+              </View>
+            );
+          })()}
+
+          {isLandscapeMobile && (
+            <HSBSlidersInline currentColor={currentColor} sliderCenterRef={sliderCenterRef} hexToHsl={hexToHsl} hslToHex={hslToHex} setCurrentColorFromSlider={setCurrentColorFromSlider} />
+          )}
           {isLandscapeMobile && (
             <MinkyPanel transparent padding={2} borderRadius={4}>
               <PixelThumbnail
@@ -1323,8 +1564,6 @@ const PixelEditor = ({
             selectedIndex={selectedWheelIndex}
             onSelectIndex={setSelectedWheelIndex}
             columns={isLandscapeMobile ? 6 : 4}
-            externalPickPos={sharedPickPos}
-            onExternalPickPos={setSharedPickPos}
           />
 
           {/* Mini preview bitmap — desktop only (landscape has it above wheels) */}
@@ -1414,6 +1653,7 @@ const PixelEditor = ({
                     onContextMenu={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
+                      setSelectedPixel({ x, y });
                       const c = localPixels[y * width + x];
                       if (c) {
                         setCurrentColor(c);
@@ -1440,22 +1680,53 @@ const PixelEditor = ({
                       }
                       if (wheelOverlay) {
                         closeWheelOverlay();
+                        // Paint this pixel directly (not via pendingPixels which has stale closure)
+                        setSelectedPixel({ x, y });
+                        const c = currentColor;
+                        setLocalPixels(prev => {
+                          const next = [...prev];
+                          next[y * width + x] = c;
+                          return next;
+                        });
+                        onPixelsChanged?.([{ x, y, color: c }]);
                         return;
                       }
-                      // Left click in draw mode: open wheel overlay
+                      // Left click in draw mode: quick click paints, hold opens wheel
                       if (tool === TOOLS.DRAW) {
                         const cellStep = cellSize + pixelGap;
-                        setWheelOverlay({
-                          pixelX: x,
-                          pixelY: y,
-                          left: x * cellStep + cellSize / 2,
-                          top: y * cellStep + cellSize / 2,
-                          previewColor: currentColor,
-                        });
+                        tapStartRef.current = { cellX: x, cellY: y };
+                        if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+                        holdTimerRef.current = setTimeout(() => {
+                          tapStartRef.current = null;
+                          setWheelOverlay({
+                            pixelX: x,
+                            pixelY: y,
+                            left: x * cellStep + cellSize / 2,
+                            top: y * cellStep + cellSize / 2,
+                            previewColor: currentColor,
+                          });
+                        }, 212);
                         return;
                       }
                       setIsDrawing(true);
                       handlePixelAction({ x, y });
+                    }}
+                    onMouseUp={() => {
+                      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+                      if (tapStartRef.current) {
+                        const tx = tapStartRef.current.cellX;
+                        const ty = tapStartRef.current.cellY;
+                        setSelectedPixel({ x: tx, y: ty });
+                        // Always paint with current color
+                        const c = currentColor;
+                        setLocalPixels(prev => {
+                          const next = [...prev];
+                          next[ty * width + tx] = c;
+                          return next;
+                        });
+                        onPixelsChanged?.([{ x: tx, y: ty, color: c }]);
+                        tapStartRef.current = null;
+                      }
                     }}
                     onMouseEnter={() => {
                       if (wheelOverlay) return;
@@ -1545,6 +1816,15 @@ const PixelEditor = ({
                         }}
                       />
                     )}
+                    {selectedPixel && selectedPixel.x === x && selectedPixel.y === y && (
+                      <div style={{
+                        position: 'absolute', top: '50%', left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 4, height: 4, borderRadius: '50%',
+                        backgroundColor: 'rgba(92, 90, 88, 0.5)',
+                        pointerEvents: 'none', zIndex: 3,
+                      }} />
+                    )}
                   </div>
                 );
               })}
@@ -1597,8 +1877,6 @@ const PixelEditor = ({
                     size={overlayWheelSize}
                     singleIndex={selectedWheelIndex}
                     alwaysTrack={true}
-                    externalPickPos={sharedPickPos}
-                    onExternalPickPos={setSharedPickPos}
                   />
                 </div>
                 {/* Center square — drag to paint */}
@@ -1757,6 +2035,26 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#7044C7',
     fontWeight: '700',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  sliderGroup: {
+    gap: 2,
+    alignSelf: 'stretch',
+    paddingHorizontal: 2,
+  },
+  sliderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  sliderLabel: {
+    fontFamily: 'Comfortaa',
+    fontSize: 8,
+    color: '#5C5A58',
+    fontWeight: '700',
+    width: 10,
     textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,

@@ -10,7 +10,7 @@ import Heart from './Heart';
 
 const UserStatus = observer(({ compact = false }) => {
   // Check if we're in the side panel (compact mode when letterbox space available)
-  const inSidePanel = compact && uxStore.letterboxWidth > 60;
+  const inSidePanel = compact && uxStore.effectiveSidebarWidth > 0;
 
   // Scale down on mobile (only when not in side panel)
   const mobileStyle = !inSidePanel && uxStore.shouldScaleUI ? {
@@ -55,7 +55,7 @@ const UserStatus = observer(({ compact = false }) => {
                     .filter(word => word.length > 0)
                     .map((word, index) => {
                       // Scale font size to fit panel width
-                      const availableWidth = uxStore.letterboxWidth - 24;
+                      const availableWidth = uxStore.effectiveSidebarWidth - 24;
                       const baseFontSize = 11;
                       const charWidth = 8; // approx width per char at base font
                       const neededWidth = word.length * charWidth;

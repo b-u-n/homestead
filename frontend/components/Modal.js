@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import StitchedBorder from './StitchedBorder';
 import TiledBackground from './TiledBackground';
+import uxStore from '../stores/UXStore';
 import SoundManager from '../services/SoundManager';
 import Scroll from './Scroll';
 import FontSettingsStore from '../stores/FontSettingsStore';
@@ -149,11 +150,22 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
   // On web, use a plain div for the overlay to avoid Pressable's preventDefault()
   // which blocks TextInput focus. On native, use Pressable for touch handling.
   if (Platform.OS === 'web') {
+    const sidebarWidth = uxStore.effectiveSidebarWidth;
+    const rotated = uxStore.isPortrait;
     return (
       <div
         style={{
           position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
+          top: 0, left: 0,
+          ...(rotated ? {
+            width: uxStore.fullWidth,
+            height: uxStore.fullHeight,
+            transform: `rotate(90deg) translateY(-${uxStore.fullHeight}px)`,
+            transformOrigin: 'top left',
+          } : {
+            right: isFullscreen ? sidebarWidth : 0,
+            bottom: 0,
+          }),
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',

@@ -21,8 +21,8 @@ export default (width, height) => ({
     {
       id: 'pixel-pals-table',
       type: 'interactable',
-      x: width / 2 - 120,
-      y: height / 2 - 100,
+      x: width / 2 - 120 + 380,
+      y: height / 2 - 100 - 80,
       width: 240,
       height: 200,
       label: 'Pixel Pals',
