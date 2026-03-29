@@ -98,7 +98,11 @@ When the last pixel is placed:
 
 ## UI Layout
 
-Three layout modes detected automatically:
+Three layout modes detected automatically. Mode detection uses `uxStore.isPortrait` (MobX observable, set via resize listener in MapCanvas) for immediate correctness, and `containerSize` (from `onLayout`) for sizing calculations.
+
+### Orientation Change Handling
+
+`containerSize` is initialized to `null`. On first render (and after each orientation change), the component renders an empty `<View onLayout={...} />` until a real measurement arrives. When `isPortraitMode` changes (detected synchronously during render via a ref comparison), `containerSize` resets to `null`, forcing re-measurement before the new layout renders. This prevents a frame of stale dimensions from the previous orientation.
 
 ### Desktop
 - **Left panel** (~1/6 width): tool buttons (Draw/Paint/Pick/Erase/Undo) with SVG icons, pixel budget, current color swatch, 12 color wheels in 4x3 grid, mini bitmap preview, save button
@@ -113,12 +117,23 @@ Three layout modes detected automatically:
 - Wheel overlay positioned relative to grid (same as desktop)
 
 ### Mobile Portrait
-- **Scrollable grid** (80% height): full-width pixels, vertically scrollable if grid is taller than viewport. Minimum cell size 16px for finger taps. Scroll disabled (`overflow: hidden`) while color wheel overlay is open.
+- **Scrollable grid** (80% height, minus 16px gap): full-width pixels, scrollable in both axes if grid exceeds viewport. Minimum cell size 32px for finger taps.
+- Tapping a pixel opens the color wheel immediately.
 - **Bottom panel** (20% height): two sections in a row:
   - **Left column**: tool buttons (horizontal row) + color wheels grid
-  - **Right column**: mini bitmap preview filling the panel height
+  - **Right column**: minimap with viewport indicator
 - **Color wheel popup**: `position: fixed`, positioned over the tapped pixel (clamped to screen edges). Tap backdrop to dismiss. Drag on wheel to preview colors.
-- Global `touchmove` listener prevents scroll while wheel is open.
+- **Scroll-through behavior**: a global `touchmove` listener (attached for the entire portrait session, not gated on wheel state) handles both color picking and scrolling:
+  - **Inside wheel radius**: `preventDefault` is called, touch is used to pick colors from the wheel canvas.
+  - **Outside wheel radius**: wheel is dismissed (keeping the last picked color), and the gesture transitions to **manual scroll mode** — subsequent `touchmove` deltas are applied to the grid's `scrollLeft`/`scrollTop` since native scroll can't be re-enabled mid-gesture after `preventDefault`.
+  - **On `touchEnd`**: manual scroll mode is cleared. If the wheel is still open and >600ms have passed since it opened, the picked color is painted to the target pixel and the wheel dismisses.
+  - The `blockWheel` listener only blocks mouse-wheel events while the wheel overlay is active (checked via ref).
+
+### Minimap (Mobile Portrait)
+- Displays a `PixelThumbnail` of the full board inside a stitched dashed border (`2px dashed rgba(92, 90, 88, 0.55)`), sized to fill the bottom-right panel.
+- **Viewport indicator**: a white dashed rectangle (`2px dashed rgba(255, 255, 255, 0.85)`) overlaid on the thumbnail showing the currently visible portion of the grid. Position and size are computed from the scroll container's `scrollLeft`/`scrollTop`/`clientWidth`/`clientHeight`/`scrollWidth`/`scrollHeight`.
+- **Click/tap to navigate**: clicking or tapping the minimap scrolls the grid to center on the corresponding position.
+- **Drag to pan**: `touchStart` and `touchMove` on the minimap continuously update the grid scroll position, allowing drag-panning. `preventDefault` is called to avoid conflicting with page scroll.
 
 ### Landing Page
 - **Filter bar** at top: type (All/Shared/Mine/Pixel Art), size (Any/16/32/48), mode (Any/Free/Chain/Daily/Live)

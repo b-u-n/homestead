@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable, Platform, ScrollView } from 'react-native'
 import { Text } from './ButtonBase';
 import ColorWheel from './ColorWheel';
 import MinkyPanel from './MinkyPanel';
+import ScrollBarView from './ScrollBarView';
 import FontSettingsStore from '../stores/FontSettingsStore';
 import uxStore from '../stores/UXStore';
 import { setScrollEnabled } from '../contexts/ScrollLockContext';
@@ -173,18 +174,24 @@ const PixelEditor = ({
   const [localPixels, setLocalPixels] = useState(() => [...externalPixels]);
   const [pendingPixels, setPendingPixels] = useState([]);
   const [undoStack, setUndoStack] = useState([]); // Array of { pixels: [{x, y, prevColor}] }
-  const [containerSize, setContainerSize] = useState({ width: 400, height: 400 });
+  const [containerSize, setContainerSize] = useState(null);
   const [gridAreaSize, setGridAreaSize] = useState({ width: 300, height: 400 });
   const [internalColor, setInternalColor] = useState('#000000');
   const isMobile = uxStore.isMobile || uxStore.isPortrait;
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const gridScrollRef = useRef(null);
+  const [gridScroll, setGridScroll] = useState({ scrollLeft: 0, scrollTop: 0, clientWidth: 0, clientHeight: 0, scrollWidth: 0, scrollHeight: 0 });
   const [mobileDragEnabled, setMobileDragEnabled] = useState(false);
   const holdTimerRef = useRef(null);
   const wheelOpenTimeRef = useRef(0);
   const wheelTouchIdRef = useRef(null);
   const mobileWheelInteractedRef = useRef(false); // did the user drag on the wheel?
+  const tapTimerRef = useRef(null);
+  const tapStartRef = useRef(null); // { x, y } of initial touch for scroll detection
+  const manualScrollRef = useRef(null); // { lastX, lastY } — active when wheel dismissed mid-drag
   const [selectedWheelIndex, setSelectedWheelIndex] = useState(2); // which wheel the overlay uses
   const [wheelOverlay, setWheelOverlay] = useState(null); // { pixelX, pixelY, previewColor }
+  const [sharedPickPos, setSharedPickPos] = useState(null); // shared { nx, ny } for wheel indicators
   const lastClickRef = useRef({ time: 0, x: -1, y: -1 });
   const [wheelFading, setWheelFading] = useState(false);
   const wheelTimerRef = useRef(null);
@@ -224,32 +231,47 @@ const PixelEditor = ({
   }, []);
 
   // Three modes: desktop, landscape mobile, portrait mobile
+  // Use uxStore.isPortrait for mode detection (reactive, correct before first layout)
+  // and containerSize for sizing calculations (updated via onLayout)
   const pixelGap = 1;
-  const screenW = typeof window !== 'undefined' ? window.innerWidth : containerSize.width;
-  const screenH = typeof window !== 'undefined' ? window.innerHeight : containerSize.height;
-  const isPortraitMode = isMobile && screenH > screenW;
+  const isPortraitMode = isMobile && uxStore.isPortrait;
   const isLandscapeMobile = isMobile && !isPortraitMode;
-  const leftPanelWidth = isPortraitMode ? 0 : Math.floor(containerSize.width / 6);
+
+  // Reset container measurement when orientation changes so layout
+  // waits for fresh onLayout before rendering with stale dimensions
+  const prevPortraitRef = useRef(isPortraitMode);
+  if (prevPortraitRef.current !== isPortraitMode) {
+    prevPortraitRef.current = isPortraitMode;
+    if (containerSize !== null) setContainerSize(null);
+  }
+
+  const cw = containerSize?.width || 400;
+  const ch = containerSize?.height || 400;
+  const leftPanelWidth = isPortraitMode ? 0 : Math.floor(cw / 6);
 
   // Cell size calculation per mode
   let cellSize;
   if (isPortraitMode) {
     cellSize = Math.max(1, Math.floor(Math.min(
-      (containerSize.width - pixelGap * (width - 1)) / width,
-      (containerSize.height - pixelGap * (height - 1)) / height
+      (cw - pixelGap * (width - 1)) / width,
+      (ch - pixelGap * (height - 1)) / height
     )));
   } else if (isLandscapeMobile) {
     // Landscape mobile: minimum 32px cells for finger taps
+    const availW = cw - leftPanelWidth - 8;
+    const availH = ch;
     const fitSize = Math.floor(Math.min(
-      (gridAreaSize.width - pixelGap * (width - 1)) / width,
-      (gridAreaSize.height - pixelGap * (height - 1)) / height
+      (availW - pixelGap * (width - 1)) / width,
+      (availH - pixelGap * (height - 1)) / height
     ));
     cellSize = Math.max(fitSize, 32);
   } else {
-    // Desktop: fit to grid area
+    // Desktop: fit to available space (container minus left panel)
+    const availW = cw - leftPanelWidth - 8; // 8 = mainRow gap
+    const availH = ch;
     cellSize = Math.max(1, Math.floor(Math.min(
-      (gridAreaSize.width - pixelGap * (width - 1)) / width,
-      (gridAreaSize.height - pixelGap * (height - 1)) / height
+      (availW - pixelGap * (width - 1)) / width,
+      (availH - pixelGap * (height - 1)) / height
     )));
   }
 
@@ -288,14 +310,29 @@ const PixelEditor = ({
     latestWheelOverlayRef.current = wheelOverlay;
   }, [wheelOverlay]);
 
-  // Mobile: global touchmove — pick colors from wheel canvas as finger drags
+  // Mobile: global touchmove — pick colors from wheel canvas as finger drags,
+  // or manual-scroll the grid after wheel dismissal
   useEffect(() => {
-    if (!isMobile || !wheelOverlay) return;
+    if (!isMobile || !isPortraitMode) return;
     const handleGlobalTouchMove = (e) => {
-      e.preventDefault();
-      if (!mobileWheelRef.current) return;
       const touch = e.touches[0];
       if (!touch) return;
+
+      // Manual scroll mode — wheel was dismissed, now scroll the grid
+      if (manualScrollRef.current) {
+        e.preventDefault();
+        const el = gridScrollRef.current;
+        if (el) {
+          el.scrollLeft += manualScrollRef.current.lastX - touch.clientX;
+          el.scrollTop += manualScrollRef.current.lastY - touch.clientY;
+        }
+        manualScrollRef.current.lastX = touch.clientX;
+        manualScrollRef.current.lastY = touch.clientY;
+        return;
+      }
+
+      if (!latestWheelOverlayRef.current) return;
+      if (!mobileWheelRef.current) return;
       const canvas = mobileWheelRef.current.querySelector('canvas');
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
@@ -304,7 +341,16 @@ const PixelEditor = ({
       const cx = (touch.clientX - rect.left) * scaleX;
       const cy = (touch.clientY - rect.top) * scaleY;
       const r = canvas.width / 2;
-      if (Math.sqrt((cx - r) ** 2 + (cy - r) ** 2) > r) return;
+      if (Math.sqrt((cx - r) ** 2 + (cy - r) ** 2) > r) {
+        // Outside wheel — dismiss and start manual scrolling
+        const finalColor = latestPickedColorRef.current || latestWheelOverlayRef.current?.previewColor;
+        if (finalColor) setCurrentColor(finalColor);
+        latestPickedColorRef.current = null;
+        closeWheelOverlay();
+        manualScrollRef.current = { lastX: touch.clientX, lastY: touch.clientY };
+        return;
+      }
+      e.preventDefault();
       const ctx = canvas.getContext('2d');
       const px = Math.round(cx);
       const py = Math.round(cy);
@@ -312,9 +358,8 @@ const PixelEditor = ({
       const pixel = ctx.getImageData(px, py, 1, 1).data;
       if (pixel[3] === 0) return;
       const hex = '#' + [pixel[0], pixel[1], pixel[2]].map(v => v.toString(16).padStart(2, '0')).join('');
-      // ALWAYS store the color immediately — even before throttle would skip the UI update
       latestPickedColorRef.current = hex;
-      // Update state for UI
+      setSharedPickPos({ nx: px / canvas.width, ny: py / canvas.height });
       setWheelOverlay(prev => prev ? {
         ...prev,
         previewColor: hex,
@@ -324,26 +369,30 @@ const PixelEditor = ({
       setCurrentColor(hex);
     };
     const handleGlobalTouchEnd = () => {
+      if (manualScrollRef.current) {
+        manualScrollRef.current = null;
+        return;
+      }
+      if (!latestWheelOverlayRef.current) return;
       if (Date.now() - wheelOpenTimeRef.current < 600) return;
       const wo = latestWheelOverlayRef.current;
       const color = latestPickedColorRef.current;
       if (wo && color) {
-        // Paint pixel
         const idx = wo.pixelY * width + wo.pixelX;
         setLocalPixels(prev => {
           const next = [...prev];
           next[idx] = color;
           return next;
         });
-        // Send to backend
         onPixelsChanged?.([{ x: wo.pixelX, y: wo.pixelY, color }]);
-        // Set as current color
         setCurrentColor(color);
       }
       latestPickedColorRef.current = null;
       closeWheelOverlay();
     };
-    const blockWheel = (e) => e.preventDefault();
+    const blockWheel = (e) => {
+      if (latestWheelOverlayRef.current) e.preventDefault();
+    };
     document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
     document.addEventListener('touchend', handleGlobalTouchEnd);
     document.addEventListener('wheel', blockWheel, { passive: false });
@@ -352,7 +401,7 @@ const PixelEditor = ({
       document.removeEventListener('touchend', handleGlobalTouchEnd);
       document.removeEventListener('wheel', blockWheel);
     };
-  }, [isMobile, wheelOverlay, setCurrentColor, closeWheelOverlay, width, onPixelsChanged]);
+  }, [isMobile, isPortraitMode, setCurrentColor, closeWheelOverlay, width, onPixelsChanged]);
 
   const overlayWheelSize = cellSize * 10 + pixelGap * 9;
 
@@ -449,6 +498,14 @@ const PixelEditor = ({
   };
 
 
+  // Seed initial scroll metrics so the minimap viewport indicator shows on load
+  useEffect(() => {
+    const el = gridScrollRef.current;
+    if (el) {
+      setGridScroll({ scrollLeft: el.scrollLeft, scrollTop: el.scrollTop, clientWidth: el.clientWidth, clientHeight: el.clientHeight, scrollWidth: el.scrollWidth, scrollHeight: el.scrollHeight });
+    }
+  }, [containerSize, isPortraitMode]);
+
   if (Platform.OS !== 'web') {
     return (
       <View style={[styles.container, style]}>
@@ -459,6 +516,11 @@ const PixelEditor = ({
     );
   }
 
+  // Wait for real container measurement before rendering layout
+  if (!containerSize) {
+    return <View style={[styles.container, style]} onLayout={handleContainerLayout} />;
+  }
+
   // === MOBILE PORTRAIT LAYOUT: full-width scrollable grid + bottom panel ===
   // Landscape mobile falls through to the desktop layout below
   if (isPortraitMode) {
@@ -466,17 +528,21 @@ const PixelEditor = ({
     const fitCellSize = Math.floor((containerSize.width - pixelGap * (width - 1)) / width);
     const mobileCellSize = Math.max(fitCellSize, 32);
     const panelHeight = Math.floor(containerSize.height * 0.2);
-    const gridHeight = containerSize.height - panelHeight;
+    const gridHeight = containerSize.height - panelHeight - 16;
     const panelWheelSize = Math.min(panelHeight - 16, containerSize.width * 0.35);
 
     return (
       <View style={[styles.container, style]} onLayout={handleContainerLayout}>
-        {/* Scrollable grid area — full width, 60% height, scrolls vertically */}
-        <div style={{
+        {/* Scrollable grid area — full width, 80% height, scrolls both axes */}
+        <div ref={gridScrollRef} style={{
           width: '100%', height: gridHeight,
-          overflow: wheelOverlay ? 'hidden' : 'scroll',
+          overflow: 'scroll',
           WebkitOverflowScrolling: 'touch',
           position: 'relative',
+          marginBottom: 16, flexShrink: 0,
+        }} onScroll={(e) => {
+          const t = e.target;
+          setGridScroll({ scrollLeft: t.scrollLeft, scrollTop: t.scrollTop, clientWidth: t.clientWidth, clientHeight: t.clientHeight, scrollWidth: t.scrollWidth, scrollHeight: t.scrollHeight });
         }}>
           <div style={{ position: 'relative', display: 'inline-block', backgroundColor: '#E8D4C8', minWidth: '100%' }}>
             {textureLoadedRef.current && (
@@ -521,19 +587,17 @@ const PixelEditor = ({
                     onTouchStart={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      // Mobile portrait: open wheel overlay (don't paint yet — touchend paints)
-                      setScrollEnabled(false);
                       const touch = e.touches[0];
+                      if (!touch) return;
                       wheelOpenTimeRef.current = Date.now();
                       wheelTouchIdRef.current = touch?.identifier ?? null;
                       latestPickedColorRef.current = currentColor;
                       setWheelOverlay({
                         pixelX: x, pixelY: y,
-                        screenX: touch?.clientX ?? 0,
-                        screenY: touch?.clientY ?? 0,
+                        screenX: touch.clientX,
+                        screenY: touch.clientY,
                         previewColor: currentColor,
                       });
-                      // After 4s hold, enable drag painting
                       setMobileDragEnabled(false);
                       if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
                       holdTimerRef.current = setTimeout(() => {
@@ -623,6 +687,8 @@ const PixelEditor = ({
                     size={mobileOverlaySize}
                     singleIndex={selectedWheelIndex}
                     alwaysTrack={true}
+                    externalPickPos={sharedPickPos}
+                    onExternalPickPos={setSharedPickPos}
                   />
                 </div>
                 {/* Center color preview */}
@@ -705,13 +771,70 @@ const PixelEditor = ({
               size={panelHeight - 28}
               selectedIndex={selectedWheelIndex}
               onSelectIndex={setSelectedWheelIndex}
+              externalPickPos={sharedPickPos}
+              onExternalPickPos={setSharedPickPos}
             />
           </View>
-          {/* Right: full preview image */}
+          {/* Right: full preview image with viewport indicator */}
           <View style={styles.mobilePanelRight}>
-            <MinkyPanel transparent padding={2} borderRadius={4}>
+            <div style={{
+              position: 'relative',
+              width: panelHeight - 16,
+              height: panelHeight - 16,
+              borderRadius: 4,
+              overflow: 'hidden',
+              border: '2px dashed rgba(92, 90, 88, 0.55)',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+            }}
+              onClick={(e) => {
+                if (!gridScrollRef.current) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = (e.clientX - rect.left) / rect.width;
+                const clickY = (e.clientY - rect.top) / rect.height;
+                const el = gridScrollRef.current;
+                el.scrollLeft = clickX * el.scrollWidth - el.clientWidth / 2;
+                el.scrollTop = clickY * el.scrollHeight - el.clientHeight / 2;
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                if (!touch || !gridScrollRef.current) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const fx = (touch.clientX - rect.left) / rect.width;
+                const fy = (touch.clientY - rect.top) / rect.height;
+                const el = gridScrollRef.current;
+                el.scrollLeft = fx * el.scrollWidth - el.clientWidth / 2;
+                el.scrollTop = fy * el.scrollHeight - el.clientHeight / 2;
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                if (!touch || !gridScrollRef.current) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const fx = (touch.clientX - rect.left) / rect.width;
+                const fy = (touch.clientY - rect.top) / rect.height;
+                const el = gridScrollRef.current;
+                el.scrollLeft = fx * el.scrollWidth - el.clientWidth / 2;
+                el.scrollTop = fy * el.scrollHeight - el.clientHeight / 2;
+              }}
+            >
               <PixelThumbnail pixels={localPixels} width={width} height={height} size={panelHeight - 16} />
-            </MinkyPanel>
+              {gridScroll.scrollWidth > 0 && gridScroll.scrollHeight > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  left: (gridScroll.scrollLeft / gridScroll.scrollWidth) * (panelHeight - 16),
+                  top: (gridScroll.scrollTop / gridScroll.scrollHeight) * (panelHeight - 16),
+                  width: (gridScroll.clientWidth / gridScroll.scrollWidth) * (panelHeight - 16),
+                  height: (gridScroll.clientHeight / gridScroll.scrollHeight) * (panelHeight - 16),
+                  border: '2px dashed rgba(255, 255, 255, 0.85)',
+                  borderRadius: 2,
+                  boxShadow: '0 0 3px rgba(0, 0, 0, 0.4)',
+                  pointerEvents: 'none',
+                  boxSizing: 'border-box',
+                }} />
+              )}
+            </div>
           </View>
         </View>
       </View>
@@ -723,9 +846,9 @@ const PixelEditor = ({
     <View style={[styles.container, style]} onLayout={handleContainerLayout}>
       <View style={styles.mainRow}>
         {/* Left panel: tools, budget, color, wheels, swatches */}
-        <View style={[styles.leftPanel, { width: leftPanelWidth }]}>
+        <View style={styles.leftPanel}>
           {/* Tool bar: horizontal icons on landscape mobile, vertical with labels on desktop */}
-          <View style={isLandscapeMobile ? styles.landscapeToolbar : undefined}>
+          <View style={styles.landscapeToolbar}>
             {[
               { key: TOOLS.DRAW, label: 'Draw' },
               { key: TOOLS.PAINT, label: 'Paint' },
@@ -735,7 +858,7 @@ const PixelEditor = ({
               <Pressable
                 key={t.key}
                 style={[
-                  isLandscapeMobile ? styles.landscapeToolBtn : styles.toolBtn,
+                  styles.landscapeToolBtn,
                   tool === t.key && styles.toolBtnActive
                 ]}
                 onPress={() => !readOnly && setTool(t.key)}
@@ -756,7 +879,7 @@ const PixelEditor = ({
             ))}
             <Pressable
               style={[
-                isLandscapeMobile ? styles.landscapeToolBtn : styles.toolBtn,
+                styles.landscapeToolBtn,
                 undoStack.length === 0 && { opacity: 0.4 }
               ]}
               onPress={handleUndo}
@@ -808,16 +931,18 @@ const PixelEditor = ({
             </MinkyPanel>
           )}
 
-          {/* Color wheels — 6 wide on landscape mobile */}
+          {/* Color wheels — 6 wide on landscape mobile, 4 on desktop */}
           <ColorWheel
             color={currentColor}
             onChange={setCurrentColor}
             visible={true}
             hideToggle={true}
-            size={leftPanelWidth - 16}
+            size={leftPanelWidth - 20}
             selectedIndex={selectedWheelIndex}
             onSelectIndex={setSelectedWheelIndex}
-            columns={isLandscapeMobile ? 6 : undefined}
+            columns={isLandscapeMobile ? 6 : 4}
+            externalPickPos={sharedPickPos}
+            onExternalPickPos={setSharedPickPos}
           />
 
           {/* Mini preview bitmap — desktop only (landscape has it above wheels) */}
@@ -1091,6 +1216,8 @@ const PixelEditor = ({
                     size={overlayWheelSize}
                     singleIndex={selectedWheelIndex}
                     alwaysTrack={true}
+                    externalPickPos={sharedPickPos}
+                    onExternalPickPos={setSharedPickPos}
                   />
                 </div>
                 {/* Center square — drag to paint */}
@@ -1189,6 +1316,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'stretch',
+    justifyContent: 'center',
     gap: 8,
     minHeight: 0,
   },
@@ -1198,6 +1326,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 4,
     paddingHorizontal: 4,
+    marginRight: '2%',
   },
   landscapeToolbar: {
     flexDirection: 'row',
@@ -1279,7 +1408,6 @@ const styles = StyleSheet.create({
     borderColor: '#7044C7',
   },
   gridArea: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

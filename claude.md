@@ -1,5 +1,14 @@
 # Homestead Development Guidelines
 
+## Working Style (CRITICAL)
+
+**Always read and trace the full data flow before writing code.** Do not assume how a component, prop, or callback works based on its name alone. Read the actual implementation — trace props through every layer, check what state drives what rendering, verify that coordinate spaces and data formats match between producer and consumer.
+
+- Before wiring two components together, read both components fully.
+- Before adding a prop, check how existing similar props are consumed end-to-end.
+- Before fixing a bug, reproduce the exact code path that fails — don't guess at the cause.
+- If a fix doesn't work, re-read the code rather than layering on more assumptions.
+
 ## AI Service Abstraction (CRITICAL)
 
 **The frontend must NEVER have direct knowledge of AI services.** All AI-generated content must be fully abstracted by the backend.

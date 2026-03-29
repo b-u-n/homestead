@@ -255,9 +255,11 @@ const WHEEL_CONFIGS = [
  * If singleIndex is provided (0-11), renders only that one wheel at full size.
  * Otherwise renders all 5 stacked.
  */
-const ColorWheel = ({ color = '#000000', onChange, onCommit, visible = true, size = 120, hideToggle = false, onToggleVisible, singleIndex = null, alwaysTrack = false, selectedIndex = null, onSelectIndex = null, columns = null }) => {
+const ColorWheel = ({ color = '#000000', onChange, onCommit, visible = true, size = 120, hideToggle = false, onToggleVisible, singleIndex = null, alwaysTrack = false, selectedIndex = null, onSelectIndex = null, columns = null, externalPickPos = null, onExternalPickPos = null }) => {
   const [dragging, setDragging] = useState(false);
-  const [pickPos, setPickPos] = useState(null); // { nx, ny } normalized 0-1
+  const [internalPickPos, setInternalPickPos] = useState(null);
+  const pickPos = externalPickPos !== null ? externalPickPos : internalPickPos;
+  const setPickPos = onExternalPickPos || setInternalPickPos;
 
   useEffect(() => {
     if (Platform.OS !== 'web' || !dragging) return;
@@ -298,7 +300,7 @@ const ColorWheel = ({ color = '#000000', onChange, onCommit, visible = true, siz
   const wheelSize = Math.floor((size - gap * (cols - 1)) / cols);
 
   return (
-    <View style={styles.grid}>
+    <View style={[styles.grid, columns ? { maxWidth: size + 8 } : undefined]}>
       {WHEEL_CONFIGS.map((cfg, i) => (
         <Pressable key={i} onPress={() => onSelectIndex?.(i)}>
           <View style={selectedIndex === i ? styles.wheelSelected : undefined}>
