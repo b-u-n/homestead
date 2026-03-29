@@ -787,10 +787,11 @@ const PixelEditor = ({
                           const pt = paintTouchRef.current;
                           if (!scrollEl || !pt) return;
                           const rect = scrollEl.getBoundingClientRect();
-                          const centerX = rect.left + rect.width / 2;
-                          const centerY = rect.top + rect.height / 2;
-                          const offsetX = pt.x - centerX;
-                          const offsetY = pt.y - centerY;
+                          const physX = pt.x - (rect.left + rect.width / 2);
+                          const physY = pt.y - (rect.top + rect.height / 2);
+                          // Convert physical offset to local offset (same pattern as wheel positioning)
+                          const offsetX = actuallyPortraitMode ? physY : physX;
+                          const offsetY = actuallyPortraitMode ? -physX : physY;
                           const speed = 0.048;
                           const maxDrift = 7;
                           const driftX = Math.max(-maxDrift, Math.min(maxDrift, offsetX * speed));
@@ -1288,7 +1289,7 @@ const PixelEditor = ({
                       }
                       if (tool === TOOLS.PAINT || tool === TOOLS.ERASER) {
                         setIsDrawing(true);
-                        tapStartRef.current = { x: touch.clientX, y: touch.clientY };
+                        tapStartRef.current = null;
                         paintTouchRef.current = { x: touch.clientX, y: touch.clientY };
                         handlePixelAction({ x, y });
                         // Start centering drift loop
@@ -1297,10 +1298,11 @@ const PixelEditor = ({
                           const pt = paintTouchRef.current;
                           if (!scrollEl || !pt) return;
                           const rect = scrollEl.getBoundingClientRect();
-                          const centerX = rect.left + rect.width / 2;
-                          const centerY = rect.top + rect.height / 2;
-                          const offsetX = pt.x - centerX;
-                          const offsetY = pt.y - centerY;
+                          const physX = pt.x - (rect.left + rect.width / 2);
+                          const physY = pt.y - (rect.top + rect.height / 2);
+                          // Convert physical offset to local offset (same pattern as wheel positioning)
+                          const offsetX = actuallyPortraitMode ? physY : physX;
+                          const offsetY = actuallyPortraitMode ? -physX : physY;
                           const speed = 0.048;
                           const maxDrift = 7;
                           const driftX = Math.max(-maxDrift, Math.min(maxDrift, offsetX * speed));

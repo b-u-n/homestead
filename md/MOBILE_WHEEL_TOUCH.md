@@ -130,15 +130,30 @@ Only active when `isMobile && wheelOverlay` is truthy.
 5. Call `closeWheelOverlay()`
 
 ## HSB Sliders (TouchSlider) and Portrait Rotation
-The `TouchSlider` component maps physical touch X to a 0–1 slider value via `getBoundingClientRect()`. In portrait rotation, the slider is physically vertical but rendered horizontally in local space, so the axis is inverted:
+The `TouchSlider` component maps a physical touch position to a 0–1 slider value via `getBoundingClientRect()`. In portrait rotation, the slider's local horizontal axis maps to physical vertical (`clientY`), matching the same swap pattern used by the color wheel canvas:
 
 ```js
 const t = rotated
-  ? Math.max(0, Math.min(1, 1 - (clientX - rect.left) / rect.width))
+  ? Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
   : Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
 ```
 
 The `rotated` prop is passed as `actuallyPortraitMode` from PixelEditor → `HSBSlidersInline` → `TouchSlider`.
+
+## Paint/Erase Drift Loop and Portrait Rotation
+When painting/erasing, a centering drift loop auto-scrolls the grid toward the finger. It computes physical offsets from the scroll container center, then applies them to `scrollLeft`/`scrollTop`. In portrait rotation, physical axes are swapped:
+
+```js
+if (actuallyPortraitMode) {
+  if (Math.abs(offsetY) > 4) scrollEl.scrollLeft += driftY;  // physical Y → horizontal scroll
+  if (Math.abs(offsetX) > 4) scrollEl.scrollTop += driftX;   // physical X → vertical scroll
+} else {
+  if (Math.abs(offsetX) > 4) scrollEl.scrollLeft += driftX;
+  if (Math.abs(offsetY) > 4) scrollEl.scrollTop += driftY;
+}
+```
+
+Note: `document.elementFromPoint(touch.clientX, touch.clientY)` used for hit-testing grid cells does NOT need rotation fixes — the browser handles CSS transforms automatically.
 
 ## Manual Scroll After Wheel Dismiss
 When the user drags outside the wheel circle, the wheel is dismissed and manual scrolling begins. In portrait rotation, scroll deltas must be swapped:

@@ -79,8 +79,7 @@ const PixelPalsCanvas = observer(({
         loadBoard();
       }
     } catch (err) {
-      ErrorStore.addError(err.message || 'Failed to place pixels');
-      loadBoard();
+      console.warn('Draw failed:', err.message);
     }
   };
 
