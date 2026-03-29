@@ -381,6 +381,7 @@ const PixelEditor = ({
   // Portrait mode disabled for now — always use landscape on mobile
   const isPortraitMode = false;
   const isLandscapeMobile = isMobile;
+  const actuallyPortraitMode = uxStore.isPortrait; // phone physically portrait, content rotated 90deg
 
   // Reset container measurement when orientation changes so layout
   // waits for fresh onLayout before rendering with stale dimensions
@@ -690,7 +691,7 @@ const PixelEditor = ({
     const panelWheelSize = Math.min(panelHeight - 16, containerSize.width * 0.35);
 
     return (
-      <View style={[styles.container, style]} onLayout={handleContainerLayout}>
+      <View ref={containerRef} style={[styles.container, style, { position: 'relative' }]} onLayout={handleContainerLayout}>
         {/* Scrollable grid area — full width, 80% height, scrolls both axes */}
         <div ref={gridScrollRef} style={{
           width: '100%', height: gridHeight,
@@ -783,10 +784,18 @@ const PixelEditor = ({
                       wheelOpenTimeRef.current = Date.now();
                       wheelTouchIdRef.current = touch?.identifier ?? null;
                       latestPickedColorRef.current = currentColor;
+                      const cellEl = e.currentTarget;
+                      const contEl = containerRef.current;
+                      let overlayX = 0, overlayY = 0;
+                      if (cellEl && contEl) {
+                        const cellRect = cellEl.getBoundingClientRect();
+                        const contRect = contEl.getBoundingClientRect();
+                        overlayX = (cellRect.left + cellRect.width / 2) - contRect.left;
+                        overlayY = (cellRect.top + cellRect.height / 2) - contRect.top;
+                      }
                       setWheelOverlay({
                         pixelX: x, pixelY: y,
-                        screenX: touch.clientX,
-                        screenY: touch.clientY,
+                        overlayX, overlayY,
                         previewColor: currentColor,
                       });
                       setMobileDragEnabled(false);
@@ -844,17 +853,19 @@ const PixelEditor = ({
           </div>
         </div>
 
-        {/* Mobile wheel overlay — rendered OUTSIDE the scroll container as a fixed overlay */}
+        {/* Mobile wheel overlay — absolute within container, positioned on selected pixel */}
         {wheelOverlay && (() => {
-          const screenW = typeof window !== 'undefined' ? window.innerWidth : containerSize.width;
-          const screenH = typeof window !== 'undefined' ? window.innerHeight : containerSize.height;
-          const mobileOverlaySize = Math.min(screenW * 0.7, 280);
+          const contEl = containerRef.current;
+          const contRect = contEl?.getBoundingClientRect();
+          const containerW = contRect ? contRect.width : containerSize.width;
+          const containerH = contRect ? contRect.height : containerSize.height;
+          const mobileOverlaySize = Math.min(containerW * 0.49, 196);
           return (
             <>
               {/* Backdrop — tap to dismiss wheel */}
               <div
                 style={{
-                  position: 'fixed',
+                  position: 'absolute',
                   top: 0, left: 0, right: 0, bottom: 0,
                   zIndex: 9999,
                 }}
@@ -871,11 +882,11 @@ const PixelEditor = ({
                   closeWheelOverlay();
                 }}
               />
-              {/* Wheel — positioned over the tapped pixel, clamped to screen */}
+              {/* Wheel — positioned over the tapped pixel, clamped to container */}
               <div ref={mobileWheelRef} style={{
-                position: 'fixed',
-                left: Math.max(8, Math.min(screenW - mobileOverlaySize - 8, (wheelOverlay.screenX || 0) - mobileOverlaySize / 2)),
-                top: Math.max(8, Math.min(screenH - mobileOverlaySize - 8, (wheelOverlay.screenY || 0) - mobileOverlaySize / 2)),
+                position: 'absolute',
+                left: Math.max(8, Math.min(containerW - mobileOverlaySize - 8, (wheelOverlay.overlayX || 0) - mobileOverlaySize / 2)),
+                top: Math.max(8, Math.min(containerH - mobileOverlaySize - 8, (wheelOverlay.overlayY || 0) - mobileOverlaySize / 2)),
                 width: mobileOverlaySize,
                 height: mobileOverlaySize,
                 pointerEvents: 'auto',
@@ -1062,7 +1073,7 @@ const PixelEditor = ({
     const minimapSize = panelWidth - 16;
 
     return (
-      <View style={[styles.container, style, { flexDirection: 'row', overflow: 'hidden' }]} onLayout={handleContainerLayout}>
+      <View ref={containerRef} style={[styles.container, style, { flexDirection: 'row', overflow: 'hidden', position: 'relative' }]} onLayout={handleContainerLayout}>
         {/* Side panel — split into left (tools/wheels) and right (minimap) */}
         <View style={{ flexDirection: 'row', height: '100%', marginRight: 16, flexShrink: 0, gap: 8, alignItems: 'center' }}>
           {/* Left sub-panel: tools, swatch, budget, wheels */}
@@ -1261,9 +1272,18 @@ const PixelEditor = ({
                       wheelOpenTimeRef.current = Date.now();
                       wheelTouchIdRef.current = touch?.identifier ?? null;
                       latestPickedColorRef.current = currentColor;
+                      const cellEl = e.currentTarget;
+                      const contEl = containerRef.current;
+                      let overlayX = 0, overlayY = 0;
+                      if (cellEl && contEl) {
+                        const cellRect = cellEl.getBoundingClientRect();
+                        const contRect = contEl.getBoundingClientRect();
+                        overlayX = (cellRect.left + cellRect.width / 2) - contRect.left;
+                        overlayY = (cellRect.top + cellRect.height / 2) - contRect.top;
+                      }
                       setWheelOverlay({
                         pixelX: x, pixelY: y,
-                        screenX: touch.clientX, screenY: touch.clientY,
+                        overlayX, overlayY,
                         previewColor: currentColor,
                       });
                       setMobileDragEnabled(false);
@@ -1324,21 +1344,23 @@ const PixelEditor = ({
           </div>
         </div>
 
-        {/* Wheel overlay — fixed, screen-clamped, same as portrait */}
+        {/* Wheel overlay — absolute within container, positioned on selected pixel */}
         {wheelOverlay && (() => {
-          const screenW = typeof window !== 'undefined' ? window.innerWidth : containerSize.width;
-          const screenH = typeof window !== 'undefined' ? window.innerHeight : containerSize.height;
-          const mobileOverlaySize = Math.min(screenW * 0.7, 280);
+          const contEl = containerRef.current;
+          const contRect = contEl?.getBoundingClientRect();
+          const containerW = contRect ? contRect.width : containerSize.width;
+          const containerH = contRect ? contRect.height : containerSize.height;
+          const mobileOverlaySize = Math.min(containerW * 0.49, 196);
           return (
             <>
-              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
                 onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); const c = latestPickedColorRef.current || latestWheelOverlayRef.current?.previewColor; if (c) setCurrentColor(c); closeWheelOverlay(); }}
                 onClick={() => { const c = latestPickedColorRef.current || latestWheelOverlayRef.current?.previewColor; if (c) setCurrentColor(c); closeWheelOverlay(); }}
               />
               <div ref={mobileWheelRef} style={{
-                position: 'fixed',
-                left: Math.max(8, Math.min(screenW - mobileOverlaySize - 8, (wheelOverlay.screenX || 0) - mobileOverlaySize / 2)),
-                top: Math.max(8, Math.min(screenH - mobileOverlaySize - 8, (wheelOverlay.screenY || 0) - mobileOverlaySize / 2)),
+                position: 'absolute',
+                left: Math.max(8, Math.min(containerW - mobileOverlaySize - 8, (wheelOverlay.overlayX || 0) - mobileOverlaySize / 2)),
+                top: Math.max(8, Math.min(containerH - mobileOverlaySize - 8, (wheelOverlay.overlayY || 0) - mobileOverlaySize / 2)),
                 width: mobileOverlaySize, height: mobileOverlaySize,
                 pointerEvents: 'auto', opacity: wheelFading ? 0 : 1,
                 transition: 'opacity 0.3s ease-out', zIndex: 10000,
