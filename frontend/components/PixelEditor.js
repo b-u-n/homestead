@@ -688,19 +688,35 @@ const PixelEditor = ({
     );
   }
 
-  // Wait for real container measurement — fallback to window size if onLayout doesn't fire
+  // Force layout measurement if onLayout doesn't fire — trigger a reflow to kick it
+  const containerMeasureRef = useRef(null);
   useEffect(() => {
     if (containerSize || Platform.OS !== 'web') return;
-    const timer = setTimeout(() => {
-      if (!containerSize) {
-        setContainerSize({ width: window.innerWidth, height: window.innerHeight });
+    const el = containerMeasureRef.current;
+    if (el) {
+      // Force a synchronous reflow by reading offsetHeight, then measure
+      void el.offsetHeight;
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setContainerSize({ width: rect.width, height: rect.height });
+        return;
       }
-    }, 100);
-    return () => clearTimeout(timer);
+    }
+    // Fallback: try again after a frame
+    const raf = requestAnimationFrame(() => {
+      const el2 = containerMeasureRef.current;
+      if (el2 && !containerSize) {
+        const rect = el2.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setContainerSize({ width: rect.width, height: rect.height });
+        }
+      }
+    });
+    return () => cancelAnimationFrame(raf);
   }, [containerSize]);
 
   if (!containerSize) {
-    return <View style={[styles.container, style]} onLayout={handleContainerLayout} />;
+    return <View ref={containerMeasureRef} style={[styles.container, style]} onLayout={handleContainerLayout} />;
   }
 
   // === MOBILE PORTRAIT LAYOUT: full-width scrollable grid + bottom panel ===
