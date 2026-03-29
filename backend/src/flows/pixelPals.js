@@ -394,22 +394,25 @@ module.exports = {
             }
 
             case 'live-canvas': {
-              const cooldownMs = (board.liveCooldownSeconds || 180) * 1000;
-              const lastDraw = boardState.lastDrawTime
-                ? new Date(boardState.lastDrawTime).getTime()
-                : 0;
-              const elapsed = now.getTime() - lastDraw;
+              // Only check cooldown when budget is exhausted
+              if (boardState.pixelsRemaining <= 0) {
+                const cooldownMs = (board.liveCooldownSeconds || 180) * 1000;
+                const lastDraw = boardState.lastDrawTime
+                  ? new Date(boardState.lastDrawTime).getTime()
+                  : 0;
+                const elapsed = now.getTime() - lastDraw;
 
-              if (elapsed < cooldownMs) {
-                const remaining = Math.ceil((cooldownMs - elapsed) / 1000);
-                return {
-                  success: false,
-                  error: `Cooldown: wait ${remaining} seconds`
-                };
+                if (elapsed < cooldownMs) {
+                  const remaining = Math.ceil((cooldownMs - elapsed) / 1000);
+                  return {
+                    success: false,
+                    error: `Cooldown: wait ${remaining} seconds`
+                  };
+                }
+                // Cooldown passed — refill budget
+                boardState.pixelsRemaining = board.pixelsPerTurn;
+                boardState.touchedPixels = [];
               }
-              // Live canvas always refills per action
-              boardState.pixelsRemaining = board.pixelsPerTurn;
-              boardState.touchedPixels = [];
               break;
             }
           }

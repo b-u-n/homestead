@@ -111,10 +111,12 @@ Three layout modes detected automatically. Mode detection uses `uxStore.isPortra
 - Mouse cursors: custom SVG cursors per tool
 
 ### Mobile Landscape
-- Uses the **same layout as desktop** (left panel + grid)
-- Touch handlers added to grid cells: `onTouchStart` opens wheel in Draw mode, paints in Paint mode
-- `onTouchMove`/`onTouchEnd` support drag-painting
-- Wheel overlay positioned relative to grid (same as desktop)
+- Uses the **same left panel + grid layout as desktop**, but with a scrollable grid container (`overflow: scroll` div wrapping the grid, using `display: contents` passthrough on desktop).
+- Minimum cell size 32px for finger taps. Grid scrolls both axes when it exceeds the viewport.
+- Tapping a pixel opens the color wheel immediately (same as portrait — no DRAW/PAINT distinction at touch level).
+- **Scroll-through behavior**: same global `touchmove` listener as portrait — drag inside wheel picks colors, drag outside dismisses wheel and enters manual scroll mode.
+- **Color wheel popup**: `position: fixed`, screen-edge clamped (same as portrait), rendered outside the scroll container so it doesn't scroll away.
+- **Interactive minimap** in left panel above color wheels: stitched border, viewport indicator, click/touch-to-navigate, drag-to-pan (same as portrait minimap).
 
 ### Mobile Portrait
 - **Scrollable grid** (80% height, minus 16px gap): full-width pixels, scrollable in both axes if grid exceeds viewport. Minimum cell size 32px for finger taps.
