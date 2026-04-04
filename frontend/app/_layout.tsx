@@ -96,6 +96,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
+      // Capture deep link URL before auth redirects lose it
+      SessionStore.captureRedirect();
       // Initialize session when app starts
       SessionStore.initSession();
       // Initialize audio

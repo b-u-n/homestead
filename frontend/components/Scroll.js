@@ -47,6 +47,7 @@ const Scroll = forwardRef(({
   thumbOverlayColor = 'rgba(135, 180, 210, 0.5)',
   onScrollbarDrag,
   scrollEnabled: scrollEnabledProp,
+  rotated = false,
   ...props
 }, ref) => {
   const [globalScrollEnabled, setGlobalScrollEnabled] = useState(getScrollEnabled());
@@ -80,6 +81,7 @@ const Scroll = forwardRef(({
             overlayColor={overlayColor}
             thumbOverlayColor={thumbOverlayColor}
             onScrollbarDrag={onScrollbarDrag}
+            rotated={rotated}
             {...props}
           >
             {children}
@@ -100,6 +102,7 @@ const Scroll = forwardRef(({
       overlayColor={overlayColor}
       thumbOverlayColor={thumbOverlayColor}
       onScrollbarDrag={onScrollbarDrag}
+      rotated={rotated}
       {...props}
     >
       {children}

@@ -17,6 +17,7 @@ const Scrollbar = ({
   style,
   alwaysShow = false,
   horizontal = false,
+  rotated = false,
 }) => {
   const trackRef = useRef(null);
   const isDragging = useRef(false);
@@ -35,12 +36,19 @@ const Scrollbar = ({
   const scrollProgress = scrollableHeight > 0 ? scrollOffset / scrollableHeight : 0;
   const thumbTopPercent = canScroll ? scrollProgress * (100 - thumbHeightPercent) : 0;
 
+  // Effective 1D drag position accounting for 90deg CW rotation
+  const getClientPos = useCallback((clientX, clientY) => {
+    if (horizontal) return rotated ? -clientY : clientX;
+    return rotated ? -clientX : clientY;
+  }, [horizontal, rotated]);
+
   // Handle drag move (mouse or touch)
   const handleDragMove = useCallback((clientPos) => {
     if (!isDragging.current || !onScroll || !trackRef.current) return;
 
     const rect = trackRef.current.getBoundingClientRect();
-    const trackSize = horizontal ? rect.width : rect.height;
+    // When rotated, track's physical length is along the perpendicular axis
+    const trackSize = (horizontal === rotated) ? rect.height : rect.width;
     const thumbSize = (thumbHeightPercent / 100) * trackSize;
     const availableTrackSize = trackSize - thumbSize;
 
@@ -52,13 +60,13 @@ const Scrollbar = ({
     const maxScroll = contentHeight - visibleHeight;
 
     onScroll(Math.max(0, Math.min(newOffset, maxScroll)));
-  }, [onScroll, contentHeight, visibleHeight, thumbHeightPercent, horizontal]);
+  }, [onScroll, contentHeight, visibleHeight, thumbHeightPercent, horizontal, rotated]);
 
-  const handleMouseMove = useCallback((e) => handleDragMove(horizontal ? e.clientX : e.clientY), [handleDragMove, horizontal]);
+  const handleMouseMove = useCallback((e) => handleDragMove(getClientPos(e.clientX, e.clientY)), [handleDragMove, getClientPos]);
   const handleTouchMove = useCallback((e) => {
     e.preventDefault();
-    handleDragMove(horizontal ? e.touches[0].clientX : e.touches[0].clientY);
-  }, [handleDragMove, horizontal]);
+    handleDragMove(getClientPos(e.touches[0].clientX, e.touches[0].clientY));
+  }, [handleDragMove, getClientPos]);
 
   // Handle drag end
   const handleDragEnd = useCallback(() => {
@@ -80,18 +88,35 @@ const Scrollbar = ({
     e.preventDefault();
     e.stopPropagation();
     const rect = trackRef.current.getBoundingClientRect();
-    const clickPos = horizontal ? (e.clientX - rect.left) : (e.clientY - rect.top);
-    const clickRatio = clickPos / (horizontal ? rect.width : rect.height);
+    let clickPos, trackLength;
+    if (horizontal) {
+      if (rotated) {
+        clickPos = rect.bottom - e.clientY;
+        trackLength = rect.height;
+      } else {
+        clickPos = e.clientX - rect.left;
+        trackLength = rect.width;
+      }
+    } else {
+      if (rotated) {
+        clickPos = rect.right - e.clientX;
+        trackLength = rect.width;
+      } else {
+        clickPos = e.clientY - rect.top;
+        trackLength = rect.height;
+      }
+    }
+    const clickRatio = clickPos / trackLength;
     const maxScroll = contentHeight - visibleHeight;
     const newOffset = Math.max(0, Math.min(clickRatio * maxScroll, maxScroll));
     onScroll(newOffset);
 
     isDragging.current = true;
-    dragStartY.current = horizontal ? e.clientX : e.clientY;
+    dragStartY.current = getClientPos(e.clientX, e.clientY);
     dragStartOffset.current = newOffset;
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleDragEnd);
-  }, [onScroll, contentHeight, visibleHeight, handleMouseMove, handleDragEnd, horizontal]);
+  }, [onScroll, contentHeight, visibleHeight, handleMouseMove, handleDragEnd, horizontal, rotated, getClientPos]);
 
   const handleTrackTouchStart = useCallback((e) => {
     if (!onScroll || Platform.OS !== 'web' || !trackRef.current) return;
@@ -101,18 +126,35 @@ const Scrollbar = ({
     e.stopPropagation();
     const touch = e.touches[0];
     const rect = trackRef.current.getBoundingClientRect();
-    const touchPos = horizontal ? (touch.clientX - rect.left) : (touch.clientY - rect.top);
-    const touchRatio = touchPos / (horizontal ? rect.width : rect.height);
+    let touchPos, trackLength;
+    if (horizontal) {
+      if (rotated) {
+        touchPos = rect.bottom - touch.clientY;
+        trackLength = rect.height;
+      } else {
+        touchPos = touch.clientX - rect.left;
+        trackLength = rect.width;
+      }
+    } else {
+      if (rotated) {
+        touchPos = rect.right - touch.clientX;
+        trackLength = rect.width;
+      } else {
+        touchPos = touch.clientY - rect.top;
+        trackLength = rect.height;
+      }
+    }
+    const touchRatio = touchPos / trackLength;
     const maxScroll = contentHeight - visibleHeight;
     const newOffset = Math.max(0, Math.min(touchRatio * maxScroll, maxScroll));
     onScroll(newOffset);
 
     isDragging.current = true;
-    dragStartY.current = horizontal ? touch.clientX : touch.clientY;
+    dragStartY.current = getClientPos(touch.clientX, touch.clientY);
     dragStartOffset.current = newOffset;
     document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
     document.addEventListener('touchend', handleDragEnd, { capture: true });
-  }, [onScroll, contentHeight, visibleHeight, handleTouchMove, handleDragEnd, horizontal]);
+  }, [onScroll, contentHeight, visibleHeight, handleTouchMove, handleDragEnd, horizontal, rotated, getClientPos]);
 
   // Handle drag start (mouse)
   const handleMouseDown = useCallback((e) => {
@@ -121,12 +163,12 @@ const Scrollbar = ({
     e.preventDefault();
     e.stopPropagation();
     isDragging.current = true;
-    dragStartY.current = horizontal ? e.clientX : e.clientY;
+    dragStartY.current = getClientPos(e.clientX, e.clientY);
     dragStartOffset.current = scrollOffset;
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleDragEnd);
-  }, [scrollOffset, canScroll, handleMouseMove, handleDragEnd, horizontal]);
+  }, [scrollOffset, canScroll, handleMouseMove, handleDragEnd, getClientPos]);
 
   // Handle drag start (touch)
   const handleTouchStart = useCallback((e) => {
@@ -134,12 +176,12 @@ const Scrollbar = ({
 
     e.stopPropagation();
     isDragging.current = true;
-    dragStartY.current = horizontal ? e.touches[0].clientX : e.touches[0].clientY;
+    dragStartY.current = getClientPos(e.touches[0].clientX, e.touches[0].clientY);
     dragStartOffset.current = scrollOffset;
 
     document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
     document.addEventListener('touchend', handleDragEnd, { capture: true });
-  }, [scrollOffset, canScroll, handleTouchMove, handleDragEnd, horizontal]);
+  }, [scrollOffset, canScroll, handleTouchMove, handleDragEnd, getClientPos]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -156,11 +198,13 @@ const Scrollbar = ({
     if (!onScroll || !canScroll) return;
 
     e.preventDefault();
-    const delta = horizontal ? (e.deltaX || e.deltaY) : e.deltaY;
+    const delta = rotated
+      ? -(horizontal ? (e.deltaY || e.deltaX) : (e.deltaX || e.deltaY))
+      : (horizontal ? (e.deltaX || e.deltaY) : e.deltaY);
     const maxScroll = contentHeight - visibleHeight;
     const newOffset = scrollOffset + delta;
     onScroll(Math.max(0, Math.min(newOffset, maxScroll)));
-  }, [onScroll, canScroll, contentHeight, visibleHeight, scrollOffset, horizontal]);
+  }, [onScroll, canScroll, contentHeight, visibleHeight, scrollOffset, horizontal, rotated]);
 
   // Don't render if content fits (unless alwaysShow is true)
   if (!alwaysShow && !canScroll) {

@@ -34,6 +34,8 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
 
   if (!visible) return null;
 
+  const rotated = Platform.OS === 'web' && uxStore.isPortrait;
+
   const handleClose = () => {
     if (playSound) {
       SoundManager.play('closeActivity');
@@ -138,7 +140,7 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
             )}
 
             {/* Content */}
-            <Scroll style={styles.content} contentContainerStyle={styles.contentContainer}>
+            <Scroll style={styles.content} contentContainerStyle={styles.contentContainer} rotated={rotated}>
               {children}
             </Scroll>
           </StitchedBorder>
@@ -151,7 +153,6 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
   // which blocks TextInput focus. On native, use Pressable for touch handling.
   if (Platform.OS === 'web') {
     const sidebarWidth = uxStore.effectiveSidebarWidth;
-    const rotated = uxStore.isPortrait;
     return (
       <div
         style={{

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Platform } from 'react-native';
+import SessionStore from '../../../../stores/SessionStore';
 
 export default function MapIndex() {
   const router = useRouter();
@@ -13,7 +14,16 @@ export default function MapIndex() {
   useEffect(() => {
     if (!isMounted) return;
 
-    // Get last visited location from localStorage (web only)
+    // Check for a pending deep link redirect (e.g. user arrived via link, went through auth first)
+    const pendingUrl = SessionStore.consumeRedirect();
+    if (pendingUrl) {
+      const timeout = setTimeout(() => {
+        router.replace(pendingUrl);
+      }, 0);
+      return () => clearTimeout(timeout);
+    }
+
+    // Otherwise restore last visited location (web only)
     let lastLocation = 'town-square';
 
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
@@ -23,12 +33,10 @@ export default function MapIndex() {
       }
     }
 
-    // Ensure lastLocation is a string
     if (typeof lastLocation !== 'string') {
       lastLocation = 'town-square';
     }
 
-    // Small delay to ensure router is ready
     const timeout = setTimeout(() => {
       router.replace(`/homestead/explore/map/${lastLocation}`);
     }, 0);

@@ -21,10 +21,13 @@ const ScrollBarView = forwardRef(({
   onScrollbarDrag,
   horizontal,
   scrollEnabled = true,
+  rotated = false,
   ...scrollViewProps
 }, ref) => {
   const scrollEnabledRef = useRef(scrollEnabled);
   scrollEnabledRef.current = scrollEnabled;
+  const rotatedRef = useRef(rotated);
+  rotatedRef.current = rotated;
 
   const [scrollMetrics, setScrollMetrics] = useState({
     offset: 0,
@@ -96,16 +99,31 @@ const ScrollBarView = forwardRef(({
       if (!scrollEnabledRef.current) return;
       const touch = e.touches[0];
       const rect = node.getBoundingClientRect();
+      const isRotated = rotatedRef.current;
 
       // Don't handle touches on the scrollbar area — let Scrollbar handle those
+      // When rotated, the scrollbar's physical position shifts axis
       if (!horizontal) {
-        if (touch.clientX - rect.left > rect.width - scrollbarSize) return;
+        if (isRotated) {
+          if (touch.clientY - rect.top > rect.height - scrollbarSize) return;
+        } else {
+          if (touch.clientX - rect.left > rect.width - scrollbarSize) return;
+        }
       } else {
-        if (touch.clientY - rect.top > rect.height - scrollbarSize) return;
+        if (isRotated) {
+          if (touch.clientX - rect.left > rect.width - scrollbarSize) return;
+        } else {
+          if (touch.clientY - rect.top > rect.height - scrollbarSize) return;
+        }
       }
 
+      // When rotated 90deg CW, physical axes are swapped and inverted
+      const startPos = horizontal
+        ? (isRotated ? -touch.clientY : touch.clientX)
+        : (isRotated ? -touch.clientX : touch.clientY);
+
       touchScrollRef.current = {
-        startPos: horizontal ? touch.clientX : touch.clientY,
+        startPos,
         startOffset: metricsRef.current.offset,
         isScrolling: false,
         active: true,
@@ -116,7 +134,10 @@ const ScrollBarView = forwardRef(({
       if (!scrollEnabledRef.current) return;
       if (!touchScrollRef.current.active) return;
       const touch = e.touches[0];
-      const pos = horizontal ? touch.clientX : touch.clientY;
+      const isRotated = rotatedRef.current;
+      const pos = horizontal
+        ? (isRotated ? -touch.clientY : touch.clientX)
+        : (isRotated ? -touch.clientX : touch.clientY);
       const delta = touchScrollRef.current.startPos - pos;
       const metrics = metricsRef.current;
       const maxScroll = metrics.content - metrics.visible;
@@ -210,7 +231,9 @@ const ScrollBarView = forwardRef(({
             if (!scrollEnabled) return;
             const maxScroll = scrollMetrics.content - scrollMetrics.visible;
             if (maxScroll <= 0) return;
-            const delta = horizontal ? (e.deltaX || e.deltaY) : e.deltaY;
+            const delta = rotated
+              ? -(horizontal ? (e.deltaY || e.deltaX) : (e.deltaX || e.deltaY))
+              : (horizontal ? (e.deltaX || e.deltaY) : e.deltaY);
             const newOffset = scrollMetrics.offset + delta;
             handleScrollbarScroll(Math.max(0, Math.min(newOffset, maxScroll)));
           }}
@@ -228,6 +251,7 @@ const ScrollBarView = forwardRef(({
             style={scrollbarStyle}
             alwaysShow={alwaysShowScrollbar}
             horizontal={horizontal}
+            rotated={rotated}
           />
         </div>
       )}

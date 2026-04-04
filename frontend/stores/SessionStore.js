@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import domain from '../utils/domain';
 
 const AUTH_STORAGE_KEY = '@homestead:auth';
+const REDIRECT_KEY = '@homestead:pendingRedirect';
 
 class SessionStore {
   sessionId = null;
@@ -10,10 +11,57 @@ class SessionStore {
   lastScreen = 'Landing';
   accountData = null;
   isLoading = false;
+  pendingRedirect = null;
 
   constructor() {
     makeAutoObservable(this);
     // Don't auto-init in constructor - let _layout.tsx call initSession after fonts load
+    this.rehydrateRedirect();
+  }
+
+  /**
+   * Capture the current URL as a pending redirect before auth kicks in.
+   * Ignores root, onboarding paths, and OAuth callbacks.
+   * Persists to sessionStorage so it survives the OAuth round-trip.
+   */
+  captureRedirect() {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+
+    const { pathname, search } = window.location;
+
+    if (!pathname || pathname === '/') return;
+    if (pathname.startsWith('/homestead/onboarding')) return;
+    if (search.includes('token=')) return;
+
+    this.pendingRedirect = pathname + search;
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(REDIRECT_KEY, this.pendingRedirect);
+      }
+    } catch (e) {}
+  }
+
+  /**
+   * Consume the pending redirect URL and clear it.
+   * Returns the URL string or null.
+   */
+  consumeRedirect() {
+    const url = this.pendingRedirect;
+    this.pendingRedirect = null;
+    try {
+      if (Platform.OS === 'web' && typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem(REDIRECT_KEY);
+      }
+    } catch (e) {}
+    return url;
+  }
+
+  rehydrateRedirect() {
+    try {
+      if (Platform.OS === 'web' && typeof sessionStorage !== 'undefined') {
+        this.pendingRedirect = sessionStorage.getItem(REDIRECT_KEY) || null;
+      }
+    } catch (e) {}
   }
 
   async initSession() {

@@ -289,7 +289,7 @@ const AvatarGenerationScreen = observer(() => {
         WebSocketService.connect();
 
         console.log('Navigating to explore...');
-        router.push('/homestead/explore/map/town-square');
+        router.push('/homestead/explore/map');
       } else {
         console.error('Server error:', data.error);
         ErrorStore.addError(data.error || 'Failed to save avatar');
