@@ -1,18 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Account = require('../models/Account');
-const fs = require('fs').promises;
-const path = require('path');
-const crypto = require('crypto');
-
-// Helper to get backend base URL
-// TODO: Move to S3, then this will be replaced with S3 URL
-const getBackendUrl = (req) => {
-  if (process.env.BACKEND_URL) {
-    return process.env.BACKEND_URL;
-  }
-  return `${req.protocol}://${req.get('host')}`;
-};
 
 // Create new account with session ID or return existing
 router.post('/create', async (req, res) => {
@@ -212,29 +200,9 @@ router.post('/save-user-avatar', async (req, res) => {
       });
     }
 
-    // Download and save the avatar image
-    const response = await fetch(sourceAvatarUrl);
-    if (!response.ok) {
-      throw new Error('Failed to download avatar image');
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const imageBuffer = Buffer.from(arrayBuffer);
-
-    // Generate unique filename using accountId
-    const filename = `avatar_${account._id}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.png`;
-    const avatarDir = path.join(__dirname, '../../public/avatars');
-    const avatarPath = path.join(avatarDir, filename);
-
-    // Ensure avatars directory exists
-    await fs.mkdir(avatarDir, { recursive: true });
-
-    // Save image to file system
-    await fs.writeFile(avatarPath, imageBuffer);
-
-    // Construct full avatar URL (TODO: Replace with S3 URL when migrating)
-    const backendUrl = getBackendUrl(req);
-    const avatarUrl = `${backendUrl}/api/avatars/${filename}`;
+    // The avatar is already saved in GCS from the generation step.
+    // sourceAvatarUrl is a relative path like /api/avatars/filename.png — just use it directly.
+    const avatarUrl = sourceAvatarUrl;
 
     // Update account with user data and avatar
     account.userData = {
