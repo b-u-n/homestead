@@ -218,7 +218,8 @@ export default (width, height) => ({
       image: require('../../assets/images/journal.png'),
       platformAssetId: 'entity-journal',
       showTitle: false,
-      navigateTo: '/homestead/explore/map/weeping-willow'
+      flow: 'workbook',
+      flowParams: { bookshelfId: 'depression', title: 'Journal' }
     },
     {
       id: 'help-wanted',

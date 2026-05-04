@@ -114,7 +114,8 @@ export default (width, height) => ({
       image: require('../../assets/images/journal.png'),
       showTitle: false,
       zIndex: 1001,
-      navigateTo: '/homestead/explore/map/library'
+      flow: 'workbook',
+      flowParams: { bookshelfId: 'depression', title: 'Journal' }
     },
     {
       id: 'help-wanted',
