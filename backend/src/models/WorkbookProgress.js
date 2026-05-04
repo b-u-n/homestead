@@ -10,7 +10,6 @@ const workbookProgressSchema = new mongoose.Schema({
   workbookId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workbook',
-    required: true,
     index: true
   },
   activityId: {
@@ -25,6 +24,12 @@ const workbookProgressSchema = new mongoose.Schema({
     of: mongoose.Schema.Types.Mixed,
     default: new Map()
   },
+  // The step the user was last on. Persisted on every navigation so resume
+  // returns to the exact step (not just the first-incomplete one).
+  currentStepIndex: {
+    type: Number,
+    default: 0
+  },
   status: {
     type: String,
     enum: ['in-progress', 'completed'],
@@ -38,9 +43,10 @@ const workbookProgressSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Compound indexes for efficient queries
+// Each document is one INSTANCE of an activity attempt — a user can have many
+// in-progress instances and many completed instances of the same activity.
 workbookProgressSchema.index({ accountId: 1, workbookId: 1 });
-workbookProgressSchema.index({ accountId: 1, activityId: 1 });
-workbookProgressSchema.index({ accountId: 1, workbookId: 1, activityId: 1 }, { unique: true });
+workbookProgressSchema.index({ accountId: 1, activityId: 1, lastAccessedAt: -1 });
+workbookProgressSchema.index({ accountId: 1, status: 1, lastAccessedAt: -1 });
 
 module.exports = mongoose.model('WorkbookProgress', workbookProgressSchema);

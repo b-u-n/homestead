@@ -1,6 +1,8 @@
 import React from 'react';
+import { View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import MapCanvas from '../../../../components/MapCanvas';
+import RoomEditor from '../../../../components/RoomEditor';
 
 export default function MapLocation() {
   const params = useLocalSearchParams();
@@ -21,5 +23,10 @@ export default function MapLocation() {
   const initialFlow = typeof flow === 'string' ? flow : undefined;
   const initialDropId = typeof dropId === 'string' ? dropId : undefined;
 
-  return <MapCanvas location={locationStr} initialFlow={initialFlow} initialDropId={initialDropId} initialFlowParams={flowParams} />;
+  return (
+    <View style={{ flex: 1 }}>
+      <MapCanvas location={locationStr} initialFlow={initialFlow} initialDropId={initialDropId} initialFlowParams={flowParams} />
+      <RoomEditor location={locationStr} />
+    </View>
+  );
 }

@@ -10,6 +10,12 @@
 - If a fix doesn't work, re-read the code rather than layering on more assumptions.
 - Before working on any new problem area, read ALL relevant documentation in the `md/` folder first. Check existing patterns and implementations before writing new code.
 
+## Authoring Workbook Activities (CRITICAL)
+
+**Before writing or editing any file under `/activities/v2/`, read [`/activities/v2/_SCHEMA.md`](./activities/v2/_SCHEMA.md).** It defines the v2 schema, the available primitive refs, the layout shapes, and the **activity rules (R1, R2, …)** every activity must follow (e.g. R1: feedback phase MUST use `JournalStep` with `timerMinutes` + `showWordCount`, modeled on `gad7-assessment.json`'s `journal` step).
+
+Background agents authoring new activities must include `/activities/v2/_SCHEMA.md` in their "Read first" list.
+
 ## AI Service Abstraction (CRITICAL)
 
 **The frontend must NEVER have direct knowledge of AI services.** All AI-generated content must be fully abstracted by the backend.

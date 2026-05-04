@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import StitchedBorder from './StitchedBorder';
@@ -11,10 +11,35 @@ import FontSettingsStore from '../stores/FontSettingsStore';
 const menuBackImage = require('../assets/images/menu-back.png');
 const menuCloseImage = require('../assets/images/menu-close.png');
 
-const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack }) => {
+const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack, scrollResetKey }) => {
   // Show back button if canGoBack OR if a custom back action is provided
   const showBack = canGoBack || onCustomBack;
   const hasPlayedOpenSound = useRef(false);
+  const modalRootRef = useRef(null);
+
+  // Brute-force scroll reset on every drop change: walk every descendant of the
+  // modal root and force scrollTop=0 wherever it's > 0. We don't know which
+  // wrapper is the actual scroller (RNW wraps things in several divs and the
+  // truly-scrolled element varies by size/platform), so we reset all of them.
+  // Runs in useLayoutEffect so it happens after the new content is in the DOM
+  // but before paint — no flicker.
+  useLayoutEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = modalRootRef.current;
+    if (!root) return;
+    const reset = () => {
+      const all = [root, ...root.querySelectorAll('*')];
+      for (const el of all) {
+        if (el && el.scrollTop > 0) el.scrollTop = 0;
+        if (el && el.scrollLeft > 0) el.scrollLeft = 0;
+      }
+    };
+    reset();
+    // Some scrollers settle their content size on the next frame (e.g. images,
+    // measured layouts). Re-reset once after layout.
+    const raf = requestAnimationFrame(reset);
+    return () => cancelAnimationFrame(raf);
+  }, [scrollResetKey]);
 
   // Play open sounds once when modal first becomes visible
   useEffect(() => {
@@ -76,12 +101,12 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
   ];
 
   const modalContent = (
-    <View style={wrapperStyle}>
+    <View ref={modalRootRef} style={wrapperStyle}>
       <TiledBackground>
         <View style={styles.contentWrapper}>
-          <StitchedBorder borderRadius={isFullscreen ? 0 : 12} borderColor="rgba(92, 90, 88, 0.2)" style={styles.containerBorder}>
+          <StitchedBorder borderRadius={isFullscreen ? 0 : 12} borderColor="rgba(92, 90, 88, 0.2)" style={uxStore.isMobile ? styles.containerBorderMobile : styles.containerBorder}>
             {/* Navigation buttons bar with title — hidden in fullscreen */}
-            {!isFullscreen && (
+            {!isFullscreen && !uxStore.isMobile && (
               <View style={styles.navBar}>
                 {/* Back button or spacer */}
                 {showBack ? (
@@ -128,6 +153,17 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
               </View>
             )}
 
+            {/* Mobile: floating back button overlay (no navbar height) */}
+            {!isFullscreen && uxStore.isMobile && showBack && (
+              <Pressable onPress={onCustomBack || onBack} style={styles.mobileBackOverlay}>
+                <img
+                  src={typeof menuBackImage === 'string' ? menuBackImage : menuBackImage.default || menuBackImage.uri || menuBackImage}
+                  alt="Back"
+                  style={{ width: 36, height: 36, display: 'block', filter: 'brightness(1.8) saturate(0.4) contrast(1.0) hue-rotate(315deg) opacity(1.0)' }}
+                />
+              </Pressable>
+            )}
+
             {/* Fullscreen: minimal close button */}
             {isFullscreen && showClose && (
               <Pressable onPress={handleClose} style={styles.fullscreenClose}>
@@ -139,8 +175,9 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
               </Pressable>
             )}
 
-            {/* Content */}
-            <Scroll style={styles.content} contentContainerStyle={styles.contentContainer} rotated={rotated}>
+            {/* Content — keyed by scrollResetKey so navigating to a new drop
+                remounts the Scroll and resets scrollTop to 0. */}
+            <Scroll key={scrollResetKey} style={styles.content} contentContainerStyle={styles.contentContainer} rotated={rotated}>
               {children}
             </Scroll>
           </StitchedBorder>
@@ -225,6 +262,9 @@ const styles = StyleSheet.create({
   containerBorder: {
     padding: 20,
   },
+  containerBorderMobile: {
+    padding: 8,
+  },
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -233,6 +273,13 @@ const styles = StyleSheet.create({
     minHeight: 50,
     width: '100%',
     zIndex: 10,
+  },
+  mobileBackOverlay: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    zIndex: 100,
+    padding: 4,
   },
   fullscreenClose: {
     position: 'absolute',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, TextInput, Platform, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import FontSettingsStore from '../../stores/FontSettingsStore';
@@ -12,15 +12,35 @@ import WoolButton from '../WoolButton';
  * Props from step definition:
  *   step.timerMinutes: 20        // optional countdown
  *   step.minWords: 0             // optional minimum
- *   step.placeholder: '...'
+ *   step.placeholder: '...'      // explicit override (skips rotation)
  *   step.showWordCount: true
  *   step.showReread: true        // shows "Re-read" button after writing
+ *
+ * When `step.placeholder` is omitted, the component rotates through a small
+ * set of warm reflective placeholders so the textarea voice doesn't go stale.
+ * The chosen variation locks for this mount.
  */
+const PLACEHOLDER_VARIATIONS = [
+  "Take your time — there's no right answer, only what you noticed.",
+  'Whatever came up while you were doing this, it can go here.',
+  'No need to polish it — just what you felt, as it actually was.',
+  "Write what's still with you. It doesn't have to make full sense yet.",
+  'Whatever surfaced for you, it belongs here. Even the messy parts.',
+  'This is for you, not for anyone else to read. Honest beats tidy.',
+  'Notice what came up, then put it down here in whatever form fits.',
+  'No right answer — just what the activity actually stirred in you.',
+  "Whatever you're carrying away from this, it can land here.",
+];
+
 const JournalStep = observer(({ step, value, onChange }) => {
   const text = value || '';
   const timerMinutes = step.timerMinutes || 0;
   const minWords = step.minWords || 0;
-  const placeholder = step.placeholder || 'Write your thoughts...';
+  const rotatingPlaceholder = useMemo(
+    () => PLACEHOLDER_VARIATIONS[Math.floor(Math.random() * PLACEHOLDER_VARIATIONS.length)],
+    []
+  );
+  const placeholder = step.placeholder || rotatingPlaceholder;
   const showWordCount = step.showWordCount !== false;
   const showReread = step.showReread || false;
 

@@ -3,14 +3,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import FontSettingsStore from '../../stores/FontSettingsStore';
 import MinkyPanel from '../MinkyPanel';
-import WoolButton from '../WoolButton';
-import { Text as WoolText } from '../ButtonBase';
 import ScrollBarView from '../ScrollBarView';
+import Checkbox from '../primitives/Checkbox';
 
 /**
  * ChecklistAssessmentStep
- * Checkbox list with scoring and interpretation.
- * Each item is a WoolButton (focused when checked), interpretation in MinkyPanel.
+ * Checkbox list with scoring and interpretation. Each item supports:
+ *   - text (legacy) OR title (preferred)
+ *   - description (optional secondary line)
+ *   - examples (optional array of short concrete examples)
+ *
+ * Scoring counts checked items, matched against `step.scoring.thresholds`.
  */
 const ChecklistAssessmentStep = observer(({ step, value, onChange }) => {
   const items = step.items || [];
@@ -20,11 +23,9 @@ const ChecklistAssessmentStep = observer(({ step, value, onChange }) => {
   const checked = value?.checked || [];
   const score = checked.length;
 
-  const getInterpretation = () => {
+  const findInterpretation = (s) => {
     for (const t of thresholds) {
-      if (score >= t.min && score <= t.max) {
-        return t.interpretation;
-      }
+      if (s >= t.min && s <= t.max) return t.interpretation;
     }
     return null;
   };
@@ -35,18 +36,17 @@ const ChecklistAssessmentStep = observer(({ step, value, onChange }) => {
       : [...checked, itemId];
 
     const newScore = newChecked.length;
-    let interpretation = null;
-    for (const t of thresholds) {
-      if (newScore >= t.min && newScore <= t.max) {
-        interpretation = t.interpretation;
-        break;
-      }
-    }
-
-    onChange({ checked: newChecked, score: newScore, interpretation });
+    onChange({
+      checked: newChecked,
+      score: newScore,
+      interpretation: findInterpretation(newScore),
+    });
   };
 
-  const interpretation = getInterpretation();
+  const interpretation = findInterpretation(score);
+
+  // Allow either `title` (preferred) or `text` (legacy) for the main label.
+  const itemTitle = (it) => it.title || it.text || '';
 
   return (
     <ScrollBarView style={styles.container}>
@@ -54,58 +54,63 @@ const ChecklistAssessmentStep = observer(({ step, value, onChange }) => {
         {items.map((item) => {
           const isChecked = checked.includes(item.id);
           return (
-            <WoolButton
+            <Checkbox
               key={item.id}
-              onPress={() => handleToggle(item.id)}
-              variant="purple"
-              size="small"
-              focused={isChecked}
-              contentStyle={styles.itemContent}
-            >
-              <View style={styles.itemRow}>
-                <View style={[styles.checkIndicator, isChecked && styles.checkIndicatorChecked]}>
-                  {isChecked && <Text style={styles.checkmark}>{'\u2713'}</Text>}
-                </View>
-                <WoolText style={styles.itemText}>{item.text}</WoolText>
-              </View>
-            </WoolButton>
+              checked={isChecked}
+              onToggle={() => handleToggle(item.id)}
+              title={itemTitle(item)}
+              description={item.description}
+              examples={item.examples}
+            />
           );
         })}
 
-        {/* Score counter */}
-        <Text
-          style={[
-            styles.scoreText,
-            {
-              fontSize: FontSettingsStore.getScaledFontSize(14),
-              color: FontSettingsStore.getFontColor('#454342'),
-            },
-          ]}
-        >
-          {score} of {items.length} checked
-        </Text>
-
-        {/* Interpretation */}
-        {interpretation && score > 0 && (
-          <MinkyPanel
-            borderRadius={8}
-            padding={12}
-            paddingTop={12}
-            overlayColor="rgba(112, 68, 199, 0.15)"
-          >
-            <Text
-              style={[
-                styles.interpretationText,
-                {
-                  fontSize: FontSettingsStore.getScaledFontSize(16),
-                  color: FontSettingsStore.getFontColor('#2D2C2B'),
-                },
-              ]}
+        {score > 0 ? (
+          <View style={styles.scorePanelWrap}>
+            <MinkyPanel
+              borderRadius={10}
+              padding={14}
+              paddingTop={14}
+              overlayColor="rgba(135, 180, 210, 0.35)"
             >
-              {interpretation}
-            </Text>
-          </MinkyPanel>
-        )}
+              <Text
+                style={[
+                  styles.scoreLabel,
+                  {
+                    fontSize: FontSettingsStore.getScaledFontSize(12),
+                    color: FontSettingsStore.getFontColor('#5C5A58'),
+                  },
+                ]}
+              >
+                You identified
+              </Text>
+              <Text
+                style={[
+                  styles.scoreNumber,
+                  {
+                    fontSize: FontSettingsStore.getScaledFontSize(28),
+                    color: FontSettingsStore.getFontColor('#2D2C2B'),
+                  },
+                ]}
+              >
+                {score} of {items.length}
+              </Text>
+              {interpretation ? (
+                <Text
+                  style={[
+                    styles.interpretationText,
+                    {
+                      fontSize: FontSettingsStore.getScaledFontSize(14),
+                      color: FontSettingsStore.getFontColor('#2D2C2B'),
+                    },
+                  ]}
+                >
+                  {interpretation}
+                </Text>
+              ) : null}
+            </MinkyPanel>
+          </View>
+        ) : null}
       </View>
     </ScrollBarView>
   );
@@ -116,58 +121,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: 8,
+    gap: 6,
   },
-  itemContent: {
-    flexDirection: 'row',
+  scorePanelWrap: {
+    marginTop: 10,
     alignItems: 'center',
   },
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    width: '100%',
-  },
-  checkIndicator: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: 'rgba(92, 90, 88, 0.55)',
-    borderStyle: 'dashed',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkIndicatorChecked: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    borderColor: 'rgba(255, 255, 255, 0.55)',
-  },
-  checkmark: {
-    color: '#2D2C2B',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  itemText: {
-    flex: 1,
-    fontSize: 14,
-    textAlign: 'left',
-  },
-  scoreText: {
+  scoreLabel: {
     fontFamily: 'Comfortaa',
     fontWeight: '600',
-    fontSize: 14,
-    color: '#454342',
+    color: '#5C5A58',
     textAlign: 'center',
-    marginTop: 4,
     textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
+  scoreNumber: {
+    fontFamily: 'ChubbyTrail',
+    fontWeight: '700',
+    color: '#2D2C2B',
+    textAlign: 'center',
+    marginTop: 2,
+    marginBottom: 6,
+    textShadowColor: 'rgba(255, 255, 255, 0.62)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 2,
+  },
   interpretationText: {
     fontFamily: 'Comfortaa',
     fontWeight: '600',
-    fontSize: 16,
     color: '#2D2C2B',
     textAlign: 'center',
     fontStyle: 'italic',

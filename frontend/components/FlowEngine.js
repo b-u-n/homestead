@@ -144,12 +144,18 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
       });
 
     } else {
-      // SAME DEPTH: Navigate within same modal
+      // SAME DEPTH: Navigate within same modal. If the FROM drop is marked
+      // `passthrough: true` (e.g. a brief router/picker), REPLACE it in history
+      // so back-navigation skips over it.
+      const passthrough = currentDrop.passthrough === true;
       setDropsByDepth(prev => ({ ...prev, [fromDepth]: nextDropId }));
-      setHistoryByDepth(prev => ({
-        ...prev,
-        [fromDepth]: [...prev[fromDepth], nextDropId]
-      }));
+      setHistoryByDepth(prev => {
+        const hist = prev[fromDepth] || [];
+        const newHist = passthrough && hist.length > 0
+          ? [...hist.slice(0, -1), nextDropId]
+          : [...hist, nextDropId];
+        return { ...prev, [fromDepth]: newHist };
+      });
     }
   };
 
@@ -265,13 +271,14 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             zIndex={2000 + (depth * 100)}
             onClose={() => depth === 0 ? onClose() : closeDepth(depth)}
             onBack={() => goBackAtDepth(depth)}
-            canGoBack={drop.showBack !== false && history.length > 1}
+            canGoBack={drop.showBack !== false && (history.length > 1 || depth > 0)}
             showClose={drop.showClose !== false}
             title={typeof drop.title === 'function' ? drop.title(accumulatedData) : (drop.title || flowDefinition.title)}
             size={drop.size || flowDefinition.size}
             additionalOpenSound={depth === 0 ? flowDefinition.additionalOpenSound : undefined}
             backLabel={drop.backLabel}
             onCustomBack={customBackHandler}
+            scrollResetKey={dropId}
           >
             <FlowContext.Provider value={{ flowName: flowDefinition.name, dropId }}>
               <View style={styles.container}>
@@ -283,7 +290,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
                   updateAccumulatedData={updateAccumulatedData}
                   onComplete={(output) => handleDropComplete(output, depth)}
                   onBack={() => goBackAtDepth(depth)}
-                  canGoBack={drop.showBack !== false && history.length > 1}
+                  canGoBack={drop.showBack !== false && (history.length > 1 || depth > 0)}
                   flowName={flowDefinition.name}
                   dropId={dropId}
                 />

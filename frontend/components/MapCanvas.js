@@ -20,6 +20,7 @@ import Heart from './Heart';
 import WishingWell from './WishingWell';
 import WeepingWillow from './WeepingWillow';
 import Workbook from './Workbook';
+import Diary from './Diary';
 import LibraryNav from './LibraryNav';
 import FlowEngine from './FlowEngine';
 import LayerSelectModal from './LayerSelectModal';
@@ -68,12 +69,253 @@ const knapsackImage = require('../assets/images/knapsack.png');
 const wishingWellImage = require('../assets/images/wishing-well.png');
 const weepingWillowImage = require('../assets/images/weeping-willow.png');
 const buttonBgImage = require('../assets/images/button-bg.png');
+const grassImage = require('../assets/images/grass.png');
+const treeImage = require('../assets/images/Tree.png');
+const grassDirtImage = require('../assets/images/grass_dirt.png');
+
+// Grass variant generation: pre-bake N mutated canvases shared across tiles by hash.
+const NUM_GRASS_VARIANTS = 12;
+const GRASS_DEBUG_FLAG_FLIPS = false; // when true, paint a black pixel at each column's first-opaque (flag-flip) site
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashGrassId(id) {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function buildGrassVariant(srcImage, seed) {
+  const w = srcImage.naturalWidth || srcImage.width;
+  const h = srcImage.naturalHeight || srcImage.height;
+  const work = document.createElement('canvas');
+  work.width = w;
+  work.height = h;
+  const wctx = work.getContext('2d');
+  wctx.imageSmoothingEnabled = false;
+  wctx.drawImage(srcImage, 0, 0);
+  const srcData = wctx.getImageData(0, 0, w, h);
+  const src = srcData.data;
+  const dst = new Uint8ClampedArray(src);
+
+  const rng = mulberry32(seed * 2654435761);
+
+  const isOpaque = (x, y) => x >= 0 && x < w && y >= 0 && y < h && src[(y * w + x) * 4 + 3] > 0;
+
+  // Per-column bottom of opaque region (for "second from bottom" check).
+  const colBot = new Int32Array(w).fill(-1);
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      if (src[(y * w + x) * 4 + 3] > 0) colBot[x] = y;
+    }
+  }
+
+  const MAX_UP_SHIFT = 5;
+  for (let x = 0; x < w; x++) {
+    let flipped = false;
+    let downCount = 0; // count of opaque pixels seen in this column so far
+    let upShiftAmount = 0; // accumulated per-column up-shift (each successful roll adds 1, capped)
+    for (let y = 0; y < h; y++) {
+      const idx = (y * w + x) * 4;
+      const a = src[idx + 3];
+      if (a === 0) continue;
+      downCount++;
+      if (!flipped) {
+        flipped = true; // preserve top edge of column
+        if (GRASS_DEBUG_FLAG_FLIPS) {
+          dst[idx] = 0;
+          dst[idx + 1] = 0;
+          dst[idx + 2] = 0;
+          dst[idx + 3] = 255;
+        }
+        continue;
+      }
+
+      const notNearBottom = colBot[x] >= 0 && y < colBot[x];
+      const interior = isOpaque(x - 1, y) && isOpaque(x + 1, y);
+      const eligible = downCount >= 2 && notNearBottom && interior;
+
+      // Stacking up-shift: each eligible pixel can independently roll to add 1 to the
+      // column's accumulated up-shift offset, capped at MAX_UP_SHIFT.
+      if (downCount >= 3 && eligible && upShiftAmount < MAX_UP_SHIFT && rng() < 0.12) {
+        upShiftAmount++;
+      }
+
+      // Bright source pixels are usually highlights — mutating or shifting them
+      // produces stray white dots. Lock them in place.
+      const isBright = src[idx] > 210 || src[idx + 1] > 210 || src[idx + 2] > 210;
+      const mutable = eligible && !isBright;
+      const doColor = mutable && rng() < 0.04;
+      const doShift = mutable && rng() < 0.015;
+      // Up-shift requires: column has accumulated some shift, this pixel is eligible,
+      // we're well clear of the bottom edge, and the source pixel is fully opaque
+      // (don't drag soft-edge alpha pixels around — they create stray semi-visible dots).
+      const upSafeBottom = colBot[x] >= 0 && y < colBot[x] - 3;
+      const fullyOpaque = a === 255;
+      const doUp = upShiftAmount > 0 && eligible && upSafeBottom && fullyOpaque;
+      if (!doColor && !doShift && !doUp) continue;
+
+      let nr = src[idx], ng = src[idx + 1], nb = src[idx + 2];
+      if (doColor || doShift) {
+        // Uniform brightness scale — preserves hue exactly, so green stays green.
+        // Balanced around 1.0 with a tight range so tones stay consistent.
+        const scale = 0.94 + rng() * 0.10; // [0.94, 1.04], mean 0.99
+        nr = Math.max(0, Math.min(255, Math.round(nr * scale)));
+        ng = Math.max(0, Math.min(255, Math.round(ng * scale)));
+        nb = Math.max(0, Math.min(255, Math.round(nb * scale)));
+      }
+
+      const tx = doShift ? x - 1 : x;
+      const ty = doUp ? y - upShiftAmount : y;
+      if (ty < 0) continue;
+
+      const dIdx = (ty * w + tx) * 4;
+      dst[dIdx] = nr;
+      dst[dIdx + 1] = ng;
+      dst[dIdx + 2] = nb;
+      dst[dIdx + 3] = 255;
+
+      if (doUp) {
+        dst[idx] = 0;
+        dst[idx + 1] = 0;
+        dst[idx + 2] = 0;
+        dst[idx + 3] = 0;
+      }
+    }
+  }
+
+  const out = document.createElement('canvas');
+  out.width = w;
+  out.height = h;
+  const octx = out.getContext('2d');
+  octx.imageSmoothingEnabled = false;
+  octx.putImageData(new ImageData(dst, w, h), 0, 0);
+  return out;
+}
+
+let _grassVariantsCache = null;
+function getGrassVariants(srcImage) {
+  if (_grassVariantsCache) return _grassVariantsCache;
+  const variants = [];
+  for (let i = 0; i < NUM_GRASS_VARIANTS; i++) {
+    variants.push(buildGrassVariant(srcImage, i + 1));
+  }
+  _grassVariantsCache = variants;
+  return variants;
+}
+
+let _grassDirtVariantsCache = null;
+function getGrassDirtVariants(srcImage) {
+  if (_grassDirtVariantsCache) return _grassDirtVariantsCache;
+  const variants = [];
+  for (let i = 0; i < NUM_GRASS_VARIANTS; i++) {
+    // Distinct seed range from base grass so the variants differ.
+    variants.push(buildGrassVariant(srcImage, i + 501));
+  }
+  _grassDirtVariantsCache = variants;
+  return variants;
+}
+
+// Tree variants: simpler than grass. Just gentle, slightly-darker brightness jitter on
+// fully-interior fully-opaque pixels. No shifting — trees should stand still.
+const NUM_TREE_VARIANTS = 8;
+
+function buildTreeVariant(srcImage, seed) {
+  const w = srcImage.naturalWidth || srcImage.width;
+  const h = srcImage.naturalHeight || srcImage.height;
+  const work = document.createElement('canvas');
+  work.width = w;
+  work.height = h;
+  const wctx = work.getContext('2d');
+  wctx.imageSmoothingEnabled = false;
+  wctx.drawImage(srcImage, 0, 0);
+  const srcData = wctx.getImageData(0, 0, w, h);
+  const src = srcData.data;
+  const dst = new Uint8ClampedArray(src);
+
+  const rng = mulberry32(seed * 2654435761);
+  const isFullyOpaque = (x, y) =>
+    x >= 0 && x < w && y >= 0 && y < h && src[(y * w + x) * 4 + 3] === 255;
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = (y * w + x) * 4;
+      if (src[idx + 3] !== 255) continue;
+      // Interior only: all 4-neighbors must be fully opaque, so we never touch silhouette edges.
+      if (!isFullyOpaque(x - 1, y) || !isFullyOpaque(x + 1, y) ||
+          !isFullyOpaque(x, y - 1) || !isFullyOpaque(x, y + 1)) continue;
+      // Skip bright pixels (highlights) so they don't blow out.
+      if (src[idx] > 210 || src[idx + 1] > 210 || src[idx + 2] > 210) continue;
+
+      if (rng() >= 0.05) continue; // 5% mutation rate per interior pixel
+
+      const scale = 0.84 + rng() * 0.14; // [0.84, 0.98], same darker bias as grass
+      dst[idx] = Math.max(0, Math.min(255, Math.round(src[idx] * scale)));
+      dst[idx + 1] = Math.max(0, Math.min(255, Math.round(src[idx + 1] * scale)));
+      dst[idx + 2] = Math.max(0, Math.min(255, Math.round(src[idx + 2] * scale)));
+    }
+  }
+
+  const out = document.createElement('canvas');
+  out.width = w;
+  out.height = h;
+  const octx = out.getContext('2d');
+  octx.imageSmoothingEnabled = false;
+  octx.putImageData(new ImageData(dst, w, h), 0, 0);
+  return out;
+}
+
+let _treeVariantsCache = null;
+function getTreeVariants(srcImage) {
+  if (_treeVariantsCache) return _treeVariantsCache;
+  const variants = [];
+  for (let i = 0; i < NUM_TREE_VARIANTS; i++) {
+    variants.push(buildTreeVariant(srcImage, i + 101));
+  }
+  _treeVariantsCache = variants;
+  return variants;
+}
 
 // Import sounds config and manager
 import sounds from '../config/sounds';
 import SoundManager from '../services/SoundManager';
 import uxStore, { BASELINE_WIDTH, BASELINE_HEIGHT } from '../stores/UXStore';
 import FontSettingsStore from '../stores/FontSettingsStore';
+import RoomEditorStore, { TILE_SIZE as EDITOR_TILE_SIZE } from '../stores/RoomEditorStore';
+import { PLATFORM_ASSETS } from '../constants/platformAssets';
+
+// Build entity-shape objects from RoomEditorStore overlay tiles for a location.
+function buildOverlayEntities(tiles) {
+  if (!tiles || tiles.length === 0) return [];
+  return tiles.map(t => {
+    const asset = PLATFORM_ASSETS.find(a => a.id === t.platformAssetId);
+    return {
+      id: `overlay-${t._id}`,
+      platformAssetId: t.platformAssetId,
+      type: 'decoration',
+      x: t.x,
+      y: t.y,
+      width: t.width,
+      height: t.height,
+      zIndex: t.zIndex || 0,
+      image: asset ? asset.image : null,
+      showTitle: false,
+      _overlay: true
+    };
+  });
+}
 
 // Helper to play emote sound
 const playEmoteSound = () => {
@@ -523,6 +765,21 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
   const canvasRef = useRef(null);
   const router = useRouter();
   const [roomData, setRoomData] = useState(null);
+  // Dev-placed overlay tiles; reactive to RoomEditorStore mutations because MapCanvas is wrapped in observer().
+  const overlayTiles = RoomEditorStore.getTiles(location);
+  const overlayEntities = React.useMemo(() => buildOverlayEntities(overlayTiles), [overlayTiles]);
+  // Track editor state during render so the draw effect re-runs on changes.
+  const editorMode = RoomEditorStore.mode;
+  const editorDraft = RoomEditorStore.draftTile;
+  const editorSelectedId = RoomEditorStore.selectedTileId;
+  const editorSelectedEntityId = RoomEditorStore.selectedEntityId;
+  const editorActive = RoomEditorStore.editModeActive;
+  // Tracking the override and hidden lists ensures the draw + image-load effects re-run
+  // when an entity gets moved or hidden in dev mode.
+  const editorOverrides = RoomEditorStore.entityOverridesByLocation.get(location);
+  const editorHidden = RoomEditorStore.hiddenEntityIdsByLocation.get(location);
+  // Note: editorOverrides covers both `roomData.entities` and `roomData.doors` because
+  // applyEntityEdits matches by entity.id regardless of which array the object came from.
   const [hoveredObject, setHoveredObject] = useState(null);
   const [loadedImages, setLoadedImages] = useState({});
   const [isWishingWellOpen, setIsWishingWellOpen] = useState(false);
@@ -541,6 +798,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
   const [isWorkbookOpen, setIsWorkbookOpen] = useState(false);
   const [workbookBookshelfId, setWorkbookBookshelfId] = useState(null);
   const [workbookTitle, setWorkbookTitle] = useState('Workbook');
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isEmoteMenuOpen, setIsEmoteMenuOpen] = useState(false);
   const [isLayerModalOpen, setIsLayerModalOpen] = useState(false);
   const [isSoundSettingsOpen, setIsSoundSettingsOpen] = useState(false);
@@ -993,15 +1251,21 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
     const imagesToLoad = {};
 
-    // Find all entities with images (including doors, navigation, and backButton)
+    // Find all entities with images. Hardcoded entities pass through the editor's
+    // applyEntityEdits helper so any dev-mode overrides + deletions take effect.
+    const editedEntities = RoomEditorStore.applyEntityEdits(location, roomData.entities || []);
     const allEntities = [
-      ...(roomData.entities || []),
-      ...(roomData.doors || []),
+      ...editedEntities,
+      ...RoomEditorStore.applyEntityEdits(location, roomData.doors || []),
       ...(roomData.navigation || []),
       ...(roomData.backButton ? [roomData.backButton] : []),
+      ...overlayEntities,
     ];
 
     allEntities.forEach(entity => {
+      // Grass tiles and weeping willow trees are handled by dedicated variant-baking effects.
+      if (entity.id && (entity.id.startsWith('grass-') || entity.id.startsWith('weeping-willow-'))) return;
+
       const img = new window.Image();
       let imageSrc;
       let imageKey;
@@ -1061,7 +1325,109 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
         img.src = imageSrc;
       }
     });
-  }, [roomData, CustomizationStore.version]);
+  }, [roomData, CustomizationStore.version, overlayEntities, editorOverrides, editorHidden]);
+
+  // Bake grass variants once and assign each grass tile a deterministic variant.
+  useEffect(() => {
+    if (!roomData || Platform.OS !== 'web') return;
+    const grassEntities = (roomData.entities || []).filter(
+      e => e.id && e.id.startsWith('grass-')
+    );
+    if (grassEntities.length === 0) return;
+
+    let cancelled = false;
+    const assign = (variants) => {
+      if (cancelled) return;
+      setLoadedImages(prev => {
+        const next = { ...prev };
+        grassEntities.forEach(e => {
+          const v = variants[hashGrassId(e.id) % variants.length];
+          if (next[e.id] !== v) next[e.id] = v;
+        });
+        return next;
+      });
+    };
+
+    if (_grassVariantsCache) {
+      assign(_grassVariantsCache);
+      return () => { cancelled = true; };
+    }
+
+    const img = new window.Image();
+    img.onload = () => assign(getGrassVariants(img));
+    img.src = typeof grassImage === 'string'
+      ? grassImage
+      : grassImage.default || grassImage.uri || grassImage;
+    return () => { cancelled = true; };
+  }, [roomData]);
+
+  // Bake tree variants once and assign each weeping-willow tree a deterministic variant.
+  useEffect(() => {
+    if (!roomData || Platform.OS !== 'web') return;
+    const treeEntities = (roomData.entities || []).filter(
+      e => e.id && e.id.startsWith('weeping-willow-')
+    );
+    if (treeEntities.length === 0) return;
+
+    let cancelled = false;
+    const assign = (variants) => {
+      if (cancelled) return;
+      setLoadedImages(prev => {
+        const next = { ...prev };
+        treeEntities.forEach(e => {
+          const v = variants[hashGrassId(e.id) % variants.length];
+          if (next[e.id] !== v) next[e.id] = v;
+        });
+        return next;
+      });
+    };
+
+    if (_treeVariantsCache) {
+      assign(_treeVariantsCache);
+      return () => { cancelled = true; };
+    }
+
+    const img = new window.Image();
+    img.onload = () => assign(getTreeVariants(img));
+    img.src = typeof treeImage === 'string'
+      ? treeImage
+      : treeImage.default || treeImage.uri || treeImage;
+    return () => { cancelled = true; };
+  }, [roomData]);
+
+  // Bake grass_dirt variants for overlay tiles using the grass-dirt platform asset.
+  // Reuses the same buildGrassVariant pipeline so the dirt-edge tiles get the same
+  // per-instance color/shift randomization as the base grass.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const dirtEntities = overlayEntities.filter(e => e.platformAssetId === 'tile-grass-dirt');
+    if (dirtEntities.length === 0) return;
+
+    let cancelled = false;
+    const assign = (variants) => {
+      if (cancelled) return;
+      setLoadedImages(prev => {
+        const next = { ...prev };
+        dirtEntities.forEach(e => {
+          const v = variants[hashGrassId(e.id) % variants.length];
+          if (next[e.id] !== v) next[e.id] = v;
+        });
+        return next;
+      });
+    };
+
+    if (_grassDirtVariantsCache) {
+      assign(_grassDirtVariantsCache);
+      return () => { cancelled = true; };
+    }
+
+    const img = new window.Image();
+    img.onload = () => assign(getGrassDirtVariants(img));
+    img.src = typeof grassDirtImage === 'string'
+      ? grassDirtImage
+      : grassDirtImage.default || grassDirtImage.uri || grassDirtImage;
+    return () => { cancelled = true; };
+  }, [overlayEntities]);
 
   // Set up websocket listeners for map events
   useEffect(() => {
@@ -1189,7 +1555,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     if (roomData && Platform.OS === 'web') {
       drawCanvas();
     }
-  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale]);
+  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale, overlayEntities, editorMode, editorDraft, editorSelectedId, editorSelectedEntityId, editorActive, editorOverrides, editorHidden]);
 
   const drawCanvas = () => {
     drawCanvasRef.current = drawCanvas;
@@ -1209,7 +1575,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     // Calculate avatar/emote size multiplier for smaller screens
     // When renderScale is small (mobile), make avatars 50% larger
     const avatarSizeMultiplier = uxStore.avatarSizeMultiplier;
-    const baseAvatarSize = 64;
+    const baseAvatarSize = 32;
     const avatarSize = baseAvatarSize * avatarSizeMultiplier;
 
     // Collect debug labels to draw on top of everything
@@ -1308,8 +1674,9 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     const allDrawables = [
       ...(roomData.backButton ? [roomData.backButton] : []),
       ...(roomData.navigation || []),
-      ...(roomData.doors || []),
-      ...(roomData.entities || []),
+      ...RoomEditorStore.applyEntityEdits(location, roomData.doors || []),
+      ...RoomEditorStore.applyEntityEdits(location, roomData.entities || []),
+      ...overlayEntities,
     ];
 
     // Sort by zIndex (ascending - lower values drawn first/behind)
@@ -1798,6 +2165,88 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
         drawEmote(ctx, emote, emoteX, emoteY, emoteFontSize);
       });
     }
+
+    // Room editor: draw the draft (placing) ghost and the selection highlight directly
+    // into the canvas so they're pixel-aligned with placed tiles regardless of CSS scaling.
+    if (RoomEditorStore.editModeActive) {
+      // Faint cottagecore tile grid so the dev can see the snap target.
+      ctx.save();
+      ctx.strokeStyle = 'rgba(112, 68, 199, 0.10)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let gx = EDITOR_TILE_SIZE; gx < width; gx += EDITOR_TILE_SIZE) {
+        ctx.moveTo(gx + 0.5, 0);
+        ctx.lineTo(gx + 0.5, height);
+      }
+      for (let gy = EDITOR_TILE_SIZE; gy < height; gy += EDITOR_TILE_SIZE) {
+        ctx.moveTo(0, gy + 0.5);
+        ctx.lineTo(width, gy + 0.5);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      const draft = RoomEditorStore.draftTile;
+      if (RoomEditorStore.mode === 'placing' && draft) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(112, 68, 199, 0.95)';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([14, 10]);
+        ctx.strokeRect(draft.x, draft.y, draft.width, draft.height);
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+      if (RoomEditorStore.mode === 'selected') {
+        let sel = null;
+        if (RoomEditorStore.selectedKind === 'tile' && RoomEditorStore.selectedTileId) {
+          sel = (RoomEditorStore.tilesByLocation.get(location) || [])
+            .find(t => t._id === RoomEditorStore.selectedTileId);
+        } else if (RoomEditorStore.selectedKind === 'entity' && RoomEditorStore.selectedEntityDims) {
+          sel = RoomEditorStore.selectedEntityDims;
+        }
+        if (sel) {
+          const cx = sel.x + sel.width / 2;
+          const cy = sel.y + sel.height / 2;
+          ctx.save();
+          // Cottagecore selection marker — modeled on NumericRatingSlider's thumb:
+          // soft blue fill, off-white inner glow, dashed stitched border.
+          // Outer drop shadow for lift.
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetY = 2;
+          // Soft blue fill.
+          ctx.beginPath();
+          ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(135, 180, 210, 0.85)';
+          ctx.fill();
+          ctx.shadowColor = 'transparent';
+          // Stitched dashed border.
+          ctx.beginPath();
+          ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(92, 90, 88, 0.85)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 3]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+      }
+    }
+
+    // Stitched border around the inside of the canvas (drawn last so it sits on top).
+    ctx.save();
+    const inset = 10;
+    // Soft dark shadow underneath for depth
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.lineWidth = 5;
+    ctx.setLineDash([10, 6]);
+    ctx.strokeRect(inset + 1, inset + 1, width - inset * 2, height - inset * 2);
+    // Main stitch line
+    ctx.strokeStyle = 'rgba(60, 58, 56, 0.95)';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([10, 6]);
+    ctx.strokeRect(inset, inset, width - inset * 2, height - inset * 2);
+    ctx.setLineDash([]);
+    ctx.restore();
   };
 
   const handleCanvasClick = (event) => {
@@ -1821,6 +2270,19 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       const scaleY = BASELINE_HEIGHT / rect.height;
       x = (event.clientX - rect.left) * scaleX;
       y = (event.clientY - rect.top) * scaleY;
+    }
+
+    // Room editor owns canvas clicks while edit mode is on. Reuse the same coord
+    // transform as character movement — keeps the click target accurate. Pass the
+    // post-edit entity list so the editor can hit-test hardcoded entities at their
+    // currently-rendered positions (overrides applied, hidden filtered).
+    if (RoomEditorStore.editModeActive) {
+      // Doors (Sugarbee Cafe, Games Parlor, Bazaar) live in roomData.doors, not entities.
+      // Pass the union so the editor can select and reposition them too.
+      const visibleEntities = RoomEditorStore.applyEntityEdits(location, roomData.entities || []);
+      const visibleDoors = RoomEditorStore.applyEntityEdits(location, roomData.doors || []);
+      RoomEditorStore.onCanvasClick(location, x, y, [...visibleEntities, ...visibleDoors]);
+      return;
     }
 
     // If emote menu is open, check for emote selection
@@ -1864,12 +2326,14 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       return;
     }
 
-    // Collect all clickable objects (skip decorations - they allow movement through)
+    // Collect all clickable objects (skip decorations - they allow movement through).
+    // Entities pass through applyEntityEdits so dev overrides + hidden filter take effect —
+    // critical for keeping click hit-tests aligned with rendered positions after a move.
     const allObjects = [
       roomData.backButton,
       ...(roomData.navigation || []),
-      ...(roomData.doors || []),
-      ...(roomData.entities || [])
+      ...RoomEditorStore.applyEntityEdits(location, roomData.doors || []),
+      ...RoomEditorStore.applyEntityEdits(location, roomData.entities || [])
     ].filter(obj => obj && obj.type !== 'decoration');
 
     // Check if click is on an object
@@ -1920,6 +2384,8 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
           setWorkbookBookshelfId(obj.flowParams?.bookshelfId || 'default');
           setWorkbookTitle(obj.flowParams?.title || 'Workbook');
           setIsWorkbookOpen(true);
+        } else if (obj.flow === 'history') {
+          setIsHistoryOpen(true);
         } else if (obj.description) {
           alert(obj.description); // TODO: Replace with modal
         }
@@ -1962,6 +2428,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
   const handleCanvasMouseMove = (event) => {
     if (!roomData || Platform.OS !== 'web') return;
+    if (RoomEditorStore.editModeActive) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -1984,12 +2451,13 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
     let foundHover = null;
 
-    // Collect all hoverable objects (skip decorations)
+    // Collect all hoverable objects (skip decorations). Entities pass through applyEntityEdits
+    // so hover hit-test matches rendered positions when overrides are active.
     const allObjects = [
       roomData.backButton,
       ...(roomData.navigation || []),
-      ...(roomData.doors || []),
-      ...(roomData.entities || [])
+      ...RoomEditorStore.applyEntityEdits(location, roomData.doors || []),
+      ...RoomEditorStore.applyEntityEdits(location, roomData.entities || [])
     ].filter(obj => obj && obj.type !== 'decoration');
 
     // Check if mouse is over an object
@@ -2028,6 +2496,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
   const handleTouchStart = (event) => {
     if (!roomData || Platform.OS !== 'web' || !isMobile) return;
+    if (RoomEditorStore.editModeActive) return;
 
     const touch = event.touches[0];
     setTouchStart({
@@ -2039,6 +2508,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
   const handleTouchEnd = (event) => {
     if (!roomData || Platform.OS !== 'web' || !isMobile || !touchStart) return;
+    if (RoomEditorStore.editModeActive) return;
 
     const touch = event.changedTouches[0];
     const deltaX = touch.clientX - touchStart.x;
@@ -2183,6 +2653,16 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
     // Room background element (only for rooms with custom backgrounds)
     // Uses tiled repeating pattern like TiledBackground
+    // backgroundSize from room data is interpreted in canvas/baseline pixels
+    // so it scales together with canvas-drawn entities at any display size.
+    let resolvedBgSize = roomData?.backgroundSize || '200px 200px';
+    const sizeMatch = typeof resolvedBgSize === 'string' && resolvedBgSize.match(/^(\d+(?:\.\d+)?)px\s+(\d+(?:\.\d+)?)px$/);
+    if (sizeMatch) {
+      const sxScale = canvasWidth / BASELINE_WIDTH;
+      const syScale = canvasHeight / BASELINE_HEIGHT;
+      resolvedBgSize = `${parseFloat(sizeMatch[1]) * sxScale}px ${parseFloat(sizeMatch[2]) * syScale}px`;
+    }
+
     const roomBackgroundElement = roomData?.background ? (
       <div
         style={{
@@ -2193,10 +2673,13 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
           height: canvasHeight,
           backgroundImage: `url(${typeof roomData.background === 'string' ? roomData.background : roomData.background.default || roomData.background.uri || roomData.background})`,
           backgroundRepeat: 'repeat',
-          backgroundSize: '200px 200px',
+          backgroundSize: resolvedBgSize,
           backgroundPosition: '0px 0px',
+          imageRendering: 'pixelated',
           zIndex: 0,
-          filter: 'sepia(60%) saturate(140%) brightness(85%) hue-rotate(-10deg)',
+          filter: roomData.backgroundFilter !== undefined
+            ? roomData.backgroundFilter
+            : 'sepia(60%) saturate(140%) brightness(85%) hue-rotate(-10deg)',
         }}
       />
     ) : null;
@@ -2374,6 +2857,10 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
           }}
           bookshelfId={workbookBookshelfId}
           title={workbookTitle}
+        />
+        <Diary
+          visible={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
         />
         <LayerSelectModal
           visible={isLayerModalOpen}

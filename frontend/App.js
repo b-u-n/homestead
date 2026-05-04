@@ -11,11 +11,17 @@ import RoomScreen from './screens/RoomScreen';
 import InventoryScreen from './screens/InventoryScreen';
 import DebugScreen from './screens/DebugScreen';
 import CanvasScreen from './screens/CanvasScreen';
+import ComponentShowcaseScreen from './screens/ComponentShowcaseScreen';
 import ErrorContainer from './components/ErrorContainer';
 import SessionStore from './stores/SessionStore';
 import { Colors } from './constants/colors';
 
 const Stack = createStackNavigator();
+
+const linking = {
+  prefixes: ['http://localhost:9001'],
+  config: { screens: { ComponentShowcase: 'Components' } },
+};
 
 const DebugButton = () => {
   const navigation = useNavigation();
@@ -49,7 +55,7 @@ export default function App() {
   };
 
   return (
-    <NavigationContainer onStateChange={onStateChange}>
+    <NavigationContainer linking={linking} onStateChange={onStateChange}>
       <Stack.Navigator 
         initialRouteName="Landing"
         screenOptions={{
@@ -121,9 +127,14 @@ export default function App() {
           component={DebugScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="Canvas" 
+        <Stack.Screen
+          name="Canvas"
           component={CanvasScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ComponentShowcase"
+          component={ComponentShowcaseScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

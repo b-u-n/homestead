@@ -8,16 +8,27 @@ export const PLATFORM_ASSETS = [
   // Sprites — interactive objects placed on location maps
   { id: 'entity-campfire', category: 'Sprites', name: 'Campfire', image: require('../assets/images/campfire.png') },
   { id: 'entity-wishing-well', category: 'Sprites', name: 'Wishing Well', image: require('../assets/images/wishing-well.png') },
-  { id: 'entity-help-wanted', category: 'Sprites', name: 'Help Wanted Board', image: require('../assets/images/help-wanted.png') },
+  { id: 'entity-help-wanted', category: 'Sprites', name: 'Help Wanted Board', image: require('../assets/images/help-sign.png') },
   { id: 'entity-journal', category: 'Sprites', name: 'Journal', image: require('../assets/images/journal.png') },
   { id: 'entity-weeping-willow', category: 'Sprites', name: 'Weeping Willow Tree', image: require('../assets/images/weeping-willow.png') },
-  { id: 'entity-sugarbee-cafe', category: 'Sprites', name: 'Sugarbee Cafe Door', image: require('../assets/images/sugarbee-cafe.png') },
-  { id: 'entity-bazaar', category: 'Sprites', name: 'Bazaar Door', image: require('../assets/images/bazaar.png') },
+  { id: 'entity-sugarbee-cafe', category: 'Sprites', name: 'Sugarbee Cafe Door', image: require('../assets/images/cat_cafe.png') },
+  { id: 'entity-bazaar', category: 'Sprites', name: 'Bazaar Door', image: require('../assets/images/Market.png') },
   { id: 'entity-cafe-couch', category: 'Sprites', name: 'Cafe Couch', image: require('../assets/images/sugarbee-cafe-couch.png') },
   { id: 'entity-back-button', category: 'Sprites', name: 'Back Button Sign', image: require('../assets/images/map-back-button.png') },
   { id: 'entity-knapsack', category: 'Sprites', name: 'Knapsack', image: require('../assets/images/knapsack.png') },
-  { id: 'entity-games-parlor', category: 'Sprites', name: 'Games Parlor Door', image: require('../assets/images/games-parlor.jpeg') },
+  { id: 'entity-games-parlor', category: 'Sprites', name: 'Games Parlor Door', image: require('../assets/images/Game_Parlour.png') },
   { id: 'entity-pixel-pals', category: 'Sprites', name: 'Pixel Pals Table', image: require('../assets/images/pixel-pals.png') },
+
+  // Path Tiles — outdoor path pieces (corners + straights)
+  { id: 'path-straight-left', category: 'Path Tiles', name: 'Path Straight Left', image: require('../assets/images/path_straight_path_left.png') },
+  { id: 'path-straight-right', category: 'Path Tiles', name: 'Path Straight Right', image: require('../assets/images/path_straight_path_right.png') },
+  { id: 'path-corner-lower-left', category: 'Path Tiles', name: 'Path Corner Lower Left', image: require('../assets/images/path_corner_lower_left.png') },
+  { id: 'path-corner-lower-right', category: 'Path Tiles', name: 'Path Corner Lower Right', image: require('../assets/images/path_corner_lower_right.png') },
+  { id: 'path-corner-upper-left', category: 'Path Tiles', name: 'Path Corner Upper Left', image: require('../assets/images/path_corner_upper_left.png') },
+  { id: 'path-corner-upper-right', category: 'Path Tiles', name: 'Path Corner Upper Right', image: require('../assets/images/path_corner_upper_right.png') },
+  // Pre-scaled source PNG (576x344) — pin to the path-tile grid size on placement.
+  { id: 'path-midpoint', category: 'Path Tiles', name: 'Path Midpoint', image: require('../assets/images/path_midpoint.png'), editorWidth: 256, editorHeight: 160 },
+  { id: 'tile-grass-dirt', category: 'Background Tiles', name: 'Grass Dirt', image: require('../assets/images/grass_dirt.png') },
 
   // Bookshelves — library room interactive shelves
   { id: 'bookshelf-emotions', category: 'Bookshelves', name: 'Emotions', image: require('../assets/images/bookshelf-emotions.png') },

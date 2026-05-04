@@ -156,6 +156,8 @@ return (
               <Stack.Screen name="homestead" options={{ headerShown: false }} />
               <Stack.Screen name="inventory" options={{ headerShown: false }} />
               <Stack.Screen name="debug" options={{ headerShown: false }} />
+              <Stack.Screen name="components" options={{ headerShown: false }} />
+              <Stack.Screen name="activities-demo" options={{ headerShown: false }} />{/* activities-demo-temp */}
             </Stack>
               <ErrorContainer />
             </View>

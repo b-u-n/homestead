@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
@@ -17,7 +17,10 @@ import ChecklistAssessmentStep from '../workbook/ChecklistAssessmentStep';
 import SortableListStep from '../workbook/SortableListStep';
 import ActionPlanStep from '../workbook/ActionPlanStep';
 import LikertReflectionStep from '../workbook/LikertReflectionStep';
+import AssessmentResultsStep from '../workbook/AssessmentResultsStep';
 import StitchedProgressBar from '../workbook/StitchedProgressBar';
+import ComponentStep from '../workbook/ComponentStep';
+import * as PrimitivesByRef from '../primitives/_index';
 
 /**
  * WorkbookActivity Drop
@@ -37,10 +40,30 @@ const WorkbookActivity = observer(({
   const [stepResponses, setStepResponses] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Live instance ID for this run. Derived from input/accumulated data when
+  // resuming a specific instance; otherwise filled in by workbook:activity:start
+  // which creates a new instance.
+  const [instanceId, setInstanceId] = useState(null);
+  // Persistence concept (R4): every state change persists. Keep refs to the
+  // latest values so the debounced saver always reads the freshest state, and
+  // a refs-mirror of instanceId so we don't capture a stale closure during
+  // the load → start → first-render race.
+  const stepResponsesRef = useRef({});
+  const currentStepIndexRef = useRef(0);
+  const instanceIdRef = useRef(null);
+  const saveTimerRef = useRef(null);
+  stepResponsesRef.current = stepResponses;
+  currentStepIndexRef.current = currentStepIndex;
+  instanceIdRef.current = instanceId;
 
+  // Sources of activity context: workbook flow's landing, the resume picker,
+  // OR the diary flow's landing (when resuming from history).
   const landingData = accumulatedData?.['workbook:landing'];
-  const activityId = landingData?.activityId || accumulatedData?.activityId || input?.activityId;
+  const pickerData = accumulatedData?.['workbook:resume-picker'];
+  const diaryData = accumulatedData?.['history:landing'];
+  const activityId = pickerData?.activityId || landingData?.activityId || diaryData?.activityId || accumulatedData?.activityId || input?.activityId;
   const bookshelfId = landingData?.bookshelfId || accumulatedData?.bookshelfId || input?.bookshelfId;
+  const initialInstanceId = pickerData?.instanceId || diaryData?.instanceId || accumulatedData?.instanceId || input?.instanceId || null;
 
   useEffect(() => {
     if (activityId) {
@@ -57,19 +80,18 @@ const WorkbookActivity = observer(({
     try {
       setLoading(true);
 
-      // Load activity details
+      // Load activity definition + the specific instance's progress (if resuming).
       const result = await WebSocketService.emit('workbook:activity:load', {
         activityId,
-        sessionId: SessionStore.sessionId
+        sessionId: context?.sessionId ?? SessionStore.sessionId,
+        instanceId: initialInstanceId || undefined
       });
 
       if (result?.activity) {
         setActivity(result.activity);
 
-        // If there's existing progress, load it
         if (result.progress) {
           setProgress(result.progress);
-          // Restore step responses from progress
           const responses = {};
           if (result.progress.stepData) {
             for (const [key, value] of Object.entries(result.progress.stepData)) {
@@ -78,20 +100,33 @@ const WorkbookActivity = observer(({
           }
           setStepResponses(responses);
 
-          // Resume at last incomplete step
-          const completedSteps = result.progress.completedSteps || [];
+          // Resume to the EXACT step the user was on (R4 — currentStepIndex is
+          // persisted on every navigation). Fall back to first-incomplete for
+          // legacy progress rows that predate currentStepIndex.
           const steps = result.activity.steps || [];
-          const firstIncomplete = steps.findIndex(s => !completedSteps.includes(s.stepId));
-          if (firstIncomplete >= 0) {
-            setCurrentStepIndex(firstIncomplete);
+          if (typeof result.progress.currentStepIndex === 'number'
+              && result.progress.currentStepIndex >= 0
+              && result.progress.currentStepIndex < steps.length) {
+            setCurrentStepIndex(result.progress.currentStepIndex);
+          } else {
+            const completedSteps = result.progress.completedSteps || [];
+            const firstIncomplete = steps.findIndex(s => !completedSteps.includes(s.stepId));
+            if (firstIncomplete >= 0) {
+              setCurrentStepIndex(firstIncomplete);
+            }
           }
         }
 
-        // Start the activity (creates progress record if needed)
-        await WebSocketService.emit('workbook:activity:start', {
-          sessionId: SessionStore.sessionId,
-          activityId
+        // Start (resume specific instance, or create a new one). Capture the
+        // returned instanceId so all subsequent step/complete calls target it.
+        const startResult = await WebSocketService.emit('workbook:activity:start', {
+          sessionId: context?.sessionId ?? SessionStore.sessionId,
+          activityId,
+          instanceId: initialInstanceId || undefined
         });
+        if (startResult?.instanceId) {
+          setInstanceId(startResult.instanceId);
+        }
       }
     } catch (error) {
       console.error('Error loading activity:', error);
@@ -100,17 +135,79 @@ const WorkbookActivity = observer(({
     }
   };
 
+  // R4 — Persistence Concept. Every state change (input edit, chip toggle,
+  // slider drag, step navigation) is written to the active instance via
+  // `workbook:state:save`. Drafts persist; resume returns to the exact state.
+  // - Within-step changes are debounced (~500ms) so text typing doesn't spam.
+  // - Step navigation triggers an immediate save (no debounce) before render.
+  const saveStateNow = async (responses, stepIdx) => {
+    const id = instanceIdRef.current;
+    if (!id || !activityId || !WebSocketService.socket) return;
+    try {
+      await WebSocketService.emit('workbook:state:save', {
+        sessionId: context?.sessionId ?? SessionStore.sessionId,
+        instanceId: id,
+        activityId,
+        stepData: responses,
+        currentStepIndex: stepIdx
+      });
+    } catch (err) {
+      // Non-fatal — auto-save retries on next change.
+      console.warn('workbook:state:save failed:', err?.message || err);
+    }
+  };
+
+  const scheduleStateSave = () => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveStateNow(stepResponsesRef.current, currentStepIndexRef.current);
+    }, 500);
+  };
+
+  // Save immediately on step navigation (skip the initial mount and skip when
+  // instanceId isn't ready yet — the first persisted save happens on the first
+  // user interaction or on the first step change after start completes).
+  const hasMountedRef = useRef(false);
+  useEffect(() => {
+    if (!instanceId) return;
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    saveStateNow(stepResponsesRef.current, currentStepIndex);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepIndex, instanceId]);
+
+  // Flush any pending debounce when the activity unmounts (user closed the
+  // modal mid-typing) so no edit is lost.
+  useEffect(() => () => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+      saveStateNow(stepResponsesRef.current, currentStepIndexRef.current);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const currentStep = activity?.steps?.[currentStepIndex];
   const totalSteps = activity?.steps?.length || 0;
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === totalSteps - 1;
 
-  const handleResponseChange = (value) => {
+  const handleResponseChange = (valueOrUpdater) => {
     if (!currentStep) return;
-    setStepResponses(prev => ({
-      ...prev,
-      [currentStep.stepId]: value
-    }));
+    setStepResponses(prev => {
+      const stepId = currentStep.stepId;
+      const nextStepValue = typeof valueOrUpdater === 'function'
+        ? valueOrUpdater(prev[stepId])
+        : valueOrUpdater;
+      return { ...prev, [stepId]: nextStepValue };
+    });
+    scheduleStateSave();
   };
 
   const handleCheckboxToggle = (option) => {
@@ -123,6 +220,7 @@ const WorkbookActivity = observer(({
       ...prev,
       [currentStep.stepId]: newValue
     }));
+    scheduleStateSave();
   };
 
   const saveCurrentStep = async () => {
@@ -131,8 +229,9 @@ const WorkbookActivity = observer(({
     try {
       setSaving(true);
       await WebSocketService.emit('workbook:step:complete', {
-        sessionId: SessionStore.sessionId,
+        sessionId: context?.sessionId ?? SessionStore.sessionId,
         activityId,
+        instanceId,
         stepId: currentStep.stepId,
         stepData: stepResponses[currentStep.stepId]
       });
@@ -143,23 +242,59 @@ const WorkbookActivity = observer(({
     }
   };
 
+  // After step navigation, brute-force every scrollable element back to top.
+  // Two RAFs so it runs after React commits the new step content AND after
+  // any layout settles (images loading, etc.).
+  const resetEveryScroller = () => {
+    if (typeof document === 'undefined') return;
+    const all = document.querySelectorAll('*');
+    for (const el of all) {
+      if (el.scrollTop > 0) el.scrollTop = 0;
+      if (el.scrollLeft > 0) el.scrollLeft = 0;
+    }
+    if (typeof window !== 'undefined') window.scrollTo(0, 0);
+  };
+  const scrollToTopAfterRender = () => {
+    requestAnimationFrame(() => {
+      resetEveryScroller();
+      requestAnimationFrame(resetEveryScroller);
+    });
+  };
+
+  const fireComplete = async () => {
+    try {
+      await WebSocketService.emit('workbook:activity:complete', {
+        sessionId: context?.sessionId ?? SessionStore.sessionId,
+        activityId,
+        instanceId
+      });
+    } catch (error) {
+      console.error('Error completing activity:', error);
+    }
+  };
+
   const handleNext = async () => {
     await saveCurrentStep();
 
+    const nextStep = activity?.steps?.[currentStepIndex + 1];
+    const nextIsTerminal = nextStep?.terminal === true;
+
     if (isLastStep) {
-      // Complete the activity
-      try {
-        await WebSocketService.emit('workbook:activity:complete', {
-          sessionId: SessionStore.sessionId,
-          activityId
-        });
-      } catch (error) {
-        console.error('Error completing activity:', error);
-      }
+      // No terminal step exists — fire complete and exit (legacy fallback).
+      await fireComplete();
       onComplete({ action: 'complete' });
-    } else {
-      setCurrentStepIndex(prev => prev + 1);
+      return;
     }
+
+    if (nextIsTerminal) {
+      // Transitioning into the terminal "saved" step. Fire complete now —
+      // the terminal step is the user's confirmation/farewell screen and
+      // they leave it via the modal close button, not via Next.
+      await fireComplete();
+    }
+
+    setCurrentStepIndex(prev => prev + 1);
+    scrollToTopAfterRender();
   };
 
   const handlePrevious = () => {
@@ -167,13 +302,55 @@ const WorkbookActivity = observer(({
       onComplete({ action: 'back' });
     } else {
       setCurrentStepIndex(prev => prev - 1);
+      scrollToTopAfterRender();
     }
   };
 
-  const renderStepContent = () => {
-    if (!currentStep) return null;
-    const stepValue = stepResponses[currentStep.stepId];
+  // R5: pre_mood / post_mood mood widgets (bind === 'pre_mood' | 'post_mood')
+  // are lifted out of the step's content panel and rendered as separate blocks
+  // above (pre) and below (post) the panel. This keeps "how are you feeling"
+  // visually distinct from the activity content.
+  const splitMoodComponents = (step) => {
+    if (!step || !Array.isArray(step.components)) {
+      return { pre: null, post: null, body: step };
+    }
+    let pre = null;
+    let post = null;
+    const body = [];
+    for (const c of step.components) {
+      if (c?.bind === 'pre_mood') pre = c;
+      else if (c?.bind === 'post_mood') post = c;
+      else body.push(c);
+    }
+    return { pre, post, body: { ...step, components: body } };
+  };
 
+  const renderStepContent = (stepOverride) => {
+    const step = stepOverride || currentStep;
+    if (!step) return null;
+    const stepValue = stepResponses[step.stepId];
+
+    // v2 composition step — dispatched first when the activity uses primitives.
+    if (Array.isArray(step.components)) {
+      return (
+        <ComponentStep
+          step={step}
+          value={stepValue}
+          onChange={handleResponseChange}
+          allStepResponses={stepResponses}
+          nav={{
+            onPrevious: handlePrevious,
+            onNext: handleNext,
+            isFirstStep,
+            isLastStep,
+            saving,
+          }}
+        />
+      );
+    }
+    // Fall through with the active currentStep for v1 dispatch below.
+
+    // v1 legacy type-switch (backwards-compatible).
     switch (currentStep.type) {
       case 'text':
         return (
@@ -255,10 +432,19 @@ const WorkbookActivity = observer(({
         return <SortableListStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
 
       case 'action-plan':
-        return <ActionPlanStep step={currentStep} value={stepValue} onChange={handleResponseChange} />;
+        return <ActionPlanStep step={currentStep} value={stepValue} onChange={handleResponseChange} allResponses={stepResponses} activity={activity} />;
 
       case 'likert-reflection':
         return <LikertReflectionStep step={currentStep} allResponses={stepResponses} />;
+
+      case 'assessment-results': {
+        // Hydrate `total` from the source step's items if not explicitly set,
+        // so the "out of N" copy renders correctly.
+        const sourceStep = activity?.steps?.find(s => s.stepId === currentStep.sourceStepId);
+        const total = currentStep.total ?? sourceStep?.items?.length ?? null;
+        const hydrated = total != null ? { ...currentStep, total } : currentStep;
+        return <AssessmentResultsStep step={hydrated} allResponses={stepResponses} />;
+      }
 
       default:
         return (
@@ -301,6 +487,43 @@ const WorkbookActivity = observer(({
     );
   }
 
+  // Pull pre/post mood widgets out of the current step's components so they
+  // render OUTSIDE the content panel (R5).
+  const { pre: preMoodEntry, post: postMoodEntry, body: bodyStep } = splitMoodComponents(currentStep);
+  // Detect inline nav sentinel — if present, hide the fixed bottom nav row
+  // because nav buttons render inline within the step content.
+  const hasInlineNav = Array.isArray(currentStep?.components)
+    && currentStep.components.some(c => c?.ref === 'InlineNavButtons');
+  // Terminal "saved" step — Previous/Next are hidden; user closes the modal
+  // to exit. Activity:complete already fired on the transition INTO this step.
+  const isTerminalStep = currentStep?.terminal === true;
+  const renderLiftedComponent = (entry) => {
+    if (!entry) return null;
+    const Component = PrimitivesByRef[entry.ref];
+    if (!Component) return null;
+    const props = entry.props || {};
+    const childValue = entry.bind
+      ? (stepResponses[currentStep.stepId] || {})[entry.bind]
+      : undefined;
+    const setter = (next) => {
+      if (!entry.bind) return;
+      // Read latest via ref so we don't clobber a parallel body update.
+      const prev = stepResponsesRef.current[currentStep.stepId] || {};
+      handleResponseChange({ ...prev, [entry.bind]: next });
+    };
+    return (
+      <Component
+        {...props}
+        value={childValue ?? props.value}
+        currentValue={childValue ?? props.currentValue ?? props.value}
+        onChange={setter}
+        onValueChanged={setter}
+        onCommit={setter}
+        onValueCommitted={setter}
+      />
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Progress indicator */}
@@ -310,45 +533,61 @@ const WorkbookActivity = observer(({
       </Text>
 
       {/* Step content */}
-      <Scroll style={styles.stepContent}>
+      <Scroll key={currentStepIndex} style={styles.stepContent}>
+        {preMoodEntry ? (
+          <View style={styles.moodBlock}>
+            {renderLiftedComponent(preMoodEntry)}
+          </View>
+        ) : null}
+
+        {postMoodEntry ? (
+          <View style={styles.moodBlock}>
+            {renderLiftedComponent(postMoodEntry)}
+          </View>
+        ) : null}
+
         <MinkyPanel
           borderRadius={8}
           padding={16}
           paddingTop={16}
           overlayColor="rgba(112, 68, 199, 0.2)"
         >
-          <Text style={[styles.prompt, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#2D2C2B') }]}>
-            {Array.isArray(currentStep?.prompt)
-              ? currentStep.prompt[Math.floor(Math.random() * currentStep.prompt.length)]
-              : currentStep?.prompt}
-          </Text>
+          {currentStep?.prompt ? (
+            <Text style={[styles.prompt, { fontSize: FontSettingsStore.getScaledFontSize(18), color: FontSettingsStore.getFontColor('#2D2C2B') }]}>
+              {Array.isArray(currentStep.prompt)
+                ? currentStep.prompt[Math.floor(Math.random() * currentStep.prompt.length)]
+                : currentStep.prompt}
+            </Text>
+          ) : null}
 
           <View style={styles.responseArea}>
-            {renderStepContent()}
+            {renderStepContent(bodyStep)}
           </View>
         </MinkyPanel>
       </Scroll>
 
-      {/* Navigation buttons */}
-      <View style={styles.navigation}>
-        <WoolButton
-          onPress={handlePrevious}
-          variant="purple"
-          size="small"
-          overlayColor="rgba(100, 130, 195, 0.25)"
-        >
-          {isFirstStep ? 'Back' : 'Previous'}
-        </WoolButton>
+      {/* Navigation buttons (suppressed when the step renders inline nav itself) */}
+      {!hasInlineNav && !isTerminalStep ? (
+        <View style={styles.navigation}>
+          <WoolButton
+            onPress={handlePrevious}
+            variant="purple"
+            size="small"
+            overlayColor="rgba(100, 130, 195, 0.25)"
+          >
+            {isFirstStep ? 'Back' : 'Previous'}
+          </WoolButton>
 
-        <WoolButton
-          onPress={handleNext}
-          variant="purple"
-          size="small"
-          disabled={saving}
-        >
-          {saving ? 'Saving...' : isLastStep ? 'Complete' : 'Next'}
-        </WoolButton>
-      </View>
+          <WoolButton
+            onPress={handleNext}
+            variant="purple"
+            size="small"
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : isLastStep ? 'Complete' : 'Next'}
+          </WoolButton>
+        </View>
+      ) : null}
     </View>
   );
 });
@@ -412,6 +651,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     paddingTop: 8,
+  },
+  moodBlock: {
+    marginVertical: 8,
   },
   loadingText: {
     fontSize: 16,

@@ -29,6 +29,22 @@ const WorkbookLanding = observer(({
     loadWorkbook();
   }, [bookshelfId]);
 
+  // Refresh progress when an activity completes — the landing component
+  // stays mounted while the user is in the depth-1 activity flow, so without
+  // this listener the checkbox never ticks until the user reopens the
+  // bookshelf entirely.
+  useEffect(() => {
+    if (!WebSocketService.socket) return;
+    const handler = () => { loadWorkbook(); };
+    WebSocketService.socket.on('workbook:activity:completed', handler);
+    return () => {
+      if (WebSocketService.socket) {
+        WebSocketService.socket.off('workbook:activity:completed', handler);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookshelfId]);
+
   const loadWorkbook = async () => {
     if (!WebSocketService.socket) {
       setLoading(false);

@@ -1,3 +1,112 @@
+// Path tile assets (32x20 pixel-art tiles - top empty rows trimmed)
+const pathStraightLeft = require('../../assets/images/path_straight_path_left.png');
+const pathStraightRight = require('../../assets/images/path_straight_path_right.png');
+const pathCornerLowerLeft = require('../../assets/images/path_corner_lower_left.png');   // connects RIGHT + TOP
+const pathCornerLowerRight = require('../../assets/images/path_corner_lower_right.png'); // connects LEFT + TOP
+const pathCornerUpperLeft = require('../../assets/images/path_corner_upper_left.png');   // connects RIGHT + BOTTOM
+const pathCornerUpperRight = require('../../assets/images/path_corner_upper_right.png'); // connects LEFT + BOTTOM
+const grassImage = require('../../assets/images/grass.png');
+
+// Tile the canvas with 40x40 grass cells. Each row is physically positioned 20 source pixels
+// below the previous (50% vertical overlap), creating a half-overlap isometric pattern.
+// At 4x render scale: 160x160 tile, rows 80 rendered px apart.
+function buildGrassTiles(canvasWidth, canvasHeight) {
+  const cellSrc = 40;          // source-pixel cell size
+  const renderScale = 4;
+  const tile = cellSrc * renderScale;        // 160 rendered
+  const rowStep = 20 * renderScale - 44;     // 36 rendered (44px closer vertically)
+  const colStep = tile - 32;                  // 128 rendered (tiles 32px closer horizontally)
+  const halfCol = colStep / 2;                // 64 rendered (half-tile offset on alt rows)
+
+  const tiles = [];
+  const numRows = Math.ceil(canvasHeight / rowStep) + 1;
+  const numCols = Math.ceil(canvasWidth / colStep) + 1;
+
+  for (let r = 0; r < numRows; r++) {
+    const y = r * rowStep - tile / 2;
+    const offset = (r % 2) * halfCol;
+    for (let c = -1; c < numCols; c++) {
+      const x = c * colStep + offset;
+      tiles.push({
+        id: `grass-${r}-${c}`,
+        type: 'decoration',
+        x, y,
+        width: tile, height: tile,
+        zIndex: -200,
+        image: grassImage,
+        showTitle: false,
+      });
+    }
+  }
+  return tiles;
+}
+
+// Build a horizontal path with optional bump-up sections.
+// The bump-up pattern uses the full corner set so the path rises one tile
+// for a stretch and then drops back down.
+function buildPath(opts) {
+  const {
+    tileWidth = 128,
+    tileHeight = 80,
+    baseY,
+    startX,
+    tileCount,
+    bumps = [], // [{ start, end }] in column indices, end > start
+    zIndex = -100,
+  } = opts;
+
+  const tile = tileWidth; // legacy alias for column step
+  const tiles = [];
+  const upperY = baseY - tileHeight;
+
+  const inBumpGap = (col) => bumps.some(b => col > b.start && col < b.end);
+  const isBumpStart = (col) => bumps.find(b => b.start === col);
+  const isBumpEnd = (col) => bumps.find(b => b.end === col);
+
+  for (let i = 0; i < tileCount; i++) {
+    const x = startX + i * tile;
+
+    if (isBumpStart(i)) {
+      tiles.push({
+        id: `path-lower-${i}`, type: 'decoration',
+        x, y: baseY, width: tileWidth, height: tileHeight, zIndex,
+        image: pathCornerLowerRight, showTitle: false,
+      });
+      tiles.push({
+        id: `path-upper-start-${i}`, type: 'decoration',
+        x, y: upperY, width: tileWidth, height: tileHeight, zIndex,
+        image: pathCornerUpperLeft, showTitle: false,
+      });
+    } else if (isBumpEnd(i)) {
+      tiles.push({
+        id: `path-lower-${i}`, type: 'decoration',
+        x, y: baseY, width: tileWidth, height: tileHeight, zIndex,
+        image: pathCornerLowerLeft, showTitle: false,
+      });
+      tiles.push({
+        id: `path-upper-end-${i}`, type: 'decoration',
+        x, y: upperY, width: tileWidth, height: tileHeight, zIndex,
+        image: pathCornerUpperRight, showTitle: false,
+      });
+    } else if (inBumpGap(i)) {
+      tiles.push({
+        id: `path-upper-${i}`, type: 'decoration',
+        x, y: upperY, width: tileWidth, height: tileHeight, zIndex,
+        image: i % 2 === 0 ? pathStraightLeft : pathStraightRight,
+        showTitle: false,
+      });
+    } else {
+      tiles.push({
+        id: `path-lower-${i}`, type: 'decoration',
+        x, y: baseY, width: tileWidth, height: tileHeight, zIndex,
+        image: i % 2 === 0 ? pathStraightLeft : pathStraightRight,
+        showTitle: false,
+      });
+    }
+  }
+  return tiles;
+}
+
 export default (width, height) => ({
   name: 'Town Square',
   type: 'section',
@@ -11,52 +120,63 @@ export default (width, height) => ({
   doors: [
     {
       id: 'sugarbee-cafe-door',
-      x: width / 2 + 36,
-      y: height / 2 - 396,
-      width: 416,
-      height: 416,
+      // 64x64 source @ 3x = 192, anchored to previous bottom-center (1204, 560)
+      x: width / 2 + 148,
+      y: height / 2 - 172,
+      width: 192,
+      height: 192,
       zIndex: 2100,
       label: 'Sugarbee Cafe',
       showTitle: false,
       navigateTo: '/homestead/explore/map/sugarbee-cafe',
-      image: require('../../assets/images/sugarbee-cafe.png'),
+      image: require('../../assets/images/cat_cafe.png'),
       platformAssetId: 'entity-sugarbee-cafe'
     },
     {
       id: 'games-parlor-door',
-      x: width / 2 - 780,
-      y: height / 2 - 580,
-      width: 360,
-      height: 360,
+      // 64x64 source @ 3x = 192, anchored to previous bottom-center
+      x: width / 2 - 696,
+      y: height / 2 - 212,
+      width: 192,
+      height: 192,
       label: 'Games Parlor',
       showTitle: false,
       navigateTo: '/homestead/explore/map/games-parlor',
-      image: require('../../assets/images/games-parlor.jpeg'),
+      image: require('../../assets/images/Game_Parlour.png'),
       platformAssetId: 'entity-games-parlor'
     },
     {
       id: 'bazaar-door',
-      x: width / 2 - 780,
-      y: height / 2 - 180,
-      width: 360,
-      height: 360,
+      // 128x128 source @ 3x = 384, shifted down 160px from original
+      x: width / 2 - 792,
+      y: height / 2 - 44,
+      width: 384,
+      height: 384,
       label: 'Bazaar',
       showTitle: false,
       navigateTo: '/homestead/explore/map/bazaar',
-      image: require('../../assets/images/bazaar.png'),
+      image: require('../../assets/images/Market.png'),
       platformAssetId: 'entity-bazaar'
     },
   ],
 
   // Outdoor entities (decorations, interactables)
   entities: [
-    {
+    // Grass field tiled across the canvas with isometric half-overlap rows
+    ...buildGrassTiles(width, height),
+
+    // (Static path tiles removed — paths are now placed via the dev RoomEditor and
+    // persist as RoomLayoutOverlay tiles. Run backend/scripts/exportLayoutOverlay.js
+    // to dump the overlay back to source when the layout is finalized.)
+
+{
       id: 'wishing-well',
       type: 'interactable',
-      x: width / 2 - 268,
-      y: height / 2 - 152,
-      width: 216,
-      height: 302,
+      // 50% size, bottom-center anchored to previous (width/2 - 160, height/2 + 150)
+      x: width / 2 - 214,
+      y: height / 2 - 1,
+      width: 108,
+      height: 151,
       label: 'Wishing Well',
       showTitle: false,
       image: 'wishing-well.png',
@@ -67,10 +187,11 @@ export default (width, height) => ({
     {
       id: 'campfire',
       type: 'decoration',
-      x: width / 2 - 36,
-      y: height / 2 + 134,
-      width: 200,
-      height: 200,
+      // 50% size, bottom-center anchored to previous (width/2 + 64, height/2 + 334)
+      x: width / 2 + 14,
+      y: height / 2 + 234,
+      width: 100,
+      height: 100,
       label: 'Campfire',
       showTitle: false,
       image: require('../../assets/images/campfire.png'),
@@ -102,13 +223,14 @@ export default (width, height) => ({
     {
       id: 'help-wanted',
       type: 'interactable',
-      x: width / 2 + 420,
-      y: height / 2 + 40,
-      width: 192,
-      height: 192,
+      // 50% size, bottom-center anchored to previous (width/2 + 516, height/2 + 232)
+      x: width / 2 + 468,
+      y: height / 2 + 148,
+      width: 96,
+      height: 84,
       label: 'Help Wanted',
       showTitle: false,
-      image: require('../../assets/images/help-wanted.png'),
+      image: require('../../assets/images/help-sign.png'),
       platformAssetId: 'entity-help-wanted',
       description: 'A bulletin board where community members share their struggles and ask for support.',
       flow: 'weepingWillow',
@@ -117,10 +239,11 @@ export default (width, height) => ({
     {
       id: 'mailbox',
       type: 'interactable',
-      x: width / 2 + 440,
-      y: height / 2 + 260,
-      width: 120,
-      height: 160,
+      // 50% size, bottom-center anchored to previous (width/2 + 500, height/2 + 420)
+      x: width / 2 + 468,
+      y: height / 2 + 352,
+      width: 64,
+      height: 68,
       label: 'Mailbox',
       showTitle: false,
       image: require('../../assets/images/mailbox.png'),
@@ -128,27 +251,29 @@ export default (width, height) => ({
       flow: 'mailbox',
       zIndex: 2100
     },
-    // Generate weeping willow grove - 70 trees spreading up and to the left (10 per row)
-    ...Array.from({ length: 70 }, (_, i) => {
+    // Generate weeping willow grove - 280 trees in a denser pattern
+    // Each tree drifts right and down as the index increases (cumulative offset)
+    ...Array.from({ length: 280 }, (_, i) => {
       // Seeded random based on index for consistent positions
       const seed = (i * 7919) % 1000 / 1000; // Prime number for good distribution
       const seed2 = (i * 6271) % 1000 / 1000;
       const seed3 = (i * 8923) % 1000 / 1000;
 
-      // Hard-coded x offsets to spread trees leftward (10 trees per row)
-      const xOffsets = [
-        -285, -235, -185, -135, -85, -35, 25, 66, 107, 148,           // Row 0 - front row
-        -309, -259, -209, -159, -109, -59, 7, 98, 139, 180,           // Row 1 - journal area
-        -400, -350, -300, -250, -200, -150, -40, 20, 80, 130,         // Row 2
-        -525, -475, -425, -375, -325, -275, -123, -46, 72, 122,       // Row 3 - expanded left
-        -600, -550, -500, -450, -400, -350, -186, -105, 121, 191,     // Row 4 - sparse right side
-        -670, -620, -570, -520, -470, -420, -260, -90, 60, 140,       // Row 5 - sparse right side
-        -750, -700, -650, -600, -550, -500, -310, -140, 10, 100,      // Row 6 - sparse right side
-      ];
+      // Pack into 14 rows of 20. Smaller column step (40px) and row step (50px)
+      // for tighter packing matching the smaller (80x105) tree sprite.
+      const colsPerRow = 20;
+      const col = i % colsPerRow;
+      const row = Math.floor(i / colsPerRow);
 
-      // Base position spreads up and to the right (heavy overlap - 2/5 to 4/5 tree height)
-      const baseX = width * 0.6 + 160 + (i % 10) * 80 + xOffsets[i];
-      const baseY = height * 0.2 - 40 - Math.floor(i / 10) * 100;
+      // Base anchor: same upper-right grove area, but each tree also drifts
+      // a few pixels to the right and down with each successive index so the
+      // overall placement order flows right-and-down.
+      const driftX = i * 0.6;
+      const driftY = i * 0.4;
+
+      // Spread leftward like before (col 0 = farthest right, col N = farther left).
+      const baseX = width * 0.6 + 200 - col * 40 + driftX;
+      const baseY = height * 0.2 + 60 - row * 50 + driftY;
 
       // Randomize position +/- 28.5px
       const x = baseX + (seed - 0.5) * 57;
@@ -157,8 +282,9 @@ export default (width, height) => ({
       // Randomize size +/- 14.2%
       const sizeVariance = 0.142;
       const sizeMultiplier = 1 + (seed3 - 0.5) * 2 * sizeVariance;
-      const baseWidth = 300;
-      const baseHeight = 300;
+      // 32x42 source (top-trimmed) @ 2.5x = 80x105
+      const baseWidth = 80;
+      const baseHeight = 105;
 
       return {
         id: `weeping-willow-${i}`,
@@ -167,8 +293,10 @@ export default (width, height) => ({
         y,
         width: baseWidth * sizeMultiplier,
         height: baseHeight * sizeMultiplier,
-        zIndex: i === 0 ? 1965 : 2000 - i * 10,
-        image: 'weeping-willow.png',
+        // Trees further back (higher row, smaller y) render behind closer ones.
+        // Stay above path (zIndex -100) and below interactable doors (~2100).
+        zIndex: 1900 - row * 5 - col,
+        image: require('../../assets/images/Tree.png'),
         description: 'A serene grove of weeping willows, perfect for quiet contemplation.',
         navigateTo: '/homestead/explore/map/weeping-willow',
         showTitle: false

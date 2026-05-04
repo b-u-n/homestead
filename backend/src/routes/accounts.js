@@ -58,6 +58,44 @@ router.post('/create', async (req, res) => {
   }
 });
 
+// activities-demo-temp — ensure a beta-flagged demo account exists for the
+// activities-demo page. Idempotent: creates the account on first call, then
+// just touches lastActiveAt. The sessionId is well-known and hardcoded by the
+// frontend demo page. Remove this route when the demo is retired.
+router.post('/ensure-demo', async (req, res) => {
+  try {
+    const DEMO_SESSION_ID = 'demo-activities-page-session';
+    let account = await Account.findOne({ 'activeSessions.sessionId': DEMO_SESSION_ID });
+    if (account) {
+      if (!account.beta) {
+        account.beta = true;
+        await account.save();
+      }
+      await Account.updateOne(
+        { _id: account._id, 'activeSessions.sessionId': DEMO_SESSION_ID },
+        { $set: { 'activeSessions.$.lastActiveAt': new Date() } }
+      );
+    } else {
+      account = await new Account({
+        beta: true,
+        activeSessions: [{
+          sessionId: DEMO_SESSION_ID,
+          createdAt: new Date(),
+          lastActiveAt: new Date(),
+        }],
+        lastScreen: 'ActivitiesDemo',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).save();
+    }
+    res.json({ success: true, sessionId: DEMO_SESSION_ID, accountId: account._id });
+  } catch (error) {
+    console.error('Error ensuring demo account:', error);
+    res.status(500).json({ success: false, error: 'Failed to ensure demo account' });
+  }
+});
+// end activities-demo-temp
+
 // Get account by session ID
 router.get('/session/:sessionId', async (req, res) => {
   try {

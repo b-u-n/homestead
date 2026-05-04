@@ -2,9 +2,13 @@
 
 Activities are therapeutic exercises within the workbook system. Each activity has metadata, tags for bookshelf placement, and a series of steps that users complete.
 
+> **NEW activities ship as v2 (primitive composition).** Hard schema, primitive ref list, layout shapes, write-throughs, and **mandatory activity rules (R1, R2, …)** live in [`/activities/v2/_SCHEMA.md`](../activities/v2/_SCHEMA.md). Read that file before authoring or modifying any activity in `/activities/v2/`. The legacy 13-step-type schema documented further down this page is kept only for the few unmigrated v1 activities — do not author new activities in the v1 shape.
+
 ## Required Readmes
 
 Before building activities, read these first:
+
+> **Mandatory rules** (R1–R6) and the **copy-paste activity skeleton** live in [`/activities/v2/_SCHEMA.md`](../activities/v2/_SCHEMA.md). The canonical reference is `activities/v2/relapse-prevention-plan.json` — every activity follows the same first-step (intro + pre_mood) and last-step (save: post_mood + ReflectionFraming + JournalStep + SummaryOutputCard) shape. After authoring or editing an activity, run `node activities/v2/_migrate-r6-r2.js` to verify structural compliance (idempotent).
 
 - [FLOWS.md](./FLOWS.md) -- flow architecture, drop props, navigation rules
 - [DROPS.md](./DROPS.md) -- depth system, size presets, onComplete/onBack
@@ -306,7 +310,9 @@ Note: This component receives `allResponses` (the full `stepResponses` object) i
 
 #### `checklist-assessment` -- ChecklistAssessmentStep.js
 
-Checkbox list with scoring and interpretation.
+Checkbox list with scoring and interpretation. Renders each item as a
+[Checkbox primitive](./CHECKBOXES.md) — stitched indicator + title (+ optional
+description + examples).
 
 ```javascript
 {
@@ -314,8 +320,17 @@ Checkbox list with scoring and interpretation.
   type: 'checklist-assessment',
   prompt: 'Is worry a problem for you?',
   items: [
-    { id: 'item1', text: 'I worry about many different things' },
-    { id: 'item2', text: 'My worry feels uncontrollable' }
+    {
+      id: 'item1',
+      title: 'I worry about many different things',
+      description: 'Worry that jumps from topic to topic.',
+      examples: [
+        '"What if I get sick?"',
+        '"What if the meeting goes badly?"',
+        '"What if I forgot to lock the door?"'
+      ]
+    },
+    { id: 'item2', title: 'My worry feels uncontrollable' }
   ],
   scoring: {
     thresholds: [
@@ -330,6 +345,37 @@ Checkbox list with scoring and interpretation.
 Response: `{ checked: ['item1', 'item3'], score: 4, interpretation: 'Moderate worry' }`
 
 Scoring counts the number of checked items and matches against thresholds.
+
+| Item field | Type | Description |
+|------------|------|-------------|
+| `id` | string | Stable identifier — what gets stored in `checked[]` |
+| `title` | string | Primary label. Use `text` instead for legacy items. |
+| `description` | string? | Optional secondary line in muted italic |
+| `examples` | string[]? | Optional 0–3 concrete examples shown as chips |
+
+Items may use `text` instead of `title` for backwards compatibility with older
+seed data, but new items should use `title`.
+
+#### `assessment-results` -- AssessmentResultsStep.js
+
+Read-only score panel that closes out an assessment activity. Reads from a
+previous `checklist-assessment` step and renders the score + interpretation in
+a polished results card.
+
+```javascript
+{
+  stepId: 'results',
+  type: 'assessment-results',
+  prompt: 'Your snapshot',
+  sourceStepId: 'identify',          // stepId of the checklist-assessment step
+  scoreLabel: 'Items identified',    // small label above the number
+  outOfLabel: 'of {total}'           // optional sub-label; {total} is hydrated
+                                     // from sourceStep.items.length
+}
+```
+
+Response: none (read-only step). The score and interpretation come from the
+source step's `stepData`.
 
 #### `sortable-list` -- SortableListStep.js
 
@@ -524,18 +570,23 @@ Scale options use MinkyPanel pills (not WoolButtons). Selected = scrollbar blue 
 
 ### Checklist Checkboxes (ChecklistAssessmentStep)
 
-Checklist items use WoolButton with a stitched check indicator:
+Checklist items render as the [`Checkbox` primitive](./CHECKBOXES.md) \u2014 a
+stitched dashed indicator + title row, with optional description and example
+chips. Use that primitive directly anywhere else you need a checkable row.
 
-```javascript
-// Stitched checkbox indicator
-<View style={{
-  width: 22, height: 22, borderRadius: 4,
-  borderWidth: 2, borderStyle: 'dashed',
-  borderColor: isChecked ? 'rgba(255, 255, 255, 0.55)' : 'rgba(92, 90, 88, 0.55)',
-  backgroundColor: isChecked ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.3)',
-}}>
-  {isChecked && <Text style={{ color: '#2D2C2B', fontSize: 14, fontWeight: '700' }}>{'\u2713'}</Text>}
-</View>
+```jsx
+import Checkbox from '../components/primitives/Checkbox';
+
+<Checkbox
+  checked={isChecked}
+  onToggle={handleToggle}
+  title="Catastrophizing"
+  description="Jumping straight to the worst possible outcome."
+  examples={[
+    '"This headache must be something serious."',
+    '"They didn\'t text back \u2014 something terrible happened."'
+  ]}
+/>
 ```
 
 ### Bookshelf Landing

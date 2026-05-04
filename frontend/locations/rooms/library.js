@@ -75,6 +75,19 @@ export default (width, height) => ({
       image: require('../../assets/images/bookshelf-anxiety.png'),
       flow: 'workbook',
       flowParams: { bookshelfId: 'anxiety', title: 'Anxiety' }
+    },
+    {
+      id: 'diary-shelf',
+      type: 'interactive',
+      x: width * 0.72,
+      y: height * 0.55,
+      width: 200,
+      height: 280,
+      label: 'Diary',
+      showTitle: true,
+      image: require('../../assets/images/bookshelf-emotions.png'),
+      flow: 'history',
+      flowParams: { title: 'Diary' }
     }
   ]
 });

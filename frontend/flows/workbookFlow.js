@@ -1,12 +1,14 @@
 import WorkbookLanding from '../components/drops/WorkbookLanding';
+import WorkbookResumePicker from '../components/drops/WorkbookResumePicker';
 import WorkbookActivity from '../components/drops/WorkbookActivity';
 
 /**
  * Workbook Flow Definition
  *
- * Navigation flow:
- * landing (grid of activities) -> activity (multi-step form)
- * activity -> back to landing or complete
+ * landing → resume-picker → activity
+ *  - resume-picker auto-skips to activity when there are no in-progress instances.
+ *  - When skipped, it emits action: 'startFresh' (no instanceId).
+ *  - When user picks an in-progress row, it emits action: 'resume' + instanceId.
  */
 export const workbookFlow = {
   name: 'workbook',
@@ -16,17 +18,23 @@ export const workbookFlow = {
   drops: {
     'workbook:landing': {
       component: WorkbookLanding,
-      input: {
-        bookshelfId: 'string'
-      },
-      output: {
-        action: 'selectActivity',
-        activityId: 'string',
-        bookshelfId: 'string'
-      },
+      input: {},
       next: [
         {
           when: (output) => output.action === 'selectActivity',
+          goto: 'workbook:resume-picker'
+        }
+      ]
+    },
+
+    'workbook:resume-picker': {
+      component: WorkbookResumePicker,
+      depth: 1,
+      title: (accumulatedData) => accumulatedData?.['workbook:landing']?.activityTitle || 'Activity',
+      input: {},
+      next: [
+        {
+          when: (output) => output.action === 'resume' || output.action === 'startFresh',
           goto: 'workbook:activity'
         }
       ]
@@ -34,15 +42,9 @@ export const workbookFlow = {
 
     'workbook:activity': {
       component: WorkbookActivity,
-      depth: 1, // Stacked modal on top of landing
+      depth: 1, // Stays at depth 1 — picker is replaced by activity, not stacked.
       title: (accumulatedData) => accumulatedData?.['workbook:landing']?.activityTitle || 'Activity',
-      input: {
-        activityId: 'string',
-        bookshelfId: 'string'
-      },
-      output: {
-        action: 'back' | 'complete'
-      },
+      input: {},
       next: [
         {
           when: (output) => output.action === 'back',

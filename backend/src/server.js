@@ -6,11 +6,35 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const mongoose = require('mongoose');
 const connectDB = require('./database');
+const seedActivitiesV2 = require('./seeds/seedActivitiesV2');
+const seedClinicalBookshelves = require('./seeds/seedClinicalBookshelves');
+const WorkbookProgress = require('./models/WorkbookProgress');
 require('dotenv').config();
 
-// Connect to MongoDB
+// Connect to MongoDB, then seed v2 activities + clinical bookshelves once connected.
 connectDB();
+mongoose.connection.once('open', async () => {
+  try {
+    // One-shot migration: WorkbookProgress went from "one doc per (account, activity)"
+    // to "one doc per instance attempt" so users can have multiple in-progress and
+    // multiple completed instances of the same activity. Drop the old unique index
+    // if it still exists. Safe to re-run.
+    try {
+      await WorkbookProgress.collection.dropIndex('accountId_1_workbookId_1_activityId_1');
+      console.log('[migration] Dropped legacy unique index on WorkbookProgress');
+    } catch (err) {
+      if (err && err.codeName !== 'IndexNotFound') {
+        console.warn('[migration] WorkbookProgress dropIndex:', err.message);
+      }
+    }
+    await seedActivitiesV2();
+    await seedClinicalBookshelves();
+  } catch (err) {
+    console.error('Seed error:', err);
+  }
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -115,6 +139,10 @@ app.use('/api/users', require('./routes/user-rest'));
 // Account routes
 app.use('/api/accounts', require('./routes/accounts'));
 
+// activities-demo-temp — serves keyed text blobs (intro, instructions) for
+// the activities-demo page. Remove when the demo is retired.
+app.use('/api/demo-text', require('./routes/demoText'));
+
 // Logs routes
 app.use('/api/logs', require('./routes/logs'));
 
@@ -134,6 +162,11 @@ const adminFlow = require('./flows/admin');
 const featuresFlow = require('./flows/features');
 const knapsackFlow = require('./flows/knapsack');
 const pixelPalsFlow = require('./flows/pixelPals');
+const moodFlow = require('./flows/mood');
+const hopeChestFlow = require('./flows/hopeChest');
+const personaFlow = require('./flows/persona');
+const historyFlow = require('./flows/history');
+const roomEditorFlow = require('./flows/roomEditor');
 
 // Register flows
 flowEngine.registerFlow(wishingWellFlow);
@@ -146,6 +179,11 @@ flowEngine.registerFlow(adminFlow);
 flowEngine.registerFlow(featuresFlow);
 flowEngine.registerFlow(knapsackFlow);
 flowEngine.registerFlow(pixelPalsFlow);
+flowEngine.registerFlow(moodFlow);
+flowEngine.registerFlow(hopeChestFlow);
+flowEngine.registerFlow(personaFlow);
+flowEngine.registerFlow(historyFlow);
+flowEngine.registerFlow(roomEditorFlow);
 
 // Pass io to report issues router for notifications
 reportIssuesRouter.setIo(io);
@@ -219,6 +257,11 @@ io.on('connection', (socket) => {
   flowEngine.setupFlow(socket, io, 'features');
   flowEngine.setupFlow(socket, io, 'knapsack');
   flowEngine.setupFlow(socket, io, 'pixelPals');
+  flowEngine.setupFlow(socket, io, 'mood');
+  flowEngine.setupFlow(socket, io, 'hopeChest');
+  flowEngine.setupFlow(socket, io, 'persona');
+  flowEngine.setupFlow(socket, io, 'history');
+  flowEngine.setupFlow(socket, io, 'roomEditor');
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);

@@ -2,6 +2,8 @@
 
 Therapeutic workbooks organized into library rooms and bookshelves. Each bookshelf opens a workbook containing activities resolved by tag matching. Activities contain multi-step therapeutic content with per-user progress tracking.
 
+> **Authoring activities?** All schema, primitive refs, and the **mandatory activity rules (R1…)** live in [`/activities/v2/_SCHEMA.md`](../activities/v2/_SCHEMA.md). Also see [ACTIVITIES.md](./ACTIVITIES.md) for the broader activity system overview.
+
 ## System Overview
 
 ```
@@ -266,6 +268,7 @@ workbook:landing
 | prompt-sequence | PromptSequenceStep | { [id]: string } | 5-4-3-2-1 grounding |
 | journal | JournalStep | string | written-exposure |
 | checklist-assessment | ChecklistAssessmentStep | { checked, score } | distortions ID |
+| assessment-results | AssessmentResultsStep | null (read-only) | thinking-traps |
 | sortable-list | SortableListStep | [{ item, rating }] | fear-hierarchy |
 | action-plan | ActionPlanStep | { [section]: string } | problem-solving |
 

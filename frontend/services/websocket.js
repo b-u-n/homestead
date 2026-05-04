@@ -8,6 +8,10 @@ import SoundSettingsStore from '../stores/SoundSettingsStore';
 import CustomizationStore from '../stores/CustomizationStore';
 import FeatureStore from '../stores/FeatureStore';
 import InventoryStore from '../stores/InventoryStore';
+import MoodStore from '../stores/MoodStore';
+import HopeChestStore from '../stores/HopeChestStore';
+import PersonaStore from '../stores/PersonaStore';
+import HistoryStore from '../stores/HistoryStore';
 import domain from '../utils/domain';
 
 class WebSocketService {
@@ -56,6 +60,18 @@ class WebSocketService {
         await InventoryStore.loadFromServer();
       } catch (error) {
         console.error('Failed to load inventory on connect:', error);
+      }
+
+      // Load platform stores (mood, hope chest, persona, history)
+      try {
+        await Promise.all([
+          MoodStore.loadFromServer(),
+          HopeChestStore.loadFromServer(),
+          PersonaStore.loadFromServer(),
+          HistoryStore.loadFromServer(),
+        ]);
+      } catch (error) {
+        console.error('Failed to load platform stores on connect:', error);
       }
     });
 
