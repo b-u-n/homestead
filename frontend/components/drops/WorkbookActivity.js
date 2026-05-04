@@ -338,6 +338,7 @@ const WorkbookActivity = observer(({
           value={stepValue}
           onChange={handleResponseChange}
           allStepResponses={stepResponses}
+          allSteps={activity?.steps || activity?.content?.steps}
           nav={{
             onPrevious: handlePrevious,
             onNext: handleNext,

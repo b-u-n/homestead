@@ -83,7 +83,7 @@ const Checkbox = observer(({
             <Pressable
               onPress={handleIndicatorPress}
               disabled={disabled || !interactable}
-              hitSlop={10}
+              hitSlop={40}
               style={styles.indicatorWrap}
               accessibilityRole="checkbox"
               accessibilityState={{ checked }}
@@ -147,11 +147,14 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
   },
   indicatorWrap: {
-    paddingTop: 1,
+    padding: 12,
+    margin: -12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   indicator: {
     width: 22,

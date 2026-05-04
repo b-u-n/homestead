@@ -46,7 +46,25 @@ function formatValueAsText(v) {
   return String(v);
 }
 
-const ComponentStep = observer(({ step, value, onChange, allStepResponses, nav }) => {
+// Resolve an array of selected IDs (from a ChipMultiSelectTagGroup carry-over)
+// to their human-readable labels by looking up the source step's preset chips.
+// IDs without a preset match (e.g. custom-entry chips) pass through unchanged.
+function resolveCarryLabels(carriedValue, carryFrom, allSteps) {
+  if (!Array.isArray(carriedValue) || !Array.isArray(allSteps) || !carryFrom?.stepId) {
+    return carriedValue;
+  }
+  const src = allSteps.find(s => s.stepId === carryFrom.stepId);
+  if (!src || !Array.isArray(src.components)) return carriedValue;
+  const chipEntry = src.components.find(
+    c => c.ref === 'ChipMultiSelectTagGroup' && (!carryFrom.bind || c.bind === carryFrom.bind)
+  );
+  const chips = chipEntry?.props?.presetChips;
+  if (!Array.isArray(chips) || chips.length === 0) return carriedValue;
+  const byId = new Map(chips.map(c => [c.id, c.label || c.id]));
+  return carriedValue.map(id => byId.get(id) ?? id);
+}
+
+const ComponentStep = observer(({ step, value, onChange, allStepResponses, allSteps, nav }) => {
   const layout = step.layout || 'vertical';
   const collect = step.collect || 'merge';
   const components = Array.isArray(step.components) ? step.components : [];
@@ -175,7 +193,8 @@ const ComponentStep = observer(({ step, value, onChange, allStepResponses, nav }
     if (!interactable && refName === 'StaticTextContentBlock' && !props.text && !props.items) {
       const v = carriedValue ?? childValue ?? props.value;
       if (Array.isArray(v)) {
-        mergedProps = { ...props, items: v.filter(x => x != null && x !== ''), blockRole: 'bulleted-list' };
+        const labelled = entry.carryFrom ? resolveCarryLabels(v, entry.carryFrom, allSteps) : v;
+        mergedProps = { ...props, items: labelled.filter(x => x != null && x !== ''), blockRole: 'bulleted-list' };
       } else {
         mergedProps = { ...props, text: formatValueAsText(v), blockRole: props.blockRole || 'rich-text-prose' };
       }
