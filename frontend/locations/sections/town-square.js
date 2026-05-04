@@ -204,23 +204,23 @@ export default (width, height) => ({
         { key: 'campfireRandom2', minDelay: 12000, maxDelay: 20000 },
       ]
     },
-    // Hidden journal in the weeping willow grove
+    // Hidden journal in the weeping willow grove — temporarily removed
     // Nearby tree z-indexes: tree 7=1930, tree 8=1920, tree 9=1910, tree 10=1900
-    {
-      id: 'grove-journal',
-      type: 'interactable',
-      x: width * 0.6 + 330,
-      y: height * 0.2 - 80,
-      width: 80,
-      height: 80,
-      zIndex: 1805,
-      label: 'Journal',
-      image: require('../../assets/images/journal.png'),
-      platformAssetId: 'entity-journal',
-      showTitle: false,
-      flow: 'workbook',
-      flowParams: { bookshelfId: 'depression', title: 'Journal' }
-    },
+    // {
+    //   id: 'grove-journal',
+    //   type: 'interactable',
+    //   x: width * 0.6 + 330,
+    //   y: height * 0.2 - 80,
+    //   width: 80,
+    //   height: 80,
+    //   zIndex: 1805,
+    //   label: 'Journal',
+    //   image: require('../../assets/images/journal.png'),
+    //   platformAssetId: 'entity-journal',
+    //   showTitle: false,
+    //   flow: 'workbook',
+    //   flowParams: { bookshelfId: 'depression', title: 'Journal' }
+    // },
     {
       id: 'help-wanted',
       type: 'interactable',
