@@ -44,19 +44,11 @@ class AvatarService {
   }
 
   /**
-   * Download image from URL and save to GCS.
+   * Save a raw image buffer to GCS.
    * Returns the local filename.
    */
-  async saveImageLocally(imageUrl, userId) {
+  async saveImageBuffer(imageBuffer, userId) {
     try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error('Failed to download image');
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const imageBuffer = Buffer.from(arrayBuffer);
-
       // Generate unique filename
       const filename = `avatar_${userId}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.png`;
 
@@ -71,6 +63,15 @@ class AvatarService {
       console.error('Error saving avatar to GCS:', error);
       throw error;
     }
+  }
+
+  /**
+   * Decode a base64-encoded image (as returned by gpt-image-1.5) and save to GCS.
+   * Returns the local filename.
+   */
+  async saveImageFromBase64(b64Image, userId) {
+    const imageBuffer = Buffer.from(b64Image, 'base64');
+    return this.saveImageBuffer(imageBuffer, userId);
   }
 
   async loadPromptTemplate(styleName) {
@@ -168,25 +169,32 @@ class AvatarService {
       console.log(`[Avatar Generation] Parameters:`, { adjective, adverb, noun, color, colorText });
       console.log('='.repeat(80));
 
-      // DALL-E 3 only supports n=1, so we need to make 4 separate calls
-      // Make them simultaneously for faster generation
-      const promises = Array.from({ length: 4 }, async (_, i) => {
-        try {
-          const response = await openai.images.generate({
-            model: "dall-e-3",
-            prompt: prompt,
-            size: "1024x1024",
-            n: 1,
-          });
+      // Generate 6 images in a single call. gpt-image-1.5 supports n > 1 and
+      // returns base64 (b64_json) for each image — never a URL — so we decode
+      // and save each result directly.
+      const IMAGE_COUNT = 6;
+      const response = await openai.images.generate({
+        model: "gpt-image-1.5",
+        prompt: prompt,
+        size: "1024x1024",
+        n: IMAGE_COUNT,
+      });
 
-          const openaiUrl = response.data[0].url;
-          console.log(`[Avatar Generation] Avatar ${i + 1}/4 - Generated, saving locally...`);
+      console.log(`[Avatar Generation] Generated ${response.data.length} images, saving...`);
+
+      // Save each image to GCS in parallel. Keep per-image error handling so a
+      // single bad save doesn't sink the whole batch.
+      const promises = response.data.map(async (image, i) => {
+        try {
+          // gpt-image models always return base64-encoded image data (no response_format,
+          // no URL). dall-e-3 used response.data[i].url; gpt-image uses b64_json.
+          const b64Image = image.b64_json;
 
           // Save image locally immediately
-          const filename = await this.saveImageLocally(openaiUrl, userId);
+          const filename = await this.saveImageFromBase64(b64Image, userId);
           const localUrl = `/api/avatars/${filename}`;
 
-          console.log(`[Avatar Generation] Avatar ${i + 1}/4 - SUCCESS (saved as ${filename})`);
+          console.log(`[Avatar Generation] Avatar ${i + 1}/${IMAGE_COUNT} - SUCCESS (saved as ${filename})`);
 
           return {
             success: true,
@@ -195,7 +203,7 @@ class AvatarService {
             variables: { adjective, adverb, noun, color }
           };
         } catch (error) {
-          console.error(`[Avatar Generation] Avatar ${i + 1}/4 - FAILED: ${error.message}`);
+          console.error(`[Avatar Generation] Avatar ${i + 1}/${IMAGE_COUNT} - FAILED: ${error.message}`);
           return {
             success: false,
             imageUrl: null,
@@ -213,7 +221,7 @@ class AvatarService {
       const successCount = results.filter(r => r.success).length;
       console.log('='.repeat(80));
       console.log(`[Avatar Generation] Completed for user: ${userId}`);
-      console.log(`[Avatar Generation] Success: ${successCount}/4 avatars generated and saved`);
+      console.log(`[Avatar Generation] Success: ${successCount}/${IMAGE_COUNT} avatars generated and saved`);
       console.log('='.repeat(80));
 
       return results;
