@@ -1,0 +1,152 @@
+first, read all of the documentation, then spawn an agent for each of these with the context they need to perform the task:
+
+coping strategy menu is a bit confusing step 2, shouoldn't have to highlight/toggle the sections--it should happen automatically when you select / deselect items from them.
+
+core beliefs feels like it should have some remediation step, it just kinda dumps you at the end.
+
+Emotion body mapping has no legend on step 2, the legend is on the previous page (and should stay there as an example), but needs to be on the paint the body page as selectable cottagecore colors (this will need to be a new documented component). also the text on step 3 is borderline incoherent--what exactly are we doing there? you need to completely re-review this entire activity because the whole thing doesn't make sense. i think what you were going for was for each identified and painted body part, they should have a drop down and a short response. but starting at step 3 it reads like a different activity.
+
+brooding episode log step 3 is incoherent. check the activitiy, what do we want them to do at this point, look back and do what exactly, what is the relief here?
+
+prepping for a stressful event, "How heavy has it been sitting" should not have text inside of it outside of numbers. use emoji for 1 and 10 if you need to. then the two multi-select chips aren't labeled as to what they are. and remove this: "A small note: a monthly view here is on the way — your upcoming events laid out as soft-colored pills, with a quiet flag when a few heavy ones stack close together. That's still being built. For now, what you've done holds for this one event, and that's enough."
+
+
+for the pink elephant, there is no counter to tap.
+
+self control, influence, external could do with a drag and drop chip system, step 3. we already have those chips from a different place, now we want to group them--is this not a pattern we identified and built for? if not, we should.
+
+we have two 5-4-3-2-1. "grounding-rapid-response-skill-sequence" and "mindful-sensory-activity". the one that starts with "A way back into your body" is the one we want to keep. did the other get mistranslated or we can drop it?
+
+mindfulness step 3 collapses content are in the wrong font.
+
+mood tracking log doesn't carry the date over. it also feels like steps 3 and 4 (recap and retro) could be combined.
+
+for box breathing, step 3, there is no dot. just inhale when the box expands, hold while it holds, exhale while it contracts, hold until it moves again. also the "counts" menu on step 2 didn't affect the timing of the box. nor did the duration affect the duration of the timer. that'll require an agent to review.
+
+practice log, step 3, make it clear that they can choose up to three things from the day. and be clear that "five minutes of practice counts". and then the entries don't carry over to the next page.
+
+
+progressive muscle relaxation, step 2, the timer should loop. you do not need a separate row for the "Hands - Done", just have a checkbox next to the longer line. use our checkbox component here. for some reason, there are 8 empty dots above the timer component--i think you were trying something there, but it's unnecessary.
+
+prompted self-reflection step 2, just hide the skip/next from the cards. they don't work and they don't make sense in the ui. run a tone agent to change it to just prompts. make a note in the activity that it could be done using cards if we wanted.
+
+scents & sounds needs a step added after 1, a warning that explains that oils should be diffused in moderation, never used around pets, and never consumed directly. avoid any essential oils you may be allergic to. the collapses here also have the wrong font inside, so please spawn an agent to fix that across all activities.
+
+social re-engagement ladder, step 2. each rung on the ladder requires more prompting here. they need to be eased into it--reference the activity and use the tone.md, also "A real conversation with someone who knows you" feels absolutely devastating to someone who is socially isolated. we are trying to work people into it, not crash them. also like volunteering is always an option, right? i don't know if that's advice, but it could be an aside--like, even if you have no one to reach out to, there are places you can go to build this trust at the cost of only your time sort of thing.
+
+guide for someone who supports me will be a major project so you'll need a plan. split step 2 into two steps. first, have them set out what they might need. then, use what they selected to generate chips that you can select per person. require them to name the person--that should be the input box. and give them room to write a personal note to them, an acknowledgement or expression of gratitude or thank you note--legitimately thank them, do not ask them for anything (that's what the chips are for). then the current step 3 (before adding the new step) isn't clear with "Two short lists". this needs a tone pass to be clear that these are the rules of engagement for helping you. The "do"s and "don't"s of what really, truly is appreciated vs what frustrates you. there also need to be more suggestions here, and they need to be phrased in a way that is soft to the *other* person they'd send this to. also, please have this section with dos and don'ts *before* the assigning to people part, and have them assign these chips to people as well--at the very end. step 4 needs to be redone with the tone. then the "share this with someone" button doesn't work, and there needs to be one customized per person they named, so ensure the state you're storing is sufficient to generate that (it should all be saved along the way).
+
+for symptom severity tracker, it's like you've completely lost your mind on the description--re-read the activity source and rewrite that through the tone.md. the 4 week tracker on step 4 doesn't do anything when you click--it should be dark-light-normal that's probably a component-level update. it should also only be this week and previous week.
+
+for technique planner, step 2, there should be no text in the number boxes--just the numbers.
+
+for challenging questions, "what backs it up" and "what suggests against it" need to be two separate boxes. also this whole thing needs the tone.md review. 
+
+thought reframe, step 2, there shouldn't be text in the number selection--that needs to be bubbled up and fixed in the component definition for whatever agent builds that component. 
+
+sleep diary, it's small, but step 2 "when you slept" should have a "when you woke" header on the second input. step 4 of 6 has a bar that makes no sense for "Tonight", and i feel like that wrap up could happen in the retro step.
+
+for PHQ-9 increase the number on step 2 to 0-5, but when you're doing the lookup for text multiply that so it ends up 0-3, you know?
+
+for up and down activities, it needs another pass to be more coherent and engaging for the ADD generation + tone.md pass. then, on step 2, there are not enough examples--generate 50. then for step 3, there is no component for hold and swipe (even though i know we built one). please revise this activity to be working.
+
+for activity scheduling, i want the first line to be "Motivation follows action." then on step 4, there is no label for the bottom box, which seems to be "what can you do to prepare yourself before it happens", tone.md that.
+
+apathy and lethargy step 4 text is incoherent--needs a rethink of how we're framing it to the user and tone.md
+
+for grief, or something more step 3 the little box "A soft way to read this" we need to be using the GAD-7 method of wiring their responses to a random selection of multiple responses that form paragraphs---check for an md for this, because i think we have it documented somewhere. also, the tone here downplays grief when it should encourage them to work through grief but keep an eye out for signs that it's turning into depression. tone.md that too.
+
+life compass, step 2 says "two sliders" but it shows selection buttons--please swap them to sliders. it's not clear that importance and alignment are meant to be 1:1, so alignment might be a bad word there. tone.md it.
+
+for focusing on positive feelings step 3, only show them the ones they picked. same with the carry over.
+
+causes and contributing factor needs a full review of underlying data to figure out what you should have here, because step 2 is just empty it just says "Situation" with an empty interface box. it's not clear what the user should do in the introduction, too. the graphic is fine on step 1, but the whole thing needs to be reworked, it looks like it should be some sort of cbt exercise where they start at a point and identify them? in which case shouldn't we use the graph to click through and add text for each one and each time they add text it turns the node blue so like a 50/50 split with the graphic and the text boxes? after an intro and then a separate instructions page?
+
+for "telling someone about your depression" can we have a middle bit on how the person might respond, after step 4, giving an example and prompt for the user? tone.md
+
+opposite action: breaking the cycle step 2 feels like a rushed summary, not like walking someone through it. tone.md. also apply to step 3.
+
+for food diary, time slot isn't carried over to step 3 in proper format. step 3, the "mark this one as outside your usual rhythm" the star should be in line with the text, not above it. and then remove the "coming soon" from step 4, and wrap step 4 into step 5 retro. you can make an IMPROVEMENTS.md and mention this activity and that note, but the user doesn't need to be aware of it.
+
+
+for staying on track, we don't need "card 1 of 3" on step 3. this may continue through the activity.
+
+
+for smart goal builder, need to add something before step 2, "define a fuzzy goal, and we'll refine it. it doesn't need to be perfect to start, and it's fine to practice". tone.md it.
+
+
+sorting how i cope, step 5 doesn't have any prompts for its text boxes.
+
+my management plan - step 2, the prompts are too thin and don't follow our tone guide--a lot of what's in the placeholders can move to the prompts, apply tone.md, put true examples in the placeholders. step 3 needs a tone.md pass. and a new component for step 3--you need a pretty-printed printable / savable popup of their answers on a white background like a true website popup if you're telling them to put it somewhere. like rendered as an image. with the option to copy text or print, this probably needs to be more than a component, right? something that's accessible from everywhere--you send it text, it formats it all pretty in an image in a popup in a new screen sized to the text and has a print and copy button. like a receipt kinda, call it a receiptPopup you know?
+
+find your true north needs a pass from tone.md--the questions in the prompts don't match the prep paragraphs. just needs better alignments. otherwise, it's perfect.
+
+medication tracking needs to be split into two activities--medication history and medication adherence.
+
+for medication history, there is only an example table and no way to fill in your own information. read all the readmes including tone.md and build out this activity, also reference the original ../workbooks/depression/treatment-plan/activities files. and then use tone.md to write a nice closing.
+
+for adherence, the daily doses--4 weeks step doesn't work. top part needs to create chips that you can drag into location in the weeks--multiple chips per week, remove chips from weeks, delete chips entirely, all that jazz. and then use tone.md to write a nice closing.
+
+for mood-boosting sensory activity, the add buttons need to create chips that can be deleted --follow similar patterns in other activities. unsubmitted chips should also be converted to chips before moving onto the next step (automatically, without adding delay). in step 3, the user chooses sensory activities, but i would like us to walk through each one that they chose. perform web searches for instructions, then apply tone.md, then review again in context of the activity, then apply tone.md again. for each activity that we list in step 3. and walk them through what they chose. with feedback after each activity.
+
+for motivation and barriers, apply tone.md to the placeholder text step 6.
+
+rewrite the description of the 7 cs of resilience--it's hard to follow. it's heart is in the right place, use tone.md. seven is a lot of things to take in at once, so maybe after a short introduction of a concept, list them in a sentence or paragraph before going to the bullet breakdown. for step 2, no additional text in the number selector components--just numbers. remove the centered single word headers and the counts off to the right of them, and apply tone.md to the prompts here. It's fine to start with "Control", but don't define control, ask them a question. the rest of the text also reads like instructions and needs tone.md. for step 3, i'd like you to spawn an agent just to create the response paragraph based on their response scores like we do for PHQ-9. for the questions here, tone.md them. the core issue with the questions is that we're expecting them to know their "C"s already, and instead i think we should just drop the concept of C's at that point and focus on one "thing" that needs attention, and how nudge that up.
+
+apply tone.md to the 5 P's--you are telling them three times like you should, but it doesn't flow properly. there's no emotional connection, just information. it doesn't read like a guide, it reads like a description. and then i'd like you to redesign this activity, and you can use that to help update the description. first, you'll have them pick the 3 things--these will go in as chips (up to 3). on the next page, they plan for each chip. so there is a named box for each chip they selected. with the prompt similar to the one you have for "plan" now. also tone.md these examples. then pace goes in the next step. pleasure gets its own step. persistence gets its own step. ensure everything gets tone.md
+
+tending your garden, i love the effort, but the sprout in step 1 looks very bad. also it's moving for some reason. again, the description feels weak. make sure it's walking them through what we're going to do after forming an emotional connection--tone.md it. in step 2, don't call it "The physical plot" just acll it "The physical". remove the centered "Physical" header over the number selectors as well as the little purple number to the right--the number selectors already show the number, and the title is extraneous. i'm not sure how these headers or count got in, so hopefully they are disabled by default at the very least--i can't think of a single place where we use them. apply tone.md, then repeat this process for each step of this activity. "The whole garden, in view"--step 7, i like this branch more than the sprout. but i would like it to stop moving. i would also like us to show their responses by section (eg physical) but not show the headers for the questions they were asked--only their answers, per section. apply tone.md here as well.
+
+** REVISIT ** behavioral activation needs tone.md to its description. *revisit this*
+
+common myths about depression step 1 has 5 dots on the bottom that don't do anything. the description reads very harshly, please use tone.md for the description and ensure you're prepping them for what's going to come in the activity. the only other change is for steps 3 - 6, don't show the answer block until after they've selected true/false. then, give them a prompt block underneath so they can engage with the myth somehow. and drop the "Myth #" headers. and there doesn't need to be a heart at the bottom. apply tone.md
+
+my north star needs tone.md applied to the description--it's hard to read. hard to connect to. the entire activity, every step, needs tone.md. ensure you're only carrying only the chips they selected in step 2 to step 3. step 4, you know which they've chosen, so use those in the descriptions. write up a prompt and example for *each* chip, plus five to select from for their custom chips. Obviously if they've selected their chip it will have to be "Chip Name - Generic Prompt" and "Generic placeholder". and i'd like a proper wrap up in step 5.
+
+nutrition and guidance needs tone.md applied to its description. for step 2, we're looking for honesty so don't say what people aim for. tone.md the prompt so we get an honest response. it doesn't have to be perfect. dear lord tone.md step 3. you'll have to add a step after 2 that allows them to reflect on their meal choices for the day and for the week and has a spot for easy wins / improvements, but that's missing like "how eating affects you" which should be up towards the top, a whole spiel about how it's tied to emotion, right? and the last question should be, something about any association they've found between what they eat and how they feel emotionally or physically. then for step 3, i want another step after that as well, one that asks them to reflect on how they hydrate--what prevents them from doing so, how they notice they haven't been hydrating, anything they could do to ensure they're body's not asking for anything--again, three self-reflective questions. and then remove step 4 about their week at a glance--it's not helpful.
+
+
+**possibly remove the family business**
+
+for parenting seasonal planning, could you just swap steps 2 and 3? and be sure to handle the carryover if necessary. everything else is perfect.
+
+sorting what's heavy needs a minor touch up on the description. it's just not quite there on all marks. same goes for all the text on the other steps. bring it up to snuff--i want emotional connection and direction. tone.md
+
+an act of kindness needs tone.md applied across it. the description doesn't state that there's a planning / thinking phase, a break to take as long as you want to deliver, and a reflection state at the end--no rush. there's a strange button at the bottom of step 2 that's empty and does nothing. on step 4, the ripple map for some reason is trying to add a supporter? i think an actual ripple map component where you just select where it lives on concentric rings would be better here--please spawn an agent to create a temporary ripple map component like that and use that instead. do not touch the connections/supporter component itself as it lives in other places too.
+
+for "how am i, really?" we don't ask questions on the first step. description needs tone.md. add a step between 1 and 2, "change you've been weighing", tone.md it. tone.md the existing step 2 with the sliders. for step 3, the current step 3, we don't use the minky panels as asides. redo this with tone.md, use the actual values of the tones via SELECTED_REFLECTIONS.md, and ask the user a poignant question based on the interpretation of their value answers.
+
+for "Today's affirmation" i would legitimately like 300 or so affirmations--you can spawn a dozen agents to search the internet, pick the best ones, choose 10000 and refine them down to only the best, and then apply tone.md to them. i would lik ea list here. and then for step 2 of 4, it feels messy. there are two hearts for no reason. there is no direction to the prompt or text. apply tone.md here--there should be a generic, "today's reading", then the specific reading, then a generic response section for it. the response placeholder should be slanted towards empowering, emotionally validating, comforting.
+
+for self-care action planning, step 2, don't put text in the number selection and there should be no header. there should be a short preamble to the number selection that describes what they mean. also tone.md this step. for step 3, "pick the biggest one" feels pushy. "which are most affecting you right now" is good for that step. add a new step after, (with explicitly displayed carryover) "What are some workarounds you'd actually use for some of these?" (with examples as placeholders--SELECTED_REFLECTIONS.md the choices and live-update the placeholders for this, also probably build the question into the next step. there should also be carryover to step 4. everything else is perfect.
+
+does this sound like me needs tone.md on its description. for step 3, we don't use the minky panel callout thing--that should just be text. you should explicitly carry over and display the things they selected here. tone.md step 3.
+
+virtue mirror needs to be redone--send an agent to google a bunch of shit about this and then apply it to tone.md. what is our goal here? review the activity first, what is our goal here? how do we form an emotional connection? how does the user gain benefit?
+
+strengths card sort, i would like it to open more empowering. i like the first line. after that, it reads like a description. tone.md. step 2, add your own. steps 3 and 4 need to remove the ones they already selected. for step 5, you have their "very much me" pile, so include those top 5 as chips towards the top. and then tone.md this whole thing.
+
+substance use awareness has a weak opener--rewrite it using tone.md. step 2 needs text out of the number selector and no header or count for number selector--that should be a prompt above it. step 3 of six what does "Did the wave carry you?" even mean? There seems to be an urge test, but we haven't established that they were feeling an urge. it should be clear that this can be used to practice distractions or clearing their mind of the thing or forgiving themselves or whatever. placeholder should be more like, "Was there a wave of needing this thing? Where did it peak? What were you able to do to reduce its impact on you?" tone.md.
+
+for treatment options overview, say , "thick of it" and not "thick of depression". treatment options shouldn't be a table, they should be a description of each thing--search if you need to, use tone.md, and present each option in its own step with a response window for the individual's thoughts on it, how it applies to their previous approaches, what they think might work, their concerns--there should just be one response box per option. basically a full rework of this activity.
+
+for small actions stack, the actions cards need to explicitly name and use SELECTED_REFLECTIONS.md to generate text for prompts and placeholders. this will be a major task so please spawn an agent per selected value plus generate one for "user submitted value" (which is generic and noncommittal to actual value, but still emotionally driven and purposeful.
+
+the wellbeing log is fine but it could help draw them into the activity--tone.md. and considering the dropdown and how often we want them to visit this, there is a better name than wellbeing log, yeah? i don't like the minky panel inset step 3--that should first off mention the domain and have per SELECTED_REFLECTIONS.md ten different messages based on their choice of domain plus a solid prompt that isn't "Your reflection" and ten different placeholders based on their selection.
+
+for three-week sleep restriction, it'd be really nice if step 2 had a bunch of drop down / select menus about time, like hand-held you through it. rather than notes, it's important that they select time. i think it should be time went to bed / time woke up / time it took to get to sleep. right? and that should extend to all 3 weeks of steps, also there should be a step between that says pause for a week, note things down, and come back when you're ready. and then also this whole thing needs a tone.md applied to it.
+
+for attachment style identification, you can identify the pattern based on what they selected in step 2 and present it in step 3 rather than asking them. but you should still have them name their main pattern, after presenting what they selected (in a paragraph describing what they selected--use the SELECTED_REFELCTIONS.md for this. after "what was it doing for you back then?" ask, "what are its current limitations or restrictions" tone.md. 
+
+for conflict navigation steps description step 1, middle bit drags a little. step 3, i don't like these insets in minky panels. they should just be there as the prompt. this should have two prompts, don't try to combine things into one. patience, plodding progress. tone.md. "What tipped it that way?" for example is too abstract--this reads like individual bits and not a flowing activity. also update step 4 with tone.md. 
+
+i-statement practice, there needs to be a step before step 2 that is a situation where someone has said something to you or misrepresented something to you or something has been left unsaid in a conversation that left you uncomfortable, tone.md. you need to have that example present in the current step 2 at the top, you also need to tone.md step 2. and then you need to compile the statement they completed in parts in step 2 at the stop of step 3--instead of the minky panel insert, remove the header and put that text above what they wrote. and then prompt them (tone.md) to read it again. 
+
+for roles we play in relationships, you need to switch up the order: observer, rescuer, persecutor, victim. this is also super accusatory, the description needs to focus on which role you play in which relationship, yeah? step 2 doesn't have any items in the upper select / dropdown menus. they're cute, but they're empty. this format is probably fine, but it obviously needs words. for step 3, don't ask them to select which roleuwu they picked most--tell them. step 3 feels a little direct, "this role has been doing something for you", please tone.md it.
+
+how i want to be treated is way too direct--tone.md the description. answers are for step 2. good news doesn't have an example.
+
+relational self-reflection, i don't like this "pick a self" thing and also it doesn't do anything? there are no placeholders on any of the steps. there's no coherent vision to this activity--it doesn't present itself in the description and it doesn't present itself at every step--tone.md
+
+
+holy shit relationship quality self-assessment seems pretty accusatory "let's hand that blur some words" let's consider that people with bpd might read this and soften the harshness that echoes to the person this is the target of, yeah? tone.md. for step 3, we should have an "add" for their own things. for step 3, they're not "looking at" what they ticked and what they didn't, so put this at the bottom of step 2 so they can.

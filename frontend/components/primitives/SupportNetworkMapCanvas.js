@@ -8,7 +8,6 @@ import FreeTextShortInput from './FreeTextShortInput';
 
 /**
  * support-network-map-canvas — horizontal "rings as columns" map.
- * Spec: ../_meta-canonical/support-network-map-canvas.json
  *
  * Self is anchored on the left. Each ring becomes a vertical column to the right —
  * Personal closest, Professional further out, Community furthest. Tap a node to expand

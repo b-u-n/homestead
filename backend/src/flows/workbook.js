@@ -69,7 +69,7 @@ module.exports = {
       },
 
       handler: async (data, context) => {
-        const { bookshelfId, sessionId } = data;
+        const { bookshelfId, sessionId, betaOnly } = data;
 
         // Beta gate: only beta users can access activities
         if (sessionId) {
@@ -78,6 +78,11 @@ module.exports = {
             return { success: true, data: { workbook: { bookshelfId, title: bookshelfId, activities: [] }, progress: [] } };
           }
         }
+
+        // Per-activity beta gate. `betaOnly: true` returns ONLY isBeta:true
+        // activities (the activities-beta page). Otherwise the default is to
+        // EXCLUDE beta activities (the normal workbook + activities-demo).
+        const betaFilter = betaOnly ? { isBeta: true } : { isBeta: { $ne: true } };
 
         // Find workbook by bookshelfId
         let workbook = await Workbook.findOne({ bookshelfId }).lean();
@@ -102,13 +107,14 @@ module.exports = {
 
         // Tag-based activity resolution: if workbook has tagFilters, resolve activities by tags
         if (workbook.tagFilters && (workbook.tagFilters.conditions?.length || workbook.tagFilters.themes?.length)) {
-          const tagQuery = { $or: [] };
+          const tagOrClauses = [];
           if (workbook.tagFilters.conditions?.length) {
-            tagQuery.$or.push({ 'tags.conditions': { $in: workbook.tagFilters.conditions } });
+            tagOrClauses.push({ 'tags.conditions': { $in: workbook.tagFilters.conditions } });
           }
           if (workbook.tagFilters.themes?.length) {
-            tagQuery.$or.push({ 'tags.themes': { $in: workbook.tagFilters.themes } });
+            tagOrClauses.push({ 'tags.themes': { $in: workbook.tagFilters.themes } });
           }
+          const tagQuery = { $and: [{ $or: tagOrClauses }, betaFilter] };
 
           const matchedActivities = await WorkbookActivity.find(tagQuery)
             .select('activityId title emoji')
@@ -120,7 +126,19 @@ module.exports = {
               emoji: a.emoji || '📝',
               title: a.title
             }));
+          } else {
+            // No tag-matched activities survived the beta filter — show empty.
+            workbook.activities = [];
           }
+        } else if (Array.isArray(workbook.activities) && workbook.activities.length) {
+          // Static activity list on the workbook doc — filter by beta too.
+          const ids = workbook.activities.map(a => a.activityId);
+          const visible = await WorkbookActivity.find({
+            activityId: { $in: ids },
+            ...betaFilter,
+          }).select('activityId').lean();
+          const visibleSet = new Set(visible.map(a => a.activityId));
+          workbook.activities = workbook.activities.filter(a => visibleSet.has(a.activityId));
         }
 
         // Get user's progress if logged in
@@ -145,6 +163,34 @@ module.exports = {
           }
         };
       }
+    },
+
+    /**
+     * List activities tagged with a given reviewer (z / bonbon / fendi).
+     * Used by the /activities-review/<name>/ pages. Returns a slim list
+     * suitable for a launcher.
+     */
+    'workbook:listByReviewer': {
+      validate: (data) => {
+        const { reviewer } = data || {};
+        if (!reviewer || typeof reviewer !== 'string') {
+          return { valid: false, error: 'Missing reviewer' };
+        }
+        return { valid: true };
+      },
+      handler: async (data) => {
+        const { reviewer } = data;
+        const docs = await WorkbookActivity.find({ reviewer })
+          .select('activityId title emoji isBeta')
+          .lean();
+        const activities = docs.map((d) => ({
+          activityId: d.activityId,
+          title: d.title,
+          emoji: d.emoji,
+          isBeta: d.isBeta === true,
+        }));
+        return { success: true, data: { reviewer, activities } };
+      },
     },
 
     /**
@@ -329,8 +375,18 @@ module.exports = {
         if (data.stepData && typeof data.stepData === 'object') {
           progress.stepData = new Map(Object.entries(data.stepData));
         }
+        // Monotonicity guard: currentStepIndex is a high-water mark, not a
+        // current-position pointer. Only advance, never decrease. Belt-and-
+        // suspenders against any client path that accidentally writes a lower
+        // index (e.g. on backward nav, unmount flush, or debounced typing
+        // save while the user is re-walking earlier steps).
         if (typeof data.currentStepIndex === 'number' && data.currentStepIndex >= 0) {
-          progress.currentStepIndex = data.currentStepIndex;
+          const existing = typeof progress.currentStepIndex === 'number'
+            ? progress.currentStepIndex
+            : -1;
+          if (data.currentStepIndex > existing) {
+            progress.currentStepIndex = data.currentStepIndex;
+          }
         }
         progress.lastAccessedAt = new Date();
         await progress.save();
@@ -520,9 +576,38 @@ module.exports = {
             status: p.status,
             stepsCompleted: Array.isArray(p.completedSteps) ? p.completedSteps.length : 0,
             totalSteps,
-            lastAccessedAt: p.lastAccessedAt
+            lastAccessedAt: p.lastAccessedAt,
+            createdAt: p.createdAt,
+            sessionName: p.sessionName || null
           }))
         };
+      }
+    },
+
+    /**
+     * Rename an instance. The user can give a session a short label so they
+     * can find it again later ("grief letter — Aug 12"). Setting the name to
+     * an empty string clears it; the picker then falls back to createdAt.
+     */
+    'workbook:activity:rename-instance': {
+      validate: (data) => {
+        if (!data.sessionId || !data.instanceId) {
+          return { valid: false, error: 'Missing sessionId or instanceId' };
+        }
+        return { valid: true };
+      },
+      handler: async (data) => {
+        const { sessionId, instanceId, sessionName } = data;
+        const account = await Account.findOne({ 'activeSessions.sessionId': sessionId });
+        if (!account) return { success: false, error: 'No account' };
+        const trimmed = typeof sessionName === 'string' ? sessionName.trim().slice(0, 80) : '';
+        const updated = await WorkbookProgress.findOneAndUpdate(
+          { _id: instanceId, accountId: account._id },
+          { $set: { sessionName: trimmed || null } },
+          { new: true }
+        ).lean();
+        if (!updated) return { success: false, error: 'Instance not found' };
+        return { success: true, data: { instanceId, sessionName: updated.sessionName } };
       }
     },
 

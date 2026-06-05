@@ -45,6 +45,9 @@ export const workbookFlow = {
       depth: 1, // Stays at depth 1 — picker is replaced by activity, not stacked.
       title: (accumulatedData) => accumulatedData?.['workbook:landing']?.activityTitle || 'Activity',
       input: {},
+      // WorkbookActivity owns its own scroll so Prev/Next can sit OUTSIDE the
+      // scroll as a pinned footer.
+      scrollContent: false,
       next: [
         {
           when: (output) => output.action === 'back',

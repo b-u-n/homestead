@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * draggable-or-swipeable-card — drag/swipe gesture-driven card or chip.
- * Spec: ../_meta-canonical/draggable-or-swipeable-card.json
  *
  * Uses PanResponder (built-in) — no extra deps. The full drag-between-containers and continuous-
  * plane behaviors require a parent that listens for drop targets; the card emits drag-start/end

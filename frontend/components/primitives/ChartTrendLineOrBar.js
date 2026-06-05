@@ -5,7 +5,6 @@ import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * chart-trend-line-or-bar — data-bound chart (bar / line / sparkline / heatmap / gantt).
- * Spec: ../_meta-canonical/chart-trend-line-or-bar.json
  *
  * View-positioned shapes for bars, dots, gantt, heatmap. Line / sparkline use SVG on web
  * (browser-native, no extra deps) and fall back to a chain of dots on native.

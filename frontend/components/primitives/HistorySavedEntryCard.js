@@ -7,7 +7,6 @@ import StitchedBorder from '../StitchedBorder';
 
 /**
  * history-saved-entry-card — atomic per-entry card consumed by pageable-history-carousel.
- * Spec: ../_meta-canonical/history-saved-entry-card.json
  */
 const ActionButton = ({ glyph, label, onPress }) => (
   <Pressable onPress={() => onPress && onPress()} hitSlop={8} style={styles.actionBtn}>

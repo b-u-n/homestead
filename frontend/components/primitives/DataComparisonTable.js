@@ -5,7 +5,6 @@ import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * data-comparison-table — multi-column tabular surface, one row per record.
- * Spec: ../_meta-canonical/data-comparison-table.json
  */
 const DataComparisonTable = observer(({
   tableKind = 'comparison-multi-attr',

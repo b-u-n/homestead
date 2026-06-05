@@ -8,7 +8,6 @@ import OptionSelectDropdown from './OptionSelectDropdown';
 /**
  * mode-toggle — chrome-level toggle that swaps the surface (visual<->conv, edit<->crisis,
  * filter, sort, display preference).
- * Spec: ../_meta-canonical/mode-toggle.json
  */
 const ModeToggle = observer(({
   axis = 'visual<->conversational (platform-#4)',

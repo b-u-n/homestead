@@ -7,7 +7,6 @@ import PlatformModal from '../Modal';
 
 /**
  * modal-overlay-or-bottom-sheet — transient overlay surface.
- * Spec: ../_meta-canonical/modal-overlay-or-bottom-sheet.json
  *
  * Uses React Native's built-in `Modal` for true portal behavior — escapes any transformed
  * parent and renders fixed to the viewport on both web and native.

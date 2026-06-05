@@ -346,6 +346,8 @@ const activityShowcaseFlow = {
     'workbook:activity': {
       component: WorkbookActivityDrop,
       input: {},
+      // WorkbookActivity owns its own scroll so Prev/Next sit OUTSIDE the scroll.
+      scrollContent: false,
       next: [],
     },
   },
@@ -383,7 +385,7 @@ const ActivityLauncher = ({ activity, onLaunch }) => (
   </View>
 );
 
-const ActivitiesSection = ({ onLaunch }) => {
+const ActivitiesSection = ({ onLaunch, betaMode = false }) => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   // Demo session id is held in component state — never written to
@@ -447,7 +449,7 @@ const ActivitiesSection = ({ onLaunch }) => {
         const results = await Promise.all(
           BOOKSHELF_IDS.map(bookshelfId =>
             withTimeout(
-              WebSocketService.emit('workbook:load', { bookshelfId })
+              WebSocketService.emit('workbook:load', { bookshelfId, betaOnly: betaMode })
                 .catch(err => {
                   console.warn(`[activities-demo] workbook:load ${bookshelfId} rejected:`, err?.message);
                   return null;
@@ -476,7 +478,7 @@ const ActivitiesSection = ({ onLaunch }) => {
     };
     load();
     return () => { cancelled = true; };
-  }, [demoSessionId]);
+  }, [demoSessionId, betaMode]);
 
   if (loading) {
     return (
@@ -607,7 +609,7 @@ const DemoDocButton = ({ textKey, title, buttonLabel, emoji = '📄' }) => {
 
 // ---------- Main screen ----------
 
-export default function ComponentShowcaseScreen() {
+export default function ComponentShowcaseScreen({ betaMode = false } = {}) {
   const [componentsOpen, setComponentsOpen] = useState(false); //activities-demo-temp
   // activities-demo-temp — single FlowEngine rendered at the top level (outside
   // the page Scroll). Inline-per-button rendering inside the ScrollView caused
@@ -629,7 +631,7 @@ export default function ComponentShowcaseScreen() {
               { fontSize: FontSettingsStore.getScaledFontSize(26) },
             ]}
           >
-            Components & activities — demo
+            {betaMode ? 'Activities — beta' : 'Components & activities — demo'}
           </Text>
 
           {/* activities-demo-temp — intro copy + instructions popup, both
@@ -1544,7 +1546,7 @@ export default function ComponentShowcaseScreen() {
           {/* activities-demo-temp — outro + activity buttons */}
           <SectionHeading>Activities</SectionHeading>
           <DemoCopy textKey="bottom" />
-          <ActivitiesSection onLaunch={handleLaunchActivity} />
+          <ActivitiesSection onLaunch={handleLaunchActivity} betaMode={betaMode} />
           {/* end activities-demo-temp */}
 
           <View style={{ height: 60 }} />

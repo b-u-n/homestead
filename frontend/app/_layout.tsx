@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { ThemeProvider } from '@react-navigation/native';
 import ErrorContainer from '../components/ErrorContainer';
+import ReceiptPopupOverlay from '../components/ReceiptPopupOverlay';
 import SessionStore from '../stores/SessionStore';
 import SoundManager from '../services/SoundManager';
 import TiledBackground from '../components/TiledBackground';
@@ -158,8 +159,11 @@ return (
               <Stack.Screen name="debug" options={{ headerShown: false }} />
               <Stack.Screen name="components" options={{ headerShown: false }} />
               <Stack.Screen name="activities-demo" options={{ headerShown: false }} />{/* activities-demo-temp */}
+              <Stack.Screen name="activities-beta" options={{ headerShown: false }} />
+              <Stack.Screen name="activities-review/[reviewer]" options={{ headerShown: false }} />
             </Stack>
               <ErrorContainer />
+              <ReceiptPopupOverlay />
             </View>
           </View>
         </TiledBackground>

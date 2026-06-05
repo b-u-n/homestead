@@ -15,7 +15,6 @@ const PERSONA_GLYPHS = {
 
 /**
  * persona-picker — platform #5 chrome dropdown / avatar-list.
- * Spec: ../_meta-canonical/persona-picker.json
  *
  * Reads/writes via PersonaStore. If `personas` not provided, falls back to PersonaStore.available.
  */

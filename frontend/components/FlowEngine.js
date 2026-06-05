@@ -40,6 +40,14 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
   // Shared context
   const [context, setContext] = useState(initialContext);
 
+  // Per-depth drop-registered back handlers. When a drop registers one, the
+  // modal-chrome back button delegates to it instead of popping flow history.
+  // This lets drops with their own internal multi-step navigation (e.g.
+  // WorkbookActivity) make the chrome Back behave like in-flow "Previous".
+  // The drop is responsible for calling `onBack`/`onComplete` itself when its
+  // internal state reaches a point where the flow should pop.
+  const dropBackHandlersRef = useRef({});
+
   // Use refs for initialContext and initialParams so the reset effect
   // doesn't re-fire when parent re-renders with new object references
   const initialContextRef = useRef(initialContext);
@@ -59,8 +67,44 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
         flowName: flowDefinition.name,
         ...initialParamsRef.current
       });
+      // Clear any drop-registered back handlers from a prior session.
+      dropBackHandlersRef.current = {};
     }
   }, [visible, flowDefinition.startAt, startAt, flowDefinition.name]);
+
+  /**
+   * Drops can register a back handler that takes precedence over the default
+   * flow-history pop. Pass `null` (or omit a handler) to unregister.
+   * The drop must itself call the provided `onBack` callback (which pops flow
+   * history) when its own back-state is exhausted (e.g. on first step).
+   */
+  const registerBackHandler = (depth, handler) => {
+    if (handler) {
+      dropBackHandlersRef.current[depth] = handler;
+    } else {
+      delete dropBackHandlersRef.current[depth];
+    }
+  };
+
+  /**
+   * Modal-chrome back: delegate to the drop's registered handler if any,
+   * otherwise pop flow history at this depth.
+   *
+   * A registered handler may return `false` (or any falsy non-undefined value)
+   * to signal "I can't handle this back press — fall back to popping the
+   * flow's history at my depth". This lets a drop like WorkbookActivity
+   * absorb back presses while it has internal steps to walk through, and
+   * still hand the chrome back press off to the flow once its internal
+   * back-state is exhausted (e.g. at step 0).
+   */
+  const handleModalBack = (depth) => {
+    const dropHandler = dropBackHandlersRef.current[depth];
+    if (typeof dropHandler === 'function') {
+      const handled = dropHandler();
+      if (handled !== false) return;
+    }
+    goBackAtDepth(depth);
+  };
 
   /**
    * Find the next drop ID based on routing conditions
@@ -270,7 +314,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             visible={true}
             zIndex={2000 + (depth * 100)}
             onClose={() => depth === 0 ? onClose() : closeDepth(depth)}
-            onBack={() => goBackAtDepth(depth)}
+            onBack={() => handleModalBack(depth)}
             canGoBack={drop.showBack !== false && (history.length > 1 || depth > 0)}
             showClose={drop.showClose !== false}
             title={typeof drop.title === 'function' ? drop.title(accumulatedData) : (drop.title || flowDefinition.title)}
@@ -279,6 +323,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             backLabel={drop.backLabel}
             onCustomBack={customBackHandler}
             scrollResetKey={dropId}
+            scrollContent={drop.scrollContent !== false}
           >
             <FlowContext.Provider value={{ flowName: flowDefinition.name, dropId }}>
               <View style={styles.container}>
@@ -291,6 +336,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
                   onComplete={(output) => handleDropComplete(output, depth)}
                   onBack={() => goBackAtDepth(depth)}
                   canGoBack={drop.showBack !== false && (history.length > 1 || depth > 0)}
+                  registerBackHandler={(handler) => registerBackHandler(depth, handler)}
                   flowName={flowDefinition.name}
                   dropId={dropId}
                 />

@@ -82,6 +82,9 @@ logs/
 # TernJS port file
 .tern-port
 
+# GCS credentials
+backend/config/gcs-credentials.json
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -106,12 +109,14 @@ build/
 *.sqlite
 *.db
 
-# Generated avatar files
-backend/public/avatars/*
-!backend/public/avatars/.gitkeep
+# Keep avatar directory tracked
+# backend/public/avatars/ is now committed so avatars deploy to prod
 
 # MongoDB data
 mongo/data/
 
 # Docker volumes
 volumes/
+
+# Activity JSON (seeded to MongoDB)
+activities/

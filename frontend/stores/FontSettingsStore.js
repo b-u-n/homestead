@@ -18,6 +18,11 @@ class FontSettingsStore {
   fontSizeMultiplier = 1.0;  // Range: 0.75 - 2.0
   fontColor = null;          // null = use default colors, or hex string
 
+  // True while a workbook-flow surface is mounted (landing, activity,
+  // reviewer page). Toggled via setWorkbookActive(boolean), ref-counted.
+  workbookActive = false;
+  workbookMountDepth = 0;
+
   isLoading = false;
   isInitialized = false;
 
@@ -27,12 +32,19 @@ class FontSettingsStore {
   }
 
   /**
-   * Get scaled font size
-   * @param {number} baseSize - The base font size
-   * @returns {number} Scaled font size
+   * Get scaled font size.
+   *
+   * On desktop web, when a workbook surface is mounted, return baseSize × 2
+   * (doubled). Workbook copy needs to read as long-form therapeutic prose;
+   * the rest of the app keeps its native size. Mobile keeps its native size
+   * (already big enough relative to viewport).
    */
   getScaledFontSize(baseSize) {
-    return Math.round(baseSize * this.fontSizeMultiplier);
+    const onDesktop = Platform.OS === 'web';
+    const inWorkbook = this.workbookActive;
+    const doubleIt = onDesktop && inWorkbook;
+    const multiplier = doubleIt ? 2 : 1;
+    return Math.round(baseSize * this.fontSizeMultiplier * multiplier);
   }
 
   /**
@@ -46,11 +58,35 @@ class FontSettingsStore {
 
   /**
    * Get scaled padding/margin value
+   *
+   * Applies the workbook bump on top of the accessibility multiplier when a
+   * workbook surface is mounted — so gaps/padding grow with text, keeping
+   * the layout proportions intact instead of cramming bigger text into the
+   * same-sized boxes.
+   *
    * @param {number} baseValue - The base padding/margin value
    * @returns {number} Scaled value
    */
   getScaledSpacing(baseValue) {
-    return Math.round(baseValue * this.fontSizeMultiplier);
+    const onDesktop = Platform.OS === 'web';
+    const inWorkbook = this.workbookActive;
+    const multiplier = (onDesktop && inWorkbook) ? 2 : 1;
+    return Math.round(baseValue * this.fontSizeMultiplier * multiplier);
+  }
+
+  /**
+   * Toggle the workbook flag. Called on mount/unmount by every workbook
+   * surface (WorkbookLanding, WorkbookActivity, activities-review). Ref-
+   * counted so the flag stays true through landing → activity transitions.
+   */
+  setWorkbookActive(active) {
+    if (active) {
+      this.workbookMountDepth += 1;
+      this.workbookActive = true;
+    } else {
+      this.workbookMountDepth = Math.max(0, this.workbookMountDepth - 1);
+      this.workbookActive = this.workbookMountDepth > 0;
+    }
   }
 
   /**

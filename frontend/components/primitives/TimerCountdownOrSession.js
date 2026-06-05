@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * timer-countdown-or-session — countdown/count-up/session timer.
- * Spec: ../_meta-canonical/timer-countdown-or-session.json
  */
 const formatSeconds = (s) => {
   const mins = Math.floor(s / 60);
@@ -21,6 +20,11 @@ const TimerCountdownOrSession = observer(({
   completionSignal = 'chime',
   autoStart = false,
   allowOverflow = false,
+  // loop — when true, on hitting totalSeconds the timer resets to 0 and
+  // keeps ticking instead of stopping. Used by activities like progressive
+  // muscle relaxation where the user moves through muscle groups at their
+  // own pace and the timer just paces each held breath.
+  loop = false,
   scope = 'single-phase',
   size = 160,
   style,
@@ -73,6 +77,13 @@ const TimerCountdownOrSession = observer(({
         // Emit elapsed every tick so a parent step can capture it via bind.
         onValueChanged && onValueChanged(formatSeconds(next));
         if (next >= totalSeconds) {
+          if (loop) {
+            // Looped session: emit one completion ping per lap (so the parent
+            // can ding/vibrate) but reset elapsed and phase and keep going.
+            onTimerCompleted && onTimerCompleted();
+            setPhaseIdx(0);
+            return 0;
+          }
           if (allowOverflow) {
             // Mark completion the first time we cross the threshold but keep ticking.
             if (prev < totalSeconds) {

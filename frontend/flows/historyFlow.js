@@ -42,6 +42,8 @@ export const historyFlow = {
       depth: 1,
       title: (accumulatedData) => accumulatedData?.['history:landing']?.activityTitle || 'Activity',
       input: {},
+      // WorkbookActivity owns its own scroll so Prev/Next sit OUTSIDE the scroll.
+      scrollContent: false,
       next: [
         // Either action returns to the diary landing.
         { when: (output) => output.action === 'back', goto: 'history:landing' },

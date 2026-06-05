@@ -7,7 +7,6 @@ import WoolButton from '../WoolButton';
 
 /**
  * summary-output-card — post-flow summary surface.
- * Spec: ../_meta-canonical/summary-output-card.json
  */
 const SummaryOutputCard = observer(({
   kind = 'compiled-plan-artifact-card',
@@ -131,7 +130,38 @@ const SummaryOutputCard = observer(({
     );
   }
 
-  // Default: compiled plan / synthesis / retrospective
+  // Post-session retrospective — the terminal "saved" farewell. Rendered flat
+  // (no MinkyPanel) so it sits on the modal's own background, not a card-in-a-card.
+  if (kind === 'post-session-retrospective') {
+    return (
+      <View style={styles.flatRetro}>
+        <Text style={[styles.title, { fontSize: FontSettingsStore.getScaledFontSize(16) }]}>
+          {title}
+        </Text>
+        {sections?.length ? (
+          <View style={styles.sectionList}>
+            {sections.map((sec, i) => (
+              <View key={i} style={styles.sectionRow}>
+                <Text style={[styles.sectionLabel, { fontSize: FontSettingsStore.getScaledFontSize(11) }]}>
+                  {sec.label}
+                </Text>
+                <Text style={[styles.sectionValue, { fontSize: FontSettingsStore.getScaledFontSize(13) }]}>
+                  {sec.value}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+        {closingPromptText ? (
+          <Text style={[styles.closing, { fontSize: FontSettingsStore.getScaledFontSize(13) }]}>
+            {closingPromptText}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
+  // Default: compiled plan / synthesis
   return (
     <MinkyPanel borderRadius={14} padding={14} paddingTop={14} overlayColor="rgba(112, 68, 199, 0.2)">
       <Text style={[styles.title, { fontSize: FontSettingsStore.getScaledFontSize(16) }]}>
@@ -222,6 +252,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
   },
+  flatRetro: { paddingVertical: 16, paddingHorizontal: 8, gap: 12, alignItems: 'center' },
   sectionList: { gap: 8, marginTop: 10 },
   sectionRow: { gap: 2 },
   sectionLabel: {

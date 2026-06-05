@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
@@ -84,6 +84,34 @@ const WorkbookResumePicker = observer(({
     onComplete({ action: 'startFresh', activityId, activityTitle, bookshelfId });
   };
 
+  // Inline-rename state: which instance is being edited and the draft text.
+  // Saves on blur via workbook:activity:rename-instance; the local list is
+  // updated optimistically so the new name lands before the round-trip.
+  const [editingId, setEditingId] = useState(null);
+  const [draftName, setDraftName] = useState('');
+
+  const beginRename = (inst) => {
+    setEditingId(inst.instanceId);
+    setDraftName(inst.sessionName || '');
+  };
+
+  const commitRename = async () => {
+    const id = editingId;
+    const next = draftName.trim().slice(0, 80);
+    setEditingId(null);
+    if (!id) return;
+    setInstances(prev => prev.map(i => i.instanceId === id ? { ...i, sessionName: next || null } : i));
+    try {
+      await WebSocketService.emit('workbook:activity:rename-instance', {
+        sessionId: context?.sessionId ?? SessionStore.sessionId,
+        instanceId: id,
+        sessionName: next
+      });
+    } catch (err) {
+      console.error('Error renaming instance:', err);
+    }
+  };
+
   if (loading || instances.length === 0) {
     // Either still fetching, or auto-skip already fired and the parent flow is
     // about to swap us out. Render a tiny loading panel.
@@ -106,8 +134,16 @@ const WorkbookResumePicker = observer(({
       ? `Step ${Math.min(inst.stepsCompleted + 1, inst.totalSteps)} of ${inst.totalSteps}`
       : `${inst.stepsCompleted} step${inst.stepsCompleted === 1 ? '' : 's'} done`;
     const isCompleted = kind === 'completed';
+    const isEditing = editingId === inst.instanceId;
+    // Title: user-given name if set; otherwise the relative date the session
+    // was started ("3d ago", "2h ago"). Step progress moves to the meta line.
+    const fallbackLabel = formatRelative(inst.createdAt || inst.lastAccessedAt);
+    const titleText = inst.sessionName || (isCompleted ? `Completed · ${fallbackLabel}` : `Started ${fallbackLabel}`);
+    const metaText = isCompleted
+      ? 'Tap to look back at what you wrote'
+      : `${stepLabel} · last touched ${formatRelative(inst.lastAccessedAt)}`;
     return (
-      <Pressable key={inst.instanceId} onPress={() => handleResume(inst.instanceId)}>
+      <Pressable key={inst.instanceId} onPress={() => !isEditing && handleResume(inst.instanceId)}>
         <MinkyPanel
           borderRadius={8}
           padding={12}
@@ -116,13 +152,34 @@ const WorkbookResumePicker = observer(({
         >
           <View style={styles.row}>
             <View style={styles.rowText}>
-              <Text style={[styles.rowTitle, { fontSize: FontSettingsStore.getScaledFontSize(14) }]}>
-                {isCompleted ? `Completed · ${formatRelative(inst.lastAccessedAt)}` : `Resume · ${stepLabel}`}
-              </Text>
+              {isEditing ? (
+                <TextInput
+                  value={draftName}
+                  onChangeText={setDraftName}
+                  onBlur={commitRename}
+                  onSubmitEditing={commitRename}
+                  autoFocus
+                  maxLength={80}
+                  placeholder="Name this session…"
+                  placeholderTextColor="rgba(92, 90, 88, 0.55)"
+                  style={[styles.rowTitle, styles.rowTitleInput, { fontSize: FontSettingsStore.getScaledFontSize(14) }]}
+                />
+              ) : (
+                <Text style={[styles.rowTitle, { fontSize: FontSettingsStore.getScaledFontSize(14) }]} numberOfLines={1}>
+                  {titleText}
+                </Text>
+              )}
               <Text style={[styles.rowMeta, { fontSize: FontSettingsStore.getScaledFontSize(11) }]}>
-                {isCompleted ? 'Tap to look back at what you wrote' : `Last touched ${formatRelative(inst.lastAccessedAt)}`}
+                {metaText}
               </Text>
             </View>
+            <Pressable
+              onPress={(e) => { e.stopPropagation && e.stopPropagation(); beginRename(inst); }}
+              hitSlop={8}
+              style={styles.editButton}
+            >
+              <Text style={styles.editIcon}>✎</Text>
+            </Pressable>
             <Text style={[styles.arrow, isCompleted && styles.arrowCompleted]}>{isCompleted ? '✓' : '›'}</Text>
           </View>
         </MinkyPanel>
@@ -225,6 +282,23 @@ const styles = StyleSheet.create({
     color: '#7044C7',
     fontSize: 22,
     paddingHorizontal: 4,
+  },
+  rowTitleInput: {
+    padding: 0,
+    margin: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(112, 68, 199, 0.45)',
+  },
+  editButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  editIcon: {
+    fontFamily: 'Comfortaa',
+    fontWeight: '700',
+    color: '#7044C7',
+    fontSize: 14,
+    opacity: 0.7,
   },
   arrowCompleted: {
     color: '#5C8A4A',

@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * static-text-content-block — read-only rendered text block.
- * Spec: ../_meta-canonical/static-text-content-block.json
  */
 const StaticTextContentBlock = observer(({
   blockRole = 'rich-text-prose',
@@ -40,7 +39,10 @@ const StaticTextContentBlock = observer(({
     fontWeight,
     fontSize: FontSettingsStore.getScaledFontSize(baseFontSize),
     color: FontSettingsStore.getFontColor(baseColor),
-    lineHeight: Math.round(baseFontSize * 1.5),
+    // Compute lineHeight from the RENDERED size so vertical density tracks
+    // text size — the workbook bump (+30%) needs the line slot to grow with
+    // the glyphs, or the page gets noticeably denser instead of looser.
+    lineHeight: Math.round(FontSettingsStore.getScaledFontSize(baseFontSize) * 1.4),
     textShadowColor: 'rgba(255, 255, 255, 0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,

@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * back-fill-affordance — empty-slot tap target OR referent-date picker.
- * Spec: ../_meta-canonical/back-fill-affordance.json
  */
 const formatDate = (d) => {
   if (!d) return '';

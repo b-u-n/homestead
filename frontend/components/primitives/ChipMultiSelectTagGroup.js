@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import FontSettingsStore from '../../stores/FontSettingsStore';
@@ -6,9 +6,26 @@ import MinkyPanel from '../MinkyPanel';
 import FreeTextShortInput from './FreeTextShortInput';
 import Checkbox from './Checkbox';
 
+// Normalize any saved/passed value into a flat array of string IDs. The
+// primitive's source of truth is a string[], but historically activities
+// sometimes saved arrays of `{label}` objects (when chips were authored as
+// objects) — which broke `.includes(matchValue)` in downstream `showIfSelected`
+// gates. Coerce here so the emitted shape is always a flat string array.
+function normalizeSelection(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((v) => (typeof v === 'string' ? v : (v?.id ?? v?.label)))
+    .filter((v) => typeof v === 'string' && v.length > 0);
+}
+
 /**
  * chip-multi-select-tag-group — multi-select pills or vertical checkbox list.
- * Spec: ../_meta-canonical/chip-multi-select-tag-group.json
+ *
+ * Renderer-injected props consumed (see activities/v2/_SCHEMA.md):
+ *   - `selectedChipIds` — when an upstream `sourceStepId`/`sourceBind` resolves
+ *     to an array of chip IDs, this filters `presetChips` down to only those
+ *     IDs. Used by carry-forward flows where step 3 should only show the chips
+ *     the user picked in step 2.
  */
 const ChipMultiSelectTagGroup = observer(({
   presetChips = [],
@@ -22,6 +39,9 @@ const ChipMultiSelectTagGroup = observer(({
   minSelection,
   maxSelection,
   interactable = true,
+  // Renderer-injected (via sourceStepId/sourceBind): filter presetChips to
+  // only those whose id/label is in this array. Untouched if null/undefined.
+  selectedChipIds,
   onSelectionChanged,
   onChipAdded,
   onChipRemoved,
@@ -31,11 +51,22 @@ const ChipMultiSelectTagGroup = observer(({
   const [customDraft, setCustomDraft] = useState('');
   const [draftKey, setDraftKey] = useState(0); // bumps to force-clear the input on add
   const [customChips, setCustomChips] = useState([]); // chips the user has added in this session, kept around even when deselected
-  const items = presetChips || [];
-  // Source of truth: explicit `currentSelection` wins, then `value` from auto-save, then [].
-  const selection = Array.isArray(currentSelection)
-    ? currentSelection
-    : (Array.isArray(value) ? value : []);
+
+  // Filter presetChips by renderer-injected `selectedChipIds` if present.
+  // This lets a later step show only the chips picked earlier.
+  const allPresets = presetChips || [];
+  const items = Array.isArray(selectedChipIds) && selectedChipIds.length > 0
+    ? allPresets.filter((c) => {
+        const id = typeof c === 'string' ? c : (c?.id ?? c?.label);
+        return selectedChipIds.includes(id);
+      })
+    : allPresets;
+
+  // Source of truth: explicit `currentSelection` wins, then `value` from
+  // auto-save, then []. Always normalized to a flat string array.
+  const selection = normalizeSelection(
+    Array.isArray(currentSelection) ? currentSelection : value
+  );
 
   const itemId = (it) => typeof it === 'string' ? it : (it.id || it.label);
   const itemLabel = (it) => typeof it === 'string' ? it : it.label;
@@ -75,6 +106,21 @@ const ChipMultiSelectTagGroup = observer(({
     setDraftKey(k => k + 1);
   };
 
+  // Auto-flush an unsubmitted draft on unmount. If the user types a custom
+  // entry and then navigates away (step Next) without pressing Enter / Add /
+  // blurring the input, the text would otherwise be lost. The ref pattern
+  // captures the latest draft for the unmount handler to read.
+  const draftRef = useRef(customDraft);
+  draftRef.current = customDraft;
+  const addCustomRef = useRef(null);
+  useEffect(() => {
+    return () => {
+      const pending = (draftRef.current || '').trim();
+      if (pending && addCustomRef.current) addCustomRef.current(pending);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const addCustom = (raw) => {
     if (!interactable) return;
     const val = (raw || '').trim();
@@ -95,6 +141,9 @@ const ChipMultiSelectTagGroup = observer(({
     onDownstreamWrite && onDownstreamWrite({ scopeKey, selection: next });
     clearDraft();
   };
+
+  // Wire the ref so the unmount effect above can flush a pending draft.
+  addCustomRef.current = addCustom;
 
   const isCheckList = rendering === 'checkbox-list-vertical';
 
@@ -176,6 +225,13 @@ const ChipMultiSelectTagGroup = observer(({
               onChange={setCustomDraft}
               submitMode="enter-spawns-new-row"
               onEnterSpawnNew={addCustom}
+              onBlur={(text) => {
+                // Auto-convert an unsubmitted draft to a chip on blur so the
+                // user doesn't lose what they typed when they move to the
+                // next step. Trimmed empty strings noop.
+                const trimmed = (text || '').trim();
+                if (trimmed) addCustom(trimmed);
+              }}
             />
           </View>
           <Pressable
@@ -231,32 +287,6 @@ const styles = StyleSheet.create({
   },
   chipLabelSel: { fontWeight: '700' },
   checkList: { gap: 6 },
-  checkRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', paddingVertical: 4 },
-  checkBox: {
-    color: 'rgba(69, 67, 66, 0.5)',
-    width: 22,
-    textAlign: 'center',
-  },
-  checkBoxOn: { color: '#7044C7' },
-  checkBody: { flex: 1 },
-  checkLabel: {
-    fontFamily: 'Comfortaa',
-    fontWeight: '600',
-    color: '#2D2C2B',
-    textShadowColor: 'rgba(255, 255, 255, 0.35)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
-  checkLabelSel: { fontWeight: '700' },
-  checkDesc: {
-    fontFamily: 'Comfortaa',
-    fontWeight: '500',
-    color: '#454342',
-    marginTop: 2,
-    textShadowColor: 'rgba(255, 255, 255, 0.35)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
   customRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 4 },
   customInputWrap: { flex: 1 },
   addBtnLabel: {

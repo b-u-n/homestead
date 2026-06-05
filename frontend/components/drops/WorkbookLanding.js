@@ -29,6 +29,15 @@ const WorkbookLanding = observer(({
     loadWorkbook();
   }, [bookshelfId]);
 
+  // Workbook surfaces (including this landing list) get the FontSettingsStore
+  // workbook bump while mounted so type + spacing read at a comfortable
+  // long-form size. Reference-counted in the store, so the bump stays on
+  // through the landing → activity transition without flicker.
+  useEffect(() => {
+    FontSettingsStore.setWorkbookActive(true);
+    return () => FontSettingsStore.setWorkbookActive(false);
+  }, []);
+
   // Refresh progress when an activity completes — the landing component
   // stays mounted while the user is in the depth-1 activity flow, so without
   // this listener the checkbox never ticks until the user reopens the
@@ -130,10 +139,7 @@ const WorkbookLanding = observer(({
                     <Text
                       style={[
                         styles.activityTitle,
-                        {
-                          fontSize: FontSettingsStore.getScaledFontSize(14),
-                          color: FontSettingsStore.getFontColor('#2D2C2B'),
-                        },
+                        { color: FontSettingsStore.getFontColor('#2D2C2B') },
                       ]}
                       numberOfLines={2}
                     >
@@ -186,11 +192,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   activityEmoji: {
-    fontSize: 24,
+    fontSize: 48,
   },
   activityTitle: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 28,
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#2D2C2B',

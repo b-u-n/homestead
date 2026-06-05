@@ -6,7 +6,6 @@ import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * button-secondary-action — non-authoring action: cancel/reset/nav/toggle/launcher/mark-complete.
- * Spec: ../_meta-canonical/button-secondary-action.json
  */
 const ButtonSecondaryAction = observer(({
   label,

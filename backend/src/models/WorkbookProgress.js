@@ -24,8 +24,10 @@ const workbookProgressSchema = new mongoose.Schema({
     of: mongoose.Schema.Types.Mixed,
     default: new Map()
   },
-  // The step the user was last on. Persisted on every navigation so resume
-  // returns to the exact step (not just the first-incomplete one).
+  // High-water mark — the furthest step the user has reached. Monotonic:
+  // advances only on forward navigation, never decreases on back. Resume
+  // returns the user to this step, not to a transient "last viewed" index.
+  // Backward navigation is a client-only view operation that does not write.
   currentStepIndex: {
     type: Number,
     default: 0
@@ -38,6 +40,15 @@ const workbookProgressSchema = new mongoose.Schema({
   lastAccessedAt: {
     type: Date,
     default: Date.now
+  },
+  // Optional user-given name so they can find the session later
+  // ("grief letter — Aug 12", "first DIBs pass"). When null, the resume
+  // picker falls back to the session's createdAt as the displayed label.
+  sessionName: {
+    type: String,
+    default: null,
+    trim: true,
+    maxlength: 80
   }
 }, {
   timestamps: true

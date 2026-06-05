@@ -7,7 +7,6 @@ import FontSettingsStore from '../../stores/FontSettingsStore';
 
 /**
  * button-add-new-item — '+' / 'Add' affordance.
- * Spec: ../_meta-canonical/button-add-new-item.json
  */
 const ButtonAddNewItem = observer(({
   label = 'Add',

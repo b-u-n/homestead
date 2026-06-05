@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * layout-quadrant-or-grid-cells — fixed N×M cell grid.
- * Spec: ../_meta-canonical/layout-quadrant-or-grid-cells.json
  */
 const parseDimensions = (dim) => {
   if (typeof dim === 'string' && dim.includes('x')) {

@@ -7,7 +7,6 @@ import StitchedFillBar from '../StitchedFillBar';
 
 /**
  * numeric-rating-slider — content rating slider (NOT mood).
- * Spec: ../_meta-canonical/numeric-rating-slider.json
  *
  * Renders as a row of value pills when (max - min)/step <= 10.
  * Renders as a continuous track + thumb otherwise.
@@ -16,11 +15,15 @@ const NumericRatingSlider = observer(({
   scaleMin = 0,
   scaleMax = 10,
   stepSize = 1,
-  currentValue = 0,
+  currentValue,
   labelCopy,
   tickLabels,
   emojiAnchors,
-  numericReadoutVisible = true,
+  // Default OFF — the slider's pills/track already show the value; an extra
+  // readout to the right is the redundant "purple number" authors keep
+  // turning off by hand. Pass true on the rare slider that's so wide the
+  // pill isn't readable on its own.
+  numericReadoutVisible = false,
   disabled = false,
   interactable = true,
   domainId,
@@ -29,6 +32,12 @@ const NumericRatingSlider = observer(({
   onValueChanged,
   onValueCommitted,
 }) => {
+  // Default to the middle of the scale when the parent hasn't provided one
+  // (rather than pinning to the low end). For a 0–10 scale that's 5; for 1–10
+  // it's 6 (round up so the thumb sits visibly past center on odd-length scales).
+  if (currentValue === undefined || currentValue === null) {
+    currentValue = Math.ceil((scaleMin + scaleMax) / 2);
+  }
   const tickCount = Math.round((scaleMax - scaleMin) / stepSize) + 1;
   const usePills = tickCount <= 11;
   const [trackWidth, setTrackWidth] = useState(0);
@@ -262,6 +271,8 @@ const styles = StyleSheet.create({
   },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: {
+    flex: 1,
+    textAlign: 'center',
     fontFamily: 'Comfortaa',
     fontWeight: '700',
     color: '#2D2C2B',

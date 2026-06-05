@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * chip-value-badge-readonly — read-only display chip.
- * Spec: ../_meta-canonical/chip-value-badge-readonly.json
  */
 const ChipValueBadgeReadonly = observer(({
   value,

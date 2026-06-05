@@ -16,7 +16,6 @@ const SIDE_EFFECTS = [
 
 /**
  * button-primary-save-cta — primary save/commit CTA.
- * Spec: ../_meta-canonical/button-primary-save-cta.json
  */
 const ButtonPrimarySaveCta = observer(({
   label = 'Save',

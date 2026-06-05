@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import StitchedBorder from './StitchedBorder';
 import { useMinkyColor } from '../hooks/useTheme';
 import uxStore from '../stores/UXStore';
+import FontSettingsStore from '../stores/FontSettingsStore';
 
 const slotBgImage = require('../assets/images/slot-bg-2.jpeg');
 
@@ -26,6 +27,11 @@ const MinkyPanel = observer(({
     borderRadius = 9999;
     paddingTop = padding; // equal padding all around for circles
   }
+  // Scale padding with the workbook font bump when a workbook surface is
+  // mounted — keeps panel padding proportional to text size so the contents
+  // get more breathing room, not less, when fonts grow.
+  padding = FontSettingsStore.getScaledSpacing(padding);
+  paddingTop = FontSettingsStore.getScaledSpacing(paddingTop);
   // Get theme color (uses flow context automatically)
   const effectiveColor = useMinkyColor(variant, overlayColor);
   const isMobile = uxStore.isMobile || uxStore.isPortrait;

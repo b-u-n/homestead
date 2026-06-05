@@ -6,6 +6,8 @@ Contributor guide for the Homestead cottagecore textile aesthetic.
 
 Everything in Homestead feels handmade, warm, and soft — like a cozy blanket. Think embroidery, wool textures, stitched borders, and gentle pastel colors. The visual language evokes craft, care, and comfort.
 
+> For *copy* tone (how the writing sounds, not how it looks), see [`TONE.md`](../TONE.md). Note: warmth there means **warm, not flat** — gentle copy still needs energy and pull.
+
 ## Color Palette
 
 ### Base

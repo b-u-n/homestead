@@ -5,12 +5,24 @@ import FontSettingsStore from '../../stores/FontSettingsStore';
 import MinkyPanel from '../MinkyPanel';
 
 /**
- * diagram-canvas-with-nodes-and-edges — conceptual diagram.
- * Spec: ../_meta-canonical/diagram-canvas-with-nodes-and-edges.json
+ * DiagramCanvasWithNodesAndEdges — conceptual diagram.
  *
- * Edges: SVG quadratic Béziers on web (smooth curved arrows), straight thin Views on native.
- * Nodes: stitched MinkyPanel pills with active state. Tap to focus a node; connected edges
- * light up; the focus indicator panel below the canvas confirms the active selection.
+ * Edges: SVG quadratic Béziers on web (smooth curved arrows), straight thin
+ * Views on native. Nodes: stitched MinkyPanel pills with active state. Tap to
+ * focus a node; connected edges light up; the focus indicator panel below the
+ * canvas confirms the active selection.
+ *
+ * Node-fill mode: when the parent step has a `_nodeFillFromBinds` directive
+ * (see `activities/v2/_SCHEMA.md`), ComponentStep computes which nodes have
+ * non-empty bound content and passes that list as `filledNodeIds`. Each
+ * filled node renders with a solid blue overlay + slight scale-up so the
+ * diagram "fills in" alongside the text inputs the user completes. Used by
+ * causes-and-contributing-factors.
+ *
+ * Renderer-injected props consumed:
+ *   - `filledNodeIds`: `string[]` — IDs of nodes whose bound input has
+ *     non-empty content. Filtered/computed by ComponentStep from the
+ *     step-level `_nodeFillFromBinds.mapping`.
  */
 const NODE_W = 116;
 const NODE_H = 60;
@@ -28,6 +40,12 @@ const DiagramCanvasWithNodesAndEdges = observer(({
   aspectRatio = 1.5,
   minHeight = 220,
   interactable = true,
+  // filledNodeIds — node IDs that should render as "filled" (a blue solid
+  // overlay + subtle scale-up). Used by activities like causes-and-
+  // contributing-factors where each node maps to a text input and the node
+  // "lights up" once the input has content. Computed by ComponentStep when
+  // the parent step has a `_nodeFillFromBinds` directive.
+  filledNodeIds,
   onNodeTapped,
   onEdgeTraversed,
   onActivePathChanged,
@@ -168,7 +186,21 @@ const DiagramCanvasWithNodesAndEdges = observer(({
         {nodes.map(node => {
           const { x, y } = posOf(node);
           const isActive = effectiveActive?.includes(node.id);
+          const isFilled = Array.isArray(filledNodeIds) && filledNodeIds.includes(node.id);
           const isHub = node.kind === 'hub-anchor' || node.kind === 'focal-element';
+          // Visual treatment: active (tapped) > filled (has content) > resting.
+          // Filled adds a solid blue overlay + slight scale-up; the existing
+          // active treatment still wins so a tapped node stays distinct.
+          const overlayColor = isActive
+            ? 'rgba(135, 180, 210, 0.7)'
+            : isFilled
+              ? 'rgba(100, 150, 200, 0.85)'  // solid blue for "this one has content"
+              : 'rgba(112, 68, 199, 0.25)';
+          const borderColor = isActive
+            ? '#7044C7'
+            : isFilled
+              ? 'rgba(45, 80, 140, 0.9)'
+              : 'rgba(92, 90, 88, 0.55)';
           return (
             <Pressable
               key={node.id}
@@ -181,6 +213,7 @@ const DiagramCanvasWithNodesAndEdges = observer(({
                   width: NODE_W,
                   height: NODE_H,
                 },
+                isFilled && !isActive && { transform: [{ scale: 1.04 }] },
               ]}
               hitSlop={6}
             >
@@ -188,12 +221,16 @@ const DiagramCanvasWithNodesAndEdges = observer(({
                 borderRadius={isHub ? 32 : 14}
                 padding={10}
                 paddingTop={10}
-                overlayColor={isActive ? 'rgba(135, 180, 210, 0.7)' : 'rgba(112, 68, 199, 0.25)'}
-                borderColor={isActive ? '#7044C7' : 'rgba(92, 90, 88, 0.55)'}
+                overlayColor={overlayColor}
+                borderColor={borderColor}
                 shape={isHub ? 'circular' : 'rect'}
               >
                 <Text
-                  style={[styles.nodeLabel, isActive && styles.nodeLabelActive, { fontSize: FontSettingsStore.getScaledFontSize(12) }]}
+                  style={[
+                    styles.nodeLabel,
+                    (isActive || isFilled) && styles.nodeLabelActive,
+                    { fontSize: FontSettingsStore.getScaledFontSize(12) },
+                  ]}
                   numberOfLines={2}
                 >
                   {node.label}

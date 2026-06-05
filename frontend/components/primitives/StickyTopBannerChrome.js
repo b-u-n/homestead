@@ -8,7 +8,6 @@ import { getCrisisLifeline } from '../../utils/crisisLifelines';
 
 /**
  * sticky-top-banner-chrome — top-of-surface banner / chrome.
- * Spec: ../_meta-canonical/sticky-top-banner-chrome.json
  */
 const StickyTopBannerChrome = observer(({
   role = 'header-activity-framing',

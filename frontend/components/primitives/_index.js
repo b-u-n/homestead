@@ -56,6 +56,20 @@ export { default as QuickMoodMicroWidget } from './QuickMoodMicroWidget';
 export { default as PersonaPicker } from './PersonaPicker';
 export { default as PlatformWriteThroughHook } from './PlatformWriteThroughHook';
 
+// Wave 7 — purpose-built single-activity primitives (added per ACTIVITY_EXECUTION_PLAN.md W0)
+export { default as WeekTracker } from './WeekTracker';
+export { default as PaintLegend } from './PaintLegend';
+export { default as RippleMap } from './RippleMap';
+export { default as TapCounter } from './TapCounter';
+export { default as PerChipPromptList } from './PerChipPromptList';
+export { default as ChipSortToGroups } from './ChipSortToGroups';
+export { default as PerPersonShareReceiptButtons } from './PerPersonShareReceiptButtons';
+export { default as CardDeckWalker } from './CardDeckWalker';
+export { default as ChipMatrixGrid } from './ChipMatrixGrid';
+export { default as WidestGapReadout } from './WidestGapReadout';
+export { default as ListBalanceReadout } from './ListBalanceReadout';
+export { default as ChipListReadonly } from './ChipListReadonly';
+
 // Wave 6 — specialty / heavy
 export { default as DecorativeIllustrationOrBackdrop } from './DecorativeIllustrationOrBackdrop';
 export { default as BackFillAffordance } from './BackFillAffordance';

@@ -11,7 +11,7 @@ import FontSettingsStore from '../stores/FontSettingsStore';
 const menuBackImage = require('../assets/images/menu-back.png');
 const menuCloseImage = require('../assets/images/menu-close.png');
 
-const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack, scrollResetKey }) => {
+const Modal = observer(({ visible, onClose, onBack, canGoBack, title, titleSize = 24, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack, scrollResetKey, scrollContent = true }) => {
   // Show back button if canGoBack OR if a custom back action is provided
   const showBack = canGoBack || onCustomBack;
   const hasPlayedOpenSound = useRef(false);
@@ -132,7 +132,7 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
                   <Text style={[
                     styles.titleInNav,
                     {
-                      fontSize: FontSettingsStore.getScaledFontSize(24),
+                      fontSize: FontSettingsStore.getScaledFontSize(titleSize),
                       color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)'),
                     }
                   ]}>{title}</Text>
@@ -176,10 +176,21 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, children, 
             )}
 
             {/* Content — keyed by scrollResetKey so navigating to a new drop
-                remounts the Scroll and resets scrollTop to 0. */}
-            <Scroll key={scrollResetKey} style={styles.content} contentContainerStyle={styles.contentContainer} rotated={rotated}>
-              {children}
-            </Scroll>
+                remounts the Scroll and resets scrollTop to 0.
+
+                When `scrollContent` is false, the consumer manages its own
+                scrolling (so a fixed footer like Prev/Next nav can sit outside
+                the scrollable area). In that case we render children directly
+                in a flex container instead of wrapping them in Scroll. */}
+            {scrollContent ? (
+              <Scroll key={scrollResetKey} style={styles.content} contentContainerStyle={styles.contentContainer} rotated={rotated}>
+                {children}
+              </Scroll>
+            ) : (
+              <View key={scrollResetKey} style={styles.unscrolledContent}>
+                {children}
+              </View>
+            )}
           </StitchedBorder>
         </View>
       </TiledBackground>
@@ -239,10 +250,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   wrapper: {
-    width: Platform.OS === 'web' ? '85%' : '100%',
-    height: Platform.OS === 'web' ? '85%' : '100%',
-    maxWidth: Platform.OS === 'web' ? 1260 : undefined,
-    maxHeight: Platform.OS === 'web' ? 1080 : undefined,
+    width: Platform.OS === 'web' ? '94%' : '100%',
+    height: Platform.OS === 'web' ? '94%' : '100%',
+    maxWidth: undefined,
+    maxHeight: undefined,
     borderRadius: Platform.OS === 'web' ? 12 : 0,
     overflow: 'hidden',
     // 3D floating/stitched effect with layered shadows
@@ -280,6 +291,9 @@ const styles = StyleSheet.create({
     left: 4,
     zIndex: 100,
     padding: 4,
+    // Reserve hit area before the image loads (see backButtonPressable above).
+    minWidth: 44,
+    minHeight: 44,
   },
   fullscreenClose: {
     position: 'absolute',
@@ -300,10 +314,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 11,
     gap: 6,
+    // Reserve a hit area BEFORE the image has loaded so the button is clickable
+    // immediately. Without min sizing, the Pressable collapses to its (zero)
+    // content size while the heavy menu-back.png decodes — clicks pass through
+    // to the backdrop. Match the 50x50 img size below.
+    minWidth: 50,
+    minHeight: 50,
   },
   closeButtonPressable: {
     position: 'absolute',
     zIndex: 11,
+    minWidth: 50,
+    minHeight: 50,
   },
   backButtonLabel: {
     fontFamily: 'Comfortaa',
@@ -331,6 +353,10 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: 8,
+  },
+  unscrolledContent: {
+    flex: 1,
+    minHeight: 0,
   },
 });
 

@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * breath-pacer-animation — animated breathing pacer (circle / box / ring).
- * Spec: ../_meta-canonical/breath-pacer-animation.json
  */
 const DEFAULT_PHASES = {
   '2-phase-inhale-exhale': [

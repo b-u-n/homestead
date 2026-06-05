@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(git mv:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(head:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(node -e:*)",
+      "Bash(grep:*)",
+      "WebSearch",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(python3 << 'EOF'\nimport json\n\n# Read the JSON file\nwith open\\('/home/bun/git/homestead/activities/anxiety-activities.json', 'r'\\) as f:\n    data = json.load\\(f\\)\n\n# Print meta information\nprint\\(\"=\" * 80\\)\nprint\\(\"FILE METADATA\"\\)\nprint\\(\"=\" * 80\\)\nprint\\(json.dumps\\(data['meta'], indent=2\\)\\)\n\nprint\\(\"\\\\n\" + \"=\" * 80\\)\nprint\\(\"OVERVIEW OF ACTIVITY GROUPS\"\\)\nprint\\(\"=\" * 80\\)\n\nfor group in data['activity_groups']:\n    print\\(f\"\\\\n{group['group_id']}\"\\)\n    print\\(f\"  Group Name: {group['group_name']}\"\\)\n    print\\(f\"  Group Type: {group['group_type']}\"\\)\n    print\\(f\"  Number of Activities: {len\\(group['activities']\\)}\"\\)\n    if 'commonalities' in group:\n        print\\(f\"  Commonalities: {json.dumps\\(group['commonalities'], indent=4\\)}\"\\)\n\nprint\\(\"\\\\n\" + \"=\" * 80\\)\nprint\\(\"COMPLETE LIST OF ALL ACTIVITIES WITH DETAILS\"\\)\nprint\\(\"=\" * 80\\)\n\nactivity_count = 0\nfor group in data['activity_groups']:\n    print\\(f\"\\\\n\\\\n### GROUP: {group['group_name']} \\({group['group_id']}\\)\"\\)\n    for activity in group['activities']:\n        activity_count += 1\n        print\\(f\"\\\\n{activity_count}. Activity ID: {activity['id']}\"\\)\n        print\\(f\"   Name: {activity['name']}\"\\)\n        print\\(f\"   Type: {activity.get\\('type', 'N/A'\\)}\"\\)\n        print\\(f\"   Category: {activity.get\\('category', 'N/A'\\)}\"\\)\n        \n        if 'description' in activity:\n            desc = activity['description']\n            if isinstance\\(desc, dict\\):\n                if 'what' in desc:\n                    print\\(f\"   What: {desc['what'][:100]}...\"\\)\n        \n        if 'steps' in activity:\n            print\\(f\"   Steps \\({len\\(activity['steps']\\)} total\\):\"\\)\n            for i, step in enumerate\\(activity['steps'], 1\\):\n                if isinstance\\(step, dict\\):\n                    step_content = step.get\\('content', step.get\\('title', str\\(step\\)[:100]\\)\\)\n                else:\n                    step_content = str\\(step\\)[:100]\n                print\\(f\"      Step {i}: {step_content[:80]}\"\\)\n        \n        # Print all other top-level keys\n        excluded_keys = {'id', 'name', 'type', 'category', 'description', 'steps'}\n        for key in activity.keys\\(\\):\n            if key not in excluded_keys:\n                val = activity[key]\n                if isinstance\\(val, \\(list, dict\\)\\) and len\\(str\\(val\\)\\) > 100:\n                    print\\(f\"   {key}: [complex structure with {len\\(val\\)} items]\"\\)\n                else:\n                    print\\(f\"   {key}: {val}\"\\)\n\nprint\\(f\"\\\\n\\\\nTOTAL ACTIVITIES FOUND: {activity_count}\"\\)\nEOF)",
+      "Bash(pm2 stop homestead-backend homestead-frontend && pm2 delete homestead-backend homestead-frontend)",
+      "Bash(pm2 start npm --name homestead-backend -- start && cd /home/bun/git/homestead/frontend && pm2 start npm --name homestead-frontend -- start)",
+      "Bash(pm2 logs homestead-backend --lines 50 --nostream)",
+      "Bash(lsof -i :9000 -t)",
+      "Bash(ps -p 2820612 -o pid,cmd)",
+      "Bash(sleep 2 && pm2 logs homestead-backend --lines 5 --nostream 2>&1 | grep -v \"^$\")",
+      "Bash(python3 << 'EOF'\n# 5MB file encoded to base64 increases size by ~33%\nraw_size = 5 * 1024 * 1024  # 5MB\nbase64_size = raw_size * \\(4/3\\)\nprint\\(f\"5MB file becomes ~{base64_size / \\(1024*1024\\):.1f}MB when base64 encoded\"\\)\nprint\\(f\"Default maxHttpBufferSize: 1MB = {1e6 / \\(1024*1024\\):.1f}MB\"\\)\nprint\\(f\"Even a 750KB PNG becomes ~{\\(750*1024\\) * \\(4/3\\) / \\(1024*1024\\):.1f}MB in base64\"\\)\nEOF)",
+      "Bash(pm2 restart homestead-backend)",
+      "Bash(pm2 list:*)",
+      "Bash(xargs ls:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

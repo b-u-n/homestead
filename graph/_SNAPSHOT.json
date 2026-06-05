@@ -1,0 +1,3106 @@
+{
+  "capturedAt": "2026-05-22T18:32:35.523Z",
+  "fileCount": 775,
+  "files": {
+    "graph/README.md": {
+      "mtime": 1779473691922.9355,
+      "size": 7688
+    },
+    "graph/_INDEX.md": {
+      "mtime": 1779472884081.6572,
+      "size": 7356
+    },
+    "graph/_PENDING_INTEGRATION.md": {
+      "mtime": 1779473718541.0908,
+      "size": 4406
+    },
+    "graph/_PHASE3_NOTES.md": {
+      "mtime": 1779472937057.4937,
+      "size": 8779
+    },
+    "graph/_QUERIES.md": {
+      "mtime": 1779472835860.693,
+      "size": 7048
+    },
+    "graph/_SCHEMA.md": {
+      "mtime": 1779472623870.3618,
+      "size": 14551
+    },
+    "graph/_migrate-v1-to-v2.js": {
+      "mtime": 1779472597173.2617,
+      "size": 15631
+    },
+    "graph/_snapshot.js": {
+      "mtime": 1779474750853.4165,
+      "size": 7434
+    },
+    "graph/_traverse.js": {
+      "mtime": 1779472620092.4597,
+      "size": 18075
+    },
+    "graph/component/AvatarGenerator.md": {
+      "mtime": 1779472609940.1025,
+      "size": 845
+    },
+    "graph/component/BlockingErrorModal.md": {
+      "mtime": 1779472609944.132,
+      "size": 643
+    },
+    "graph/component/ButtonBase.md": {
+      "mtime": 1779472609951.2556,
+      "size": 1110
+    },
+    "graph/component/Checkbox.md": {
+      "mtime": 1779472609951.2556,
+      "size": 1084
+    },
+    "graph/component/ColorWheel.md": {
+      "mtime": 1779472609964.916,
+      "size": 822
+    },
+    "graph/component/CreateWeepingWillowPost.md": {
+      "mtime": 1779472609980.7124,
+      "size": 691
+    },
+    "graph/component/CustomizationAssetPicker.md": {
+      "mtime": 1779472609980.7124,
+      "size": 914
+    },
+    "graph/component/CustomizationItemPicker.md": {
+      "mtime": 1779472609996.7778,
+      "size": 859
+    },
+    "graph/component/CustomizationRevisionPicker.md": {
+      "mtime": 1779472610004.0403,
+      "size": 1000
+    },
+    "graph/component/CustomizationStore.md": {
+      "mtime": 1779472610012.6,
+      "size": 1057
+    },
+    "graph/component/CustomizationTable.md": {
+      "mtime": 1779472707837.9067,
+      "size": 770
+    },
+    "graph/component/DrawingBoard.md": {
+      "mtime": 1779472707852.738,
+      "size": 858
+    },
+    "graph/component/ErrorContainer.md": {
+      "mtime": 1779472610038.9912,
+      "size": 816
+    },
+    "graph/component/ErrorNotification.md": {
+      "mtime": 1779472610046.2668,
+      "size": 607
+    },
+    "graph/component/ErrorStore.md": {
+      "mtime": 1779472610052.312,
+      "size": 885
+    },
+    "graph/component/FlowEngine.backend.md": {
+      "mtime": 1779472686422.2368,
+      "size": 846
+    },
+    "graph/component/FlowEngine.frontend.md": {
+      "mtime": 1779472681931.3604,
+      "size": 986
+    },
+    "graph/component/HamburgerMenu.md": {
+      "mtime": 1779472610069.208,
+      "size": 1131
+    },
+    "graph/component/Heart.md": {
+      "mtime": 1779472610076.2542,
+      "size": 749
+    },
+    "graph/component/HeartPaymentModal.md": {
+      "mtime": 1779472610078.2769,
+      "size": 1362
+    },
+    "graph/component/InventoryScreen.md": {
+      "mtime": 1779472610092.343,
+      "size": 762
+    },
+    "graph/component/InventoryStore.md": {
+      "mtime": 1779472610092.343,
+      "size": 904
+    },
+    "graph/component/JournalStep.md": {
+      "mtime": 1779472610092.343,
+      "size": 1005
+    },
+    "graph/component/KnapsackIcon.md": {
+      "mtime": 1779472610108.2156,
+      "size": 792
+    },
+    "graph/component/MapSpritesStall.md": {
+      "mtime": 1779472707856.6306,
+      "size": 835
+    },
+    "graph/component/MinkyButton.md": {
+      "mtime": 1779472610131.6655,
+      "size": 893
+    },
+    "graph/component/MinkyPanel.md": {
+      "mtime": 1779472610140.0989,
+      "size": 989
+    },
+    "graph/component/Modal.md": {
+      "mtime": 1779472610140.0989,
+      "size": 1415
+    },
+    "graph/component/NotificationHeart.md": {
+      "mtime": 1779472610156.0376,
+      "size": 1071
+    },
+    "graph/component/NotificationStore.md": {
+      "mtime": 1779472610166.921,
+      "size": 1096
+    },
+    "graph/component/PixelEditor.md": {
+      "mtime": 1779472610175.1353,
+      "size": 764
+    },
+    "graph/component/PixelPals.md": {
+      "mtime": 1779472707881.213,
+      "size": 966
+    },
+    "graph/component/PixelPalsCanvas.md": {
+      "mtime": 1779472610187.1777,
+      "size": 1246
+    },
+    "graph/component/PixelSketchEditor.md": {
+      "mtime": 1779472610187.1777,
+      "size": 788
+    },
+    "graph/component/PositivityBoard.md": {
+      "mtime": 1779472610204.334,
+      "size": 937
+    },
+    "graph/component/PostsList.md": {
+      "mtime": 1779472610204.334,
+      "size": 788
+    },
+    "graph/component/RoomEditor.md": {
+      "mtime": 1779472610222.3176,
+      "size": 1200
+    },
+    "graph/component/Scroll.md": {
+      "mtime": 1779472610228.0432,
+      "size": 878
+    },
+    "graph/component/ScrollBarView.md": {
+      "mtime": 1779472610238.691,
+      "size": 1111
+    },
+    "graph/component/Scrollbar.md": {
+      "mtime": 1779472610242.5293,
+      "size": 1019
+    },
+    "graph/component/ServerSocketHandlers.md": {
+      "mtime": 1779472610250.4353,
+      "size": 2825
+    },
+    "graph/component/SoundSettingsStore.md": {
+      "mtime": 1779472610250.4353,
+      "size": 759
+    },
+    "graph/component/StitchedBorder.md": {
+      "mtime": 1779472610266.1868,
+      "size": 973
+    },
+    "graph/component/StitchedProgressBar.md": {
+      "mtime": 1779472610266.1868,
+      "size": 807
+    },
+    "graph/component/ThemeStore.md": {
+      "mtime": 1779472610282.1372,
+      "size": 922
+    },
+    "graph/component/UserSettingsModal.md": {
+      "mtime": 1779472610282.1372,
+      "size": 860
+    },
+    "graph/component/WebSocketService.md": {
+      "mtime": 1779472610298.2034,
+      "size": 2315
+    },
+    "graph/component/WeepingWillowLanding.md": {
+      "mtime": 1779472610314.1821,
+      "size": 587
+    },
+    "graph/component/WoolButton.md": {
+      "mtime": 1779472713413.2268,
+      "size": 993
+    },
+    "graph/component/Workbook.md": {
+      "mtime": 1779472707894.5647,
+      "size": 917
+    },
+    "graph/component/WorkbookActivity.md": {
+      "mtime": 1779472610330.243,
+      "size": 1427
+    },
+    "graph/component/WorkbookLanding.md": {
+      "mtime": 1779472610347.6067,
+      "size": 1025
+    },
+    "graph/component/WorkbookProgressModel.md": {
+      "mtime": 1779472610355.1987,
+      "size": 1158
+    },
+    "graph/concept/activity-system.md": {
+      "mtime": 1779472609308.613,
+      "size": 1150
+    },
+    "graph/concept/badge-system.md": {
+      "mtime": 1779472609321.0479,
+      "size": 974
+    },
+    "graph/concept/bazaar.md": {
+      "mtime": 1779472609321.0479,
+      "size": 832
+    },
+    "graph/concept/games.md": {
+      "mtime": 1779472609339.4094,
+      "size": 983
+    },
+    "graph/concept/heart-economy.md": {
+      "mtime": 1779472609341.4214,
+      "size": 948
+    },
+    "graph/concept/homestead-architecture.md": {
+      "mtime": 1779472791619.5183,
+      "size": 1497
+    },
+    "graph/concept/items-inventory.md": {
+      "mtime": 1779472609352.9897,
+      "size": 1007
+    },
+    "graph/concept/permissions-and-roles.md": {
+      "mtime": 1779472789596.0896,
+      "size": 1049
+    },
+    "graph/concept/pixelpals.md": {
+      "mtime": 1779472969451.2263,
+      "size": 878
+    },
+    "graph/concept/room-editor.md": {
+      "mtime": 1779472609391.8887,
+      "size": 867
+    },
+    "graph/concept/user-customization.md": {
+      "mtime": 1779472609395.7234,
+      "size": 830
+    },
+    "graph/concept/user-settings.md": {
+      "mtime": 1779472609402.282,
+      "size": 865
+    },
+    "graph/concept/vaporwave-aesthetic.md": {
+      "mtime": 1779472609416.2188,
+      "size": 946
+    },
+    "graph/concept/weeping-willow.md": {
+      "mtime": 1779472609420.452,
+      "size": 706
+    },
+    "graph/concept/wire-protocol.md": {
+      "mtime": 1779472609432.316,
+      "size": 1000
+    },
+    "graph/concept/wishing-well.md": {
+      "mtime": 1779472609439.6604,
+      "size": 657
+    },
+    "graph/doc/activities-v2-schema.md": {
+      "mtime": 1779472610843.3708,
+      "size": 683
+    },
+    "graph/doc/activities.md": {
+      "mtime": 1779472610753.911,
+      "size": 637
+    },
+    "graph/doc/architecture.md": {
+      "mtime": 1779472610789.3926,
+      "size": 647
+    },
+    "graph/doc/art-style.md": {
+      "mtime": 1779472610825.13,
+      "size": 632
+    },
+    "graph/doc/badges.md": {
+      "mtime": 1779472610773.7134,
+      "size": 617
+    },
+    "graph/doc/bazaar.md": {
+      "mtime": 1779472610776.966,
+      "size": 617
+    },
+    "graph/doc/buttons.md": {
+      "mtime": 1779472610855.0012,
+      "size": 622
+    },
+    "graph/doc/checkboxes.md": {
+      "mtime": 1779472610863.1326,
+      "size": 637
+    },
+    "graph/doc/claude.md": {
+      "mtime": 1779472610850.4043,
+      "size": 611
+    },
+    "graph/doc/colors.md": {
+      "mtime": 1779472610866.5146,
+      "size": 617
+    },
+    "graph/doc/customization.md": {
+      "mtime": 1779472610782.3364,
+      "size": 652
+    },
+    "graph/doc/drops.md": {
+      "mtime": 1779472610769.8132,
+      "size": 612
+    },
+    "graph/doc/emboss.md": {
+      "mtime": 1779472610866.5146,
+      "size": 617
+    },
+    "graph/doc/errors.md": {
+      "mtime": 1779472610873.2825,
+      "size": 617
+    },
+    "graph/doc/features.md": {
+      "mtime": 1779472610803.083,
+      "size": 627
+    },
+    "graph/doc/flows.md": {
+      "mtime": 1779472610765.9875,
+      "size": 612
+    },
+    "graph/doc/games.md": {
+      "mtime": 1779472610786.368,
+      "size": 612
+    },
+    "graph/doc/hearts.md": {
+      "mtime": 1779472610789.3926,
+      "size": 617
+    },
+    "graph/doc/items.md": {
+      "mtime": 1779472610805.808,
+      "size": 612
+    },
+    "graph/doc/menus.md": {
+      "mtime": 1779472610884.643,
+      "size": 612
+    },
+    "graph/doc/minkypanel.md": {
+      "mtime": 1779472610875.2957,
+      "size": 637
+    },
+    "graph/doc/mobile-wheel-touch.md": {
+      "mtime": 1779472610878.7527,
+      "size": 677
+    },
+    "graph/doc/notifications.md": {
+      "mtime": 1779472610888.68,
+      "size": 652
+    },
+    "graph/doc/permissions.md": {
+      "mtime": 1779472610805.808,
+      "size": 642
+    },
+    "graph/doc/pixelpals.md": {
+      "mtime": 1779472610789.3926,
+      "size": 632
+    },
+    "graph/doc/roles.md": {
+      "mtime": 1779472610805.808,
+      "size": 612
+    },
+    "graph/doc/room-editor.md": {
+      "mtime": 1779472610819.5042,
+      "size": 642
+    },
+    "graph/doc/scrollbar.md": {
+      "mtime": 1779472610891.709,
+      "size": 632
+    },
+    "graph/doc/testing.md": {
+      "mtime": 1779472610805.808,
+      "size": 622
+    },
+    "graph/doc/textbox.md": {
+      "mtime": 1779472610891.709,
+      "size": 622
+    },
+    "graph/doc/usersettings.md": {
+      "mtime": 1779472610825.13,
+      "size": 647
+    },
+    "graph/doc/websockets.md": {
+      "mtime": 1779472610837.3242,
+      "size": 637
+    },
+    "graph/doc/weeping-willow.md": {
+      "mtime": 1779472610825.13,
+      "size": 657
+    },
+    "graph/doc/wishingwell.md": {
+      "mtime": 1779472610841.3564,
+      "size": 642
+    },
+    "graph/doc/woolbuttons.md": {
+      "mtime": 1779472610859.3535,
+      "size": 642
+    },
+    "graph/doc/workbooks.md": {
+      "mtime": 1779472610757.9468,
+      "size": 632
+    },
+    "graph/drift/activities-md-primary-text-mismatch.md": {
+      "mtime": 1779472610560.5908,
+      "size": 1996
+    },
+    "graph/drift/activity-v1-v2-coexistence.md": {
+      "mtime": 1779472610572.233,
+      "size": 2975
+    },
+    "graph/drift/bazaar-dev-permissions-open.md": {
+      "mtime": 1779472610572.233,
+      "size": 2206
+    },
+    "graph/drift/bazaar-pixelpals-completion-coupling.md": {
+      "mtime": 1779472610584.086,
+      "size": 2752
+    },
+    "graph/drift/bazaar-stalls-unimplemented.md": {
+      "mtime": 1779472610584.086,
+      "size": 2297
+    },
+    "graph/drift/build-user-object-duplicated.md": {
+      "mtime": 1779472610603.4429,
+      "size": 2021
+    },
+    "graph/drift/colors-accent-overlay-divergence.md": {
+      "mtime": 1779472610605.4968,
+      "size": 2458
+    },
+    "graph/drift/colors-primary-text-conflict.md": {
+      "mtime": 1779472784082.342,
+      "size": 2246
+    },
+    "graph/drift/colors-secondary-text-conflict.md": {
+      "mtime": 1779472785608.053,
+      "size": 1439
+    },
+    "graph/drift/fonts-button-label-divergence.md": {
+      "mtime": 1779472765076.701,
+      "size": 2586
+    },
+    "graph/drift/fonts-canonical-list-divergence.md": {
+      "mtime": 1779472787075.2976,
+      "size": 2422
+    },
+    "graph/drift/heart-payment-modal-bypasses-design-system.md": {
+      "mtime": 1779472610646.9604,
+      "size": 2662
+    },
+    "graph/drift/hearts-success-check-pattern-mismatch.md": {
+      "mtime": 1779472610653.6338,
+      "size": 1963
+    },
+    "graph/drift/hearts-transaction-response-incomplete.md": {
+      "mtime": 1779472610670.2732,
+      "size": 1929
+    },
+    "graph/drift/menus-vs-modal-pattern-divergence.md": {
+      "mtime": 1779472610677.9219,
+      "size": 2935
+    },
+    "graph/drift/permissions-admin-frontend-missing.md": {
+      "mtime": 1779472610681.2134,
+      "size": 2940
+    },
+    "graph/drift/pixelpals-grove-unresolved-asset.md": {
+      "mtime": 1779472610681.2134,
+      "size": 2232
+    },
+    "graph/drift/portable-types-list-duplication.md": {
+      "mtime": 1779472610693.7705,
+      "size": 2311
+    },
+    "graph/drift/scroll-blocking-mechanism-count-divergence.md": {
+      "mtime": 1779472610709.6719,
+      "size": 3306
+    },
+    "graph/drift/testing-coverage-near-zero.md": {
+      "mtime": 1779472610709.6719,
+      "size": 2281
+    },
+    "graph/drift/testing-doc-says-unimplemented.md": {
+      "mtime": 1779472610725.675,
+      "size": 2252
+    },
+    "graph/drift/users-crud-handlers-unimplemented.md": {
+      "mtime": 1779472610729.0083,
+      "size": 2372
+    },
+    "graph/drift/viewpost-shared-filename.md": {
+      "mtime": 1779472610741.3726,
+      "size": 2471
+    },
+    "graph/drift/workbook-step-type-enum-stale-doc.md": {
+      "mtime": 1779472610745.744,
+      "size": 2149
+    },
+    "graph/pattern/auto-expanding-textarea.md": {
+      "mtime": 1779472609747.6694,
+      "size": 1754
+    },
+    "graph/pattern/auto-styled-text.md": {
+      "mtime": 1779472609761.5056,
+      "size": 1290
+    },
+    "graph/pattern/badge-positioning-overlay.md": {
+      "mtime": 1779472609761.5056,
+      "size": 1589
+    },
+    "graph/pattern/close-on-outside-click.md": {
+      "mtime": 1779472609777.2776,
+      "size": 1885
+    },
+    "graph/pattern/deep-link-mid-flow.md": {
+      "mtime": 1779472609777.2776,
+      "size": 1539
+    },
+    "graph/pattern/depth-overlay-modal.md": {
+      "mtime": 1779472609793.0437,
+      "size": 1866
+    },
+    "graph/pattern/drop-composition.md": {
+      "mtime": 1779472609803.36,
+      "size": 1791
+    },
+    "graph/pattern/emboss-border-overlay.md": {
+      "mtime": 1779472609809.4436,
+      "size": 1257
+    },
+    "graph/pattern/emboss-text-shadow.md": {
+      "mtime": 1779472609821.4229,
+      "size": 1227
+    },
+    "graph/pattern/error-store-broadcast.md": {
+      "mtime": 1779472609829.163,
+      "size": 1789
+    },
+    "graph/pattern/flow-context-injection.md": {
+      "mtime": 1779472609833.1887,
+      "size": 2559
+    },
+    "graph/pattern/focused-stitched-border.md": {
+      "mtime": 1779472609848.113,
+      "size": 1132
+    },
+    "graph/pattern/heart-payment-modal-flow.md": {
+      "mtime": 1779472609856.0703,
+      "size": 1946
+    },
+    "graph/pattern/mobx-store.md": {
+      "mtime": 1779472609856.0703,
+      "size": 1767
+    },
+    "graph/pattern/modal-overlay-with-sound.md": {
+      "mtime": 1779472609870.6128,
+      "size": 1307
+    },
+    "graph/pattern/portrait-rotation-coordinate-transform.md": {
+      "mtime": 1779472609870.6128,
+      "size": 2107
+    },
+    "graph/pattern/primitive-composition.md": {
+      "mtime": 1779472609870.6128,
+      "size": 2153
+    },
+    "graph/pattern/role-gated-flow.md": {
+      "mtime": 1779472609890.9785,
+      "size": 1723
+    },
+    "graph/pattern/socket-emit-await.md": {
+      "mtime": 1779472609902.5544,
+      "size": 1989
+    },
+    "graph/pattern/stitched-checkbox-indicator.md": {
+      "mtime": 1779472609912.4597,
+      "size": 1390
+    },
+    "graph/pattern/user-object-shape.md": {
+      "mtime": 1779472609919.6248,
+      "size": 2096
+    },
+    "graph/pattern/websocket-emit.md": {
+      "mtime": 1779472609925.2666,
+      "size": 1619
+    },
+    "graph/spec/activity-v1-legacy.md": {
+      "mtime": 1779472609455.2998,
+      "size": 2755
+    },
+    "graph/spec/activity-v2.md": {
+      "mtime": 1779472609463.4973,
+      "size": 5511
+    },
+    "graph/spec/architecture-overview.md": {
+      "mtime": 1779472609466.7666,
+      "size": 5182
+    },
+    "graph/spec/avatar-customization-flow.md": {
+      "mtime": 1779472609478.9492,
+      "size": 4862
+    },
+    "graph/spec/badge-styling-pattern.md": {
+      "mtime": 1779472609478.9492,
+      "size": 3997
+    },
+    "graph/spec/bazaar-moderation-pipeline.md": {
+      "mtime": 1779472609496.5515,
+      "size": 3926
+    },
+    "graph/spec/bazaar-pricing.md": {
+      "mtime": 1779472609502.9106,
+      "size": 2339
+    },
+    "graph/spec/bazaar-submission-flow.md": {
+      "mtime": 1779472609512.2993,
+      "size": 4450
+    },
+    "graph/spec/button-system.md": {
+      "mtime": 1779472715425.1829,
+      "size": 5127
+    },
+    "graph/spec/checkbox-pattern.md": {
+      "mtime": 1779472609529.5908,
+      "size": 4781
+    },
+    "graph/spec/design-tokens.md": {
+      "mtime": 1779472609537.364,
+      "size": 2567
+    },
+    "graph/spec/emboss-effect.md": {
+      "mtime": 1779472609545.8977,
+      "size": 4104
+    },
+    "graph/spec/error-handling.md": {
+      "mtime": 1779472609553.9883,
+      "size": 4357
+    },
+    "graph/spec/feature-rollout-process.md": {
+      "mtime": 1779472609559.5767,
+      "size": 4474
+    },
+    "graph/spec/flow-engine.md": {
+      "mtime": 1779472697627.1736,
+      "size": 4758
+    },
+    "graph/spec/games-flow-fullscreen.md": {
+      "mtime": 1779472609577.525,
+      "size": 3167
+    },
+    "graph/spec/heart-balance-and-spending.md": {
+      "mtime": 1779472609583.5676,
+      "size": 4608
+    },
+    "graph/spec/item-portability-and-inventory.md": {
+      "mtime": 1779472609591.346,
+      "size": 4685
+    },
+    "graph/spec/minky-panel.md": {
+      "mtime": 1779472609599.7522,
+      "size": 3553
+    },
+    "graph/spec/mobile-wheel-touch.md": {
+      "mtime": 1779472609608.517,
+      "size": 6329
+    },
+    "graph/spec/modal-pattern.md": {
+      "mtime": 1779472609608.517,
+      "size": 5067
+    },
+    "graph/spec/notification-system.md": {
+      "mtime": 1779472609627.3958,
+      "size": 4713
+    },
+    "graph/spec/permissions-model.md": {
+      "mtime": 1779472609633.4294,
+      "size": 4415
+    },
+    "graph/spec/pixelpals-credit-system.md": {
+      "mtime": 1779472609643.492,
+      "size": 3320
+    },
+    "graph/spec/pixelpals-game-modes.md": {
+      "mtime": 1779472609651.6787,
+      "size": 5092
+    },
+    "graph/spec/role-system.md": {
+      "mtime": 1779472609659.1174,
+      "size": 3534
+    },
+    "graph/spec/room-editor-canvas.md": {
+      "mtime": 1779472609663.1404,
+      "size": 6054
+    },
+    "graph/spec/room-editor-overlay-model.md": {
+      "mtime": 1779472609667.543,
+      "size": 3221
+    },
+    "graph/spec/scrollbar-system.md": {
+      "mtime": 1779472609683.204,
+      "size": 5409
+    },
+    "graph/spec/testing-conventions.md": {
+      "mtime": 1779472609692.442,
+      "size": 5707
+    },
+    "graph/spec/textbox-autoexpand.md": {
+      "mtime": 1779472609698.9343,
+      "size": 4384
+    },
+    "graph/spec/user-settings-modal.md": {
+      "mtime": 1779472609710.993,
+      "size": 4974
+    },
+    "graph/spec/websocket-protocol.md": {
+      "mtime": 1779472609718.8147,
+      "size": 5234
+    },
+    "graph/spec/weeping-willow-posting.md": {
+      "mtime": 1779472609726.384,
+      "size": 4910
+    },
+    "graph/spec/wishing-well-board.md": {
+      "mtime": 1779472609732.0583,
+      "size": 3485
+    },
+    "graph/spec/workbook-system.md": {
+      "mtime": 1779472609741.6367,
+      "size": 5062
+    },
+    "graph/token/color-background-base.md": {
+      "mtime": 1779472610368.0034,
+      "size": 479
+    },
+    "graph/token/color-border-dashed.md": {
+      "mtime": 1779472610376.046,
+      "size": 633
+    },
+    "graph/token/color-border-stitched-focused.md": {
+      "mtime": 1779472610377.8186,
+      "size": 639
+    },
+    "graph/token/color-emboss-border-highlight.md": {
+      "mtime": 1779472610391.2373,
+      "size": 629
+    },
+    "graph/token/color-emboss-border-shadow.md": {
+      "mtime": 1779472610393.8206,
+      "size": 572
+    },
+    "graph/token/color-emboss-button-text.md": {
+      "mtime": 1779472610404.9463,
+      "size": 838
+    },
+    "graph/token/color-emboss-content-text.md": {
+      "mtime": 1779472610410.259,
+      "size": 787
+    },
+    "graph/token/color-emboss-title-text.md": {
+      "mtime": 1779472610422.9424,
+      "size": 745
+    },
+    "graph/token/color-overlay-blue-scrollbar-selected.md": {
+      "mtime": 1779472610426.1655,
+      "size": 634
+    },
+    "graph/token/color-overlay-blue-scrollbar-unselected.md": {
+      "mtime": 1779472610426.1655,
+      "size": 674
+    },
+    "graph/token/color-overlay-blue-secondary.md": {
+      "mtime": 1779472610441.6052,
+      "size": 542
+    },
+    "graph/token/color-overlay-coral-button.md": {
+      "mtime": 1779472610441.6052,
+      "size": 653
+    },
+    "graph/token/color-overlay-discord-button.md": {
+      "mtime": 1779472610462.656,
+      "size": 476
+    },
+    "graph/token/color-overlay-green-button.md": {
+      "mtime": 1779472610464.6714,
+      "size": 836
+    },
+    "graph/token/color-overlay-pink.md": {
+      "mtime": 1779472610478.6833,
+      "size": 511
+    },
+    "graph/token/color-overlay-purple-button.md": {
+      "mtime": 1779472610478.6833,
+      "size": 783
+    },
+    "graph/token/color-primary-text.md": {
+      "mtime": 1779472610488.9514,
+      "size": 1111
+    },
+    "graph/token/color-secondary-text.md": {
+      "mtime": 1779472610488.9514,
+      "size": 763
+    },
+    "graph/token/font-body.md": {
+      "mtime": 1779472610504.9028,
+      "size": 444
+    },
+    "graph/token/font-button-minky.md": {
+      "mtime": 1779472610504.9028,
+      "size": 670
+    },
+    "graph/token/font-button-wool.md": {
+      "mtime": 1779472610520.788,
+      "size": 894
+    },
+    "graph/token/font-header.md": {
+      "mtime": 1779472610520.788,
+      "size": 585
+    },
+    "graph/token/texture-minky.md": {
+      "mtime": 1779472610540.8728,
+      "size": 443
+    },
+    "graph/token/texture-wool.md": {
+      "mtime": 1779472610552.3499,
+      "size": 427
+    },
+    "md/ACTIVITIES.md": {
+      "mtime": 1777225135343.4023,
+      "size": 22447
+    },
+    "md/ARCHITECTURE.md": {
+      "mtime": 1765126002314.8606,
+      "size": 2179
+    },
+    "md/ART_STYLE.md": {
+      "mtime": 1772246253724.0842,
+      "size": 3756
+    },
+    "md/BADGES.md": {
+      "mtime": 1765661942527.6267,
+      "size": 2665
+    },
+    "md/BAZAAR.md": {
+      "mtime": 1774578578689.3684,
+      "size": 13931
+    },
+    "md/BUTTONS.md": {
+      "mtime": 1772023785614.7017,
+      "size": 8980
+    },
+    "md/CHECKBOXES.md": {
+      "mtime": 1777228465547.5215,
+      "size": 9892
+    },
+    "md/COLORS.md": {
+      "mtime": 1765134431129.889,
+      "size": 1618
+    },
+    "md/CUSTOMIZATION.md": {
+      "mtime": 1772302924206.558,
+      "size": 8470
+    },
+    "md/DROPS.md": {
+      "mtime": 1774671422656.8596,
+      "size": 8305
+    },
+    "md/EMBOSS.md": {
+      "mtime": 1765128189707.4954,
+      "size": 4570
+    },
+    "md/ERRORS.md": {
+      "mtime": 1765064403765.823,
+      "size": 6888
+    },
+    "md/FEATURES.md": {
+      "mtime": 1774577599424.4233,
+      "size": 2837
+    },
+    "md/FLOWS.md": {
+      "mtime": 1765072668981.8413,
+      "size": 10610
+    },
+    "md/HEARTS.md": {
+      "mtime": 1765065060930.3118,
+      "size": 5759
+    },
+    "md/MENUS.md": {
+      "mtime": 1765069165455.1914,
+      "size": 8502
+    },
+    "md/MINKYPANEL.md": {
+      "mtime": 1772282583347.364,
+      "size": 1824
+    },
+    "md/MOBILE_WHEEL_TOUCH.md": {
+      "mtime": 1774816091275.0732,
+      "size": 10202
+    },
+    "md/NOTIFICATIONS.md": {
+      "mtime": 1765068697325.6084,
+      "size": 7518
+    },
+    "md/PERMISSIONS.md": {
+      "mtime": 1772241414143.0317,
+      "size": 4708
+    },
+    "md/ROLES.md": {
+      "mtime": 1765664600944.3872,
+      "size": 2453
+    },
+    "md/ROOM_EDITOR.md": {
+      "mtime": 1777727122945.8232,
+      "size": 7912
+    },
+    "md/SCROLLBAR.md": {
+      "mtime": 1774753287998.6113,
+      "size": 4851
+    },
+    "md/STYLES.md": {
+      "mtime": 1765678186648.1475,
+      "size": 1743
+    },
+    "md/TESTING.md": {
+      "mtime": 1765061222623.7595,
+      "size": 12035
+    },
+    "md/TEXTBOX.md": {
+      "mtime": 1772248133169.4985,
+      "size": 4807
+    },
+    "md/USERSETTINGS.md": {
+      "mtime": 1765130574277.4736,
+      "size": 8428
+    },
+    "md/WEBSOCKETS.md": {
+      "mtime": 1765061118130.1938,
+      "size": 10600
+    },
+    "md/WEEPING_WILLOW.md": {
+      "mtime": 1765675345994.0464,
+      "size": 9956
+    },
+    "md/WISHINGWELL.md": {
+      "mtime": 1770102536372.601,
+      "size": 6071
+    },
+    "md/WOOLBUTTONS.md": {
+      "mtime": 1772023797170.7788,
+      "size": 2124
+    },
+    "md/WORKBOOKS.md": {
+      "mtime": 1777208697134.8438,
+      "size": 10628
+    },
+    "md/games.md": {
+      "mtime": 1774667521552.2534,
+      "size": 2201
+    },
+    "md/items.md": {
+      "mtime": 1774667555544.9324,
+      "size": 4132
+    },
+    "md/pixelpals.md": {
+      "mtime": 1774772606148.8845,
+      "size": 13913
+    },
+    "frontend/components/AccessibilitySettingsModal.js": {
+      "mtime": 1772280852925.862,
+      "size": 3992
+    },
+    "frontend/components/Admin.js": {
+      "mtime": 1772241329158.2424,
+      "size": 429
+    },
+    "frontend/components/AvatarGenerator.js": {
+      "mtime": 1765066520495.911,
+      "size": 4121
+    },
+    "frontend/components/AvatarStamp.js": {
+      "mtime": 1770461856351.2412,
+      "size": 3779
+    },
+    "frontend/components/BlockingErrorModal.js": {
+      "mtime": 1765066520495.911,
+      "size": 4389
+    },
+    "frontend/components/Button.js": {
+      "mtime": 1770091187180.5425,
+      "size": 2117
+    },
+    "frontend/components/ButtonBase.js": {
+      "mtime": 1770108157784.0762,
+      "size": 8742
+    },
+    "frontend/components/CharacterIcon.js": {
+      "mtime": 1765066520495.911,
+      "size": 2706
+    },
+    "frontend/components/ColorWheel.js": {
+      "mtime": 1774798534652.0151,
+      "size": 15404
+    },
+    "frontend/components/CustomizationTable.js": {
+      "mtime": 1772302673023.4973,
+      "size": 494
+    },
+    "frontend/components/Diary.js": {
+      "mtime": 1777195325452.0747,
+      "size": 477
+    },
+    "frontend/components/DrawingBoard.js": {
+      "mtime": 1772283329271.0225,
+      "size": 548
+    },
+    "frontend/components/EmoteMenu.js": {
+      "mtime": 1772248640904.3188,
+      "size": 3071
+    },
+    "frontend/components/ErrorContainer.js": {
+      "mtime": 1765066520495.911,
+      "size": 2630
+    },
+    "frontend/components/ErrorNotification.js": {
+      "mtime": 1765066520495.911,
+      "size": 3866
+    },
+    "frontend/components/FlowEngine.js": {
+      "mtime": 1777208374539.9944,
+      "size": 10704
+    },
+    "frontend/components/FontSettingsModal.js": {
+      "mtime": 1770094628026.253,
+      "size": 15109
+    },
+    "frontend/components/GradientBackground.js": {
+      "mtime": 1765066520499.911,
+      "size": 583
+    },
+    "frontend/components/HamburgerMenu.js": {
+      "mtime": 1772280586199.428,
+      "size": 11285
+    },
+    "frontend/components/Heart.js": {
+      "mtime": 1765140338236.911,
+      "size": 1542
+    },
+    "frontend/components/HeartPaymentModal.js": {
+      "mtime": 1770091307225.5566,
+      "size": 8868
+    },
+    "frontend/components/KnapsackIcon.js": {
+      "mtime": 1765066520499.911,
+      "size": 1751
+    },
+    "frontend/components/KnittedLoader.js": {
+      "mtime": 1765665492556.8762,
+      "size": 6363
+    },
+    "frontend/components/LayerSelectModal.js": {
+      "mtime": 1765665225874.349,
+      "size": 4326
+    },
+    "frontend/components/LibraryNav.js": {
+      "mtime": 1770100287528.5835,
+      "size": 3964
+    },
+    "frontend/components/Mailbox.js": {
+      "mtime": 1772286816422.2383,
+      "size": 523
+    },
+    "frontend/components/MapCanvas.js": {
+      "mtime": 1777722784403.9915,
+      "size": 119629
+    },
+    "frontend/components/MapSpritesStall.js": {
+      "mtime": 1772244662186.785,
+      "size": 479
+    },
+    "frontend/components/MinkyButton.js": {
+      "mtime": 1765073920232.8015,
+      "size": 1356
+    },
+    "frontend/components/MinkyPanel.js": {
+      "mtime": 1777228626521.3396,
+      "size": 5005
+    },
+    "frontend/components/Modal.js": {
+      "mtime": 1777188517545.1504,
+      "size": 11656
+    },
+    "frontend/components/Moderation.js": {
+      "mtime": 1772241330662.2563,
+      "size": 454
+    },
+    "frontend/components/NotificationHeart.js": {
+      "mtime": 1770091302633.5178,
+      "size": 13016
+    },
+    "frontend/components/PixelEditor.js": {
+      "mtime": 1774823049356.8425,
+      "size": 102360
+    },
+    "frontend/components/PixelPals.js": {
+      "mtime": 1774741509805.5664,
+      "size": 571
+    },
+    "frontend/components/ReportIssueModal.js": {
+      "mtime": 1765663696367.394,
+      "size": 8205
+    },
+    "frontend/components/RoomEditor.js": {
+      "mtime": 1777722142921.659,
+      "size": 17256
+    },
+    "frontend/components/Scroll.js": {
+      "mtime": 1774823490189.7026,
+      "size": 4552
+    },
+    "frontend/components/ScrollBarView.js": {
+      "mtime": 1774823472849.5127,
+      "size": 9458
+    },
+    "frontend/components/Scrollbar.js": {
+      "mtime": 1774823520426.0337,
+      "size": 12399
+    },
+    "frontend/components/SlotMachine.js": {
+      "mtime": 1770099448617.2522,
+      "size": 17478
+    },
+    "frontend/components/SoundSettingsModal.js": {
+      "mtime": 1770091305697.5437,
+      "size": 11646
+    },
+    "frontend/components/StitchedBorder.js": {
+      "mtime": 1765124009885.9744,
+      "size": 986
+    },
+    "frontend/components/StitchedFillBar.js": {
+      "mtime": 1777157505612.7173,
+      "size": 4001
+    },
+    "frontend/components/ThemeSettingsModal.js": {
+      "mtime": 1770091313549.6099,
+      "size": 16733
+    },
+    "frontend/components/TiledBackground.js": {
+      "mtime": 1765066520499.911,
+      "size": 2758
+    },
+    "frontend/components/Touchable.js": {
+      "mtime": 1765066520499.911,
+      "size": 2477
+    },
+    "frontend/components/UserSettingsModal.js": {
+      "mtime": 1772280712356.5806,
+      "size": 13642
+    },
+    "frontend/components/UserStatus.js": {
+      "mtime": 1774800515078.0535,
+      "size": 6820
+    },
+    "frontend/components/UsernameSelector.js": {
+      "mtime": 1765122530157.5464,
+      "size": 4684
+    },
+    "frontend/components/WeepingWillow.js": {
+      "mtime": 1765068635560.968,
+      "size": 917
+    },
+    "frontend/components/WishingWell.js": {
+      "mtime": 1765066520499.911,
+      "size": 539
+    },
+    "frontend/components/WoolButton.js": {
+      "mtime": 1770108162636.1277,
+      "size": 1470
+    },
+    "frontend/components/Workbook.js": {
+      "mtime": 1766857275337.14,
+      "size": 806
+    },
+    "frontend/components/drops/AdminActionLog.js": {
+      "mtime": 1772242484172.984,
+      "size": 7429
+    },
+    "frontend/components/drops/AdminDashboard.js": {
+      "mtime": 1772242327979.5303,
+      "size": 11699
+    },
+    "frontend/components/drops/AdminReviewItem.js": {
+      "mtime": 1772287503653.0222,
+      "size": 15809
+    },
+    "frontend/components/drops/BazaarAssetCatalog.js": {
+      "mtime": 1772245601814.859,
+      "size": 5324
+    },
+    "frontend/components/drops/BazaarDrawingBoard.js": {
+      "mtime": 1772249446351.0403,
+      "size": 5562
+    },
+    "frontend/components/drops/BazaarItemDetail.js": {
+      "mtime": 1774579041778.6396,
+      "size": 23083
+    },
+    "frontend/components/drops/BazaarMySubmissions.js": {
+      "mtime": 1772283831615.933,
+      "size": 7151
+    },
+    "frontend/components/drops/BazaarShop.js": {
+      "mtime": 1772304342752.9602,
+      "size": 10698
+    },
+    "frontend/components/drops/BazaarStyleGuide.js": {
+      "mtime": 1772246262852.21,
+      "size": 14065
+    },
+    "frontend/components/drops/BazaarSubmissionDetail.js": {
+      "mtime": 1772287244330.4646,
+      "size": 21726
+    },
+    "frontend/components/drops/BazaarSubmit.js": {
+      "mtime": 1774578566549.576,
+      "size": 17119
+    },
+    "frontend/components/drops/CopyrightConfirm.js": {
+      "mtime": 1772282251059.571,
+      "size": 13903
+    },
+    "frontend/components/drops/CreatePost.js": {
+      "mtime": 1770092209978.3066,
+      "size": 13459
+    },
+    "frontend/components/drops/CreateWeepingWillowPost.js": {
+      "mtime": 1770092155069.6953,
+      "size": 10943
+    },
+    "frontend/components/drops/CreateWishingWellPost.js": {
+      "mtime": 1765067823660.6045,
+      "size": 4814
+    },
+    "frontend/components/drops/CustomizationAssetPicker.js": {
+      "mtime": 1772325803390.9912,
+      "size": 10727
+    },
+    "frontend/components/drops/CustomizationItemPicker.js": {
+      "mtime": 1772302731076.236,
+      "size": 7182
+    },
+    "frontend/components/drops/CustomizationRevisionPicker.js": {
+      "mtime": 1772302761748.618,
+      "size": 10075
+    },
+    "frontend/components/drops/HistoryInstance.js": {
+      "mtime": 1777195202326.697,
+      "size": 9055
+    },
+    "frontend/components/drops/HistoryLanding.js": {
+      "mtime": 1777195164454.2666,
+      "size": 8551
+    },
+    "frontend/components/drops/MailboxList.js": {
+      "mtime": 1772287809820.04,
+      "size": 8120
+    },
+    "frontend/components/drops/ModerationActionLog.js": {
+      "mtime": 1772242456424.7256,
+      "size": 5915
+    },
+    "frontend/components/drops/ModerationQueue.js": {
+      "mtime": 1772242311535.3772,
+      "size": 9354
+    },
+    "frontend/components/drops/ModerationReviewItem.js": {
+      "mtime": 1772287492976.917,
+      "size": 15317
+    },
+    "frontend/components/drops/PixelPalsCanvas.js": {
+      "mtime": 1774815546965.88,
+      "size": 4811
+    },
+    "frontend/components/drops/PixelPalsCreate.js": {
+      "mtime": 1774773811945.612,
+      "size": 12668
+    },
+    "frontend/components/drops/PixelPalsLanding.js": {
+      "mtime": 1774741522281.7075,
+      "size": 8909
+    },
+    "frontend/components/drops/PixelSketchEditor.js": {
+      "mtime": 1774580425468.1047,
+      "size": 3416
+    },
+    "frontend/components/drops/PositivityBoard.js": {
+      "mtime": 1770457638651.445,
+      "size": 24847
+    },
+    "frontend/components/drops/PostConfirmation.js": {
+      "mtime": 1765665360183.6226,
+      "size": 3509
+    },
+    "frontend/components/drops/PostsList.js": {
+      "mtime": 1770092189430.0793,
+      "size": 12316
+    },
+    "frontend/components/drops/RespondToPost.js": {
+      "mtime": 1770091311505.5925,
+      "size": 29382
+    },
+    "frontend/components/drops/ResponseConfirmation.js": {
+      "mtime": 1765665366967.6868,
+      "size": 2863
+    },
+    "frontend/components/drops/TippablePostsList.js": {
+      "mtime": 1765668087738.6345,
+      "size": 10454
+    },
+    "frontend/components/drops/ViewPost.js": {
+      "mtime": 1770091308821.57,
+      "size": 13161
+    },
+    "frontend/components/drops/WeepingWillowLanding.js": {
+      "mtime": 1765073873480.3892,
+      "size": 1819
+    },
+    "frontend/components/drops/WishingWellLanding.js": {
+      "mtime": 1765066520499.911,
+      "size": 4719
+    },
+    "frontend/components/drops/WorkbookActivity.js": {
+      "mtime": 1777860267222.1987,
+      "size": 23484
+    },
+    "frontend/components/drops/WorkbookLanding.js": {
+      "mtime": 1777296835816.8167,
+      "size": 7092
+    },
+    "frontend/components/drops/WorkbookResumePicker.js": {
+      "mtime": 1777856088580.0615,
+      "size": 9070
+    },
+    "frontend/components/external-link.tsx": {
+      "mtime": 499162500000,
+      "size": 794
+    },
+    "frontend/components/haptic-tab.tsx": {
+      "mtime": 499162500000,
+      "size": 564
+    },
+    "frontend/components/hello-wave.tsx": {
+      "mtime": 499162500000,
+      "size": 405
+    },
+    "frontend/components/parallax-scroll-view.tsx": {
+      "mtime": 499162500000,
+      "size": 1996
+    },
+    "frontend/components/primitives/BackFillAffordance.js": {
+      "mtime": 1777134222346.5115,
+      "size": 6529
+    },
+    "frontend/components/primitives/BinaryStateToggle.js": {
+      "mtime": 1777210281670.1372,
+      "size": 5818
+    },
+    "frontend/components/primitives/BodyScanSummary.js": {
+      "mtime": 1777189506770.9045,
+      "size": 3433
+    },
+    "frontend/components/primitives/BodySilhouetteWithZones.js": {
+      "mtime": 1777233789653.8235,
+      "size": 16547
+    },
+    "frontend/components/primitives/BreathPacerAnimation.js": {
+      "mtime": 1777208532281.3867,
+      "size": 6881
+    },
+    "frontend/components/primitives/ButtonAddNewItem.js": {
+      "mtime": 1777159988282.1892,
+      "size": 3576
+    },
+    "frontend/components/primitives/ButtonExportShareAction.js": {
+      "mtime": 1777130809829.865,
+      "size": 3443
+    },
+    "frontend/components/primitives/ButtonPrimarySaveCta.js": {
+      "mtime": 1777130755484.8416,
+      "size": 2278
+    },
+    "frontend/components/primitives/ButtonSecondaryAction.js": {
+      "mtime": 1777130773357.1833,
+      "size": 4059
+    },
+    "frontend/components/primitives/ChartTrendLineOrBar.js": {
+      "mtime": 1777158509041.2603,
+      "size": 11463
+    },
+    "frontend/components/primitives/Checkbox.js": {
+      "mtime": 1777860462520.726,
+      "size": 7170
+    },
+    "frontend/components/primitives/ChipMultiSelectTagGroup.js": {
+      "mtime": 1777297867902.2268,
+      "size": 9549
+    },
+    "frontend/components/primitives/ChipSuggestionOrAction.js": {
+      "mtime": 1777210525208.9304,
+      "size": 6131
+    },
+    "frontend/components/primitives/ChipValueBadgeReadonly.js": {
+      "mtime": 1777130829390.2227,
+      "size": 4714
+    },
+    "frontend/components/primitives/CollapsibleSection.js": {
+      "mtime": 1777130987612.9316,
+      "size": 3482
+    },
+    "frontend/components/primitives/DataComparisonTable.js": {
+      "mtime": 1777210400331.5178,
+      "size": 6160
+    },
+    "frontend/components/primitives/DecorativeIllustrationOrBackdrop.js": {
+      "mtime": 1777131467823.8171,
+      "size": 4367
+    },
+    "frontend/components/primitives/DiagramCanvasWithNodesAndEdges.js": {
+      "mtime": 1777210379019.273,
+      "size": 9657
+    },
+    "frontend/components/primitives/DraggableOrSwipeableCard.js": {
+      "mtime": 1777131581537.2673,
+      "size": 7087
+    },
+    "frontend/components/primitives/FreeTextMultilineArea.js": {
+      "mtime": 1777233760329.5413,
+      "size": 10677
+    },
+    "frontend/components/primitives/FreeTextShortInput.js": {
+      "mtime": 1777230132607.471,
+      "size": 4727
+    },
+    "frontend/components/primitives/HistorySavedEntryCard.js": {
+      "mtime": 1777158157002.2153,
+      "size": 6529
+    },
+    "frontend/components/primitives/LayoutQuadrantOrGridCells.js": {
+      "mtime": 1777131181939.9077,
+      "size": 5206
+    },
+    "frontend/components/primitives/LayoutSplitScreenTwoPane.js": {
+      "mtime": 1777137302996.2102,
+      "size": 3683
+    },
+    "frontend/components/primitives/ModalOverlayOrBottomSheet.js": {
+      "mtime": 1777154427613.0981,
+      "size": 7494
+    },
+    "frontend/components/primitives/ModeToggle.js": {
+      "mtime": 1777130904903.5537,
+      "size": 5590
+    },
+    "frontend/components/primitives/NumericRatingSlider.js": {
+      "mtime": 1777232750091.5413,
+      "size": 10742
+    },
+    "frontend/components/primitives/OptionSelectDropdown.js": {
+      "mtime": 1777210473680.352,
+      "size": 6862
+    },
+    "frontend/components/primitives/PageableHistoryCarousel.js": {
+      "mtime": 1777134267251.048,
+      "size": 8269
+    },
+    "frontend/components/primitives/PersonaPicker.js": {
+      "mtime": 1777210291478.253,
+      "size": 6235
+    },
+    "frontend/components/primitives/PlatformWriteThroughHook.js": {
+      "mtime": 1777134193350.1646,
+      "size": 5157
+    },
+    "frontend/components/primitives/PrimitiveFrame.js": {
+      "mtime": 1777131182059.9092,
+      "size": 2404
+    },
+    "frontend/components/primitives/ProgressCounterOrBar.js": {
+      "mtime": 1777157542537.0205,
+      "size": 7725
+    },
+    "frontend/components/primitives/QuickMoodMicroWidget.js": {
+      "mtime": 1777210487328.5059,
+      "size": 5632
+    },
+    "frontend/components/primitives/StaticTextContentBlock.js": {
+      "mtime": 1777233446794.5078,
+      "size": 3493
+    },
+    "frontend/components/primitives/StickyTopBannerChrome.js": {
+      "mtime": 1777158125265.9424,
+      "size": 11112
+    },
+    "frontend/components/primitives/SummaryOutputCard.js": {
+      "mtime": 1777210639302.192,
+      "size": 10685
+    },
+    "frontend/components/primitives/SupportNetworkMapCanvas.js": {
+      "mtime": 1777210366043.1233,
+      "size": 29932
+    },
+    "frontend/components/primitives/TimerCountdownOrSession.js": {
+      "mtime": 1777298953236.1013,
+      "size": 11049
+    },
+    "frontend/components/primitives/_index.js": {
+      "mtime": 1777214676131.805,
+      "size": 4212
+    },
+    "frontend/components/themed-text.tsx": {
+      "mtime": 499162500000,
+      "size": 1285
+    },
+    "frontend/components/themed-view.tsx": {
+      "mtime": 499162500000,
+      "size": 470
+    },
+    "frontend/components/ui/collapsible.tsx": {
+      "mtime": 499162500000,
+      "size": 1362
+    },
+    "frontend/components/ui/icon-symbol.ios.tsx": {
+      "mtime": 499162500000,
+      "size": 598
+    },
+    "frontend/components/ui/icon-symbol.tsx": {
+      "mtime": 499162500000,
+      "size": 1422
+    },
+    "frontend/components/workbook/ActionPlanStep.js": {
+      "mtime": 1772019293633.3237,
+      "size": 5363
+    },
+    "frontend/components/workbook/AssessmentResultsStep.js": {
+      "mtime": 1777208585137.8538,
+      "size": 4650
+    },
+    "frontend/components/workbook/ChecklistAssessmentStep.js": {
+      "mtime": 1777208523529.3093,
+      "size": 4629
+    },
+    "frontend/components/workbook/ComponentStep.js": {
+      "mtime": 1777860114167.9841,
+      "size": 12454
+    },
+    "frontend/components/workbook/GuidedExerciseStep.js": {
+      "mtime": 1772019285385.2627,
+      "size": 9409
+    },
+    "frontend/components/workbook/JournalStep.js": {
+      "mtime": 1777215861340.947,
+      "size": 7362
+    },
+    "frontend/components/workbook/LikertReflectionStep.js": {
+      "mtime": 1777172704716.9656,
+      "size": 210
+    },
+    "frontend/components/workbook/LikertStep.js": {
+      "mtime": 1772020563924.4133,
+      "size": 5172
+    },
+    "frontend/components/workbook/PromptSequenceStep.js": {
+      "mtime": 1772020017352.0703,
+      "size": 4699
+    },
+    "frontend/components/workbook/PsychoeducationStep.js": {
+      "mtime": 1772019246664.9897,
+      "size": 4716
+    },
+    "frontend/components/workbook/RatingStep.js": {
+      "mtime": 1772019479219.255,
+      "size": 2563
+    },
+    "frontend/components/workbook/ReflectionFraming.js": {
+      "mtime": 1777227300426.3298,
+      "size": 5133
+    },
+    "frontend/components/workbook/ReflectionPanel.js": {
+      "mtime": 1777296928049.657,
+      "size": 4153
+    },
+    "frontend/components/workbook/SortableListStep.js": {
+      "mtime": 1772019296673.3572,
+      "size": 7047
+    },
+    "frontend/components/workbook/StitchedProgressBar.js": {
+      "mtime": 1772021158196.9236,
+      "size": 4360
+    },
+    "frontend/flows/adminFlow.js": {
+      "mtime": 1772245754389.0767,
+      "size": 1548
+    },
+    "frontend/flows/customizationTableFlow.js": {
+      "mtime": 1772302668291.436,
+      "size": 2029
+    },
+    "frontend/flows/drawingBoardFlow.js": {
+      "mtime": 1772281061331.7583,
+      "size": 4784
+    },
+    "frontend/flows/historyFlow.js": {
+      "mtime": 1777195446025.3972,
+      "size": 1542
+    },
+    "frontend/flows/mailboxFlow.js": {
+      "mtime": 1772286813906.2134,
+      "size": 777
+    },
+    "frontend/flows/mapSpritesStallFlow.js": {
+      "mtime": 1772245739692.865,
+      "size": 1033
+    },
+    "frontend/flows/moderationFlow.js": {
+      "mtime": 1772245753325.0613,
+      "size": 1539
+    },
+    "frontend/flows/pixelPalsFlow.js": {
+      "mtime": 1774665575587.1384,
+      "size": 1482
+    },
+    "frontend/flows/pixelSketchFlow.js": {
+      "mtime": 1774577522373.2761,
+      "size": 473
+    },
+    "frontend/flows/weepingWillowFlow.js": {
+      "mtime": 1765676676464.7637,
+      "size": 1900
+    },
+    "frontend/flows/wishingWellFlow.js": {
+      "mtime": 1770102570812.9417,
+      "size": 943
+    },
+    "frontend/flows/workbookFlow.js": {
+      "mtime": 1777208704222.9065,
+      "size": 1810
+    },
+    "frontend/screens/AvatarGenerationScreen.js": {
+      "mtime": 1775282930192.6023,
+      "size": 28764
+    },
+    "frontend/screens/CanvasScreen.js": {
+      "mtime": 1765066520495.911,
+      "size": 7627
+    },
+    "frontend/screens/ComponentShowcaseScreen.js": {
+      "mtime": 1779329240982.216,
+      "size": 65419
+    },
+    "frontend/screens/DebugScreen.js": {
+      "mtime": 1765122545793.734,
+      "size": 3848
+    },
+    "frontend/screens/InventoryScreen.js": {
+      "mtime": 1774579180480.7776,
+      "size": 8193
+    },
+    "frontend/screens/LandingScreen.js": {
+      "mtime": 1765665249706.5752,
+      "size": 3337
+    },
+    "frontend/screens/OnboardingScreen.js": {
+      "mtime": 1777921461274.604,
+      "size": 12052
+    },
+    "frontend/screens/RoomScreen.js": {
+      "mtime": 1765122607002.4624,
+      "size": 3205
+    },
+    "frontend/screens/TownMapScreen.js": {
+      "mtime": 1765122607002.4624,
+      "size": 3086
+    },
+    "frontend/screens/UsernameCreationScreen.js": {
+      "mtime": 1770100261516.4028,
+      "size": 10835
+    },
+    "frontend/stores/AuthStore.js": {
+      "mtime": 1764447064671.877,
+      "size": 2862
+    },
+    "frontend/stores/CharacterStore.js": {
+      "mtime": 1770100880341.264,
+      "size": 6301
+    },
+    "frontend/stores/CustomizationStore.js": {
+      "mtime": 1772302646071.1465,
+      "size": 1293
+    },
+    "frontend/stores/ErrorStore.js": {
+      "mtime": 1765064427698.1917,
+      "size": 1755
+    },
+    "frontend/stores/FeatureStore.js": {
+      "mtime": 1774577196102.6345,
+      "size": 1221
+    },
+    "frontend/stores/FontSettingsStore.js": {
+      "mtime": 1770094618866.1313,
+      "size": 7251
+    },
+    "frontend/stores/FormStore.js": {
+      "mtime": 1765067778560.1455,
+      "size": 5993
+    },
+    "frontend/stores/HistoryStore.js": {
+      "mtime": 1777131326033.9333,
+      "size": 1674
+    },
+    "frontend/stores/HopeChestStore.js": {
+      "mtime": 1777131314461.7751,
+      "size": 1127
+    },
+    "frontend/stores/InventoryStore.js": {
+      "mtime": 1774577233958.3054,
+      "size": 3052
+    },
+    "frontend/stores/LayerStore.js": {
+      "mtime": 1764508899446.1094,
+      "size": 2721
+    },
+    "frontend/stores/MoodStore.js": {
+      "mtime": 1777131311061.7285,
+      "size": 1169
+    },
+    "frontend/stores/NotificationStore.js": {
+      "mtime": 1765069202496.0876,
+      "size": 6183
+    },
+    "frontend/stores/PersonaStore.js": {
+      "mtime": 1777131320329.8555,
+      "size": 1756
+    },
+    "frontend/stores/PixelPalsStore.js": {
+      "mtime": 1774773036538.3923,
+      "size": 4209
+    },
+    "frontend/stores/ProfileStore.js": {
+      "mtime": 1770461811190.2996,
+      "size": 4327
+    },
+    "frontend/stores/RoomEditorStore.js": {
+      "mtime": 1777727009981.1636,
+      "size": 22984
+    },
+    "frontend/stores/RoomStore.js": {
+      "mtime": 1760810754000,
+      "size": 714
+    },
+    "frontend/stores/SessionStore.js": {
+      "mtime": 1775282293804.9128,
+      "size": 7576
+    },
+    "frontend/stores/SoundSettingsStore.js": {
+      "mtime": 1765134344280.8667,
+      "size": 5739
+    },
+    "frontend/stores/ThemeStore.js": {
+      "mtime": 1774578873932.8596,
+      "size": 11767
+    },
+    "frontend/stores/UXStore.js": {
+      "mtime": 1774801719968.329,
+      "size": 3186
+    },
+    "frontend/services/SoundManager.js": {
+      "mtime": 1764516950961.1218,
+      "size": 21105
+    },
+    "frontend/services/websocket.js": {
+      "mtime": 1777131331138.003,
+      "size": 7538
+    },
+    "frontend/app/_layout.tsx": {
+      "mtime": 1779329250285.516,
+      "size": 6539
+    },
+    "frontend/app/activities-beta.tsx": {
+      "mtime": 1779329247627.0503,
+      "size": 503
+    },
+    "frontend/app/activities-demo.tsx": {
+      "mtime": 1777683686000.4502,
+      "size": 139
+    },
+    "frontend/app/components.tsx": {
+      "mtime": 1777131938861.5864,
+      "size": 115
+    },
+    "frontend/app/debug.tsx": {
+      "mtime": 1763229514853.4443,
+      "size": 79
+    },
+    "frontend/app/homestead/_layout.tsx": {
+      "mtime": 1763238777817.1128,
+      "size": 412
+    },
+    "frontend/app/homestead/explore/_layout.tsx": {
+      "mtime": 1775283845672.204,
+      "size": 1275
+    },
+    "frontend/app/homestead/explore/home.tsx": {
+      "mtime": 1763238935115.1267,
+      "size": 88
+    },
+    "frontend/app/homestead/explore/map/[location].tsx": {
+      "mtime": 1777683163268.265,
+      "size": 1193
+    },
+    "frontend/app/homestead/explore/map/_layout.tsx": {
+      "mtime": 1774773027738.2095,
+      "size": 2958
+    },
+    "frontend/app/homestead/explore/map/index.tsx": {
+      "mtime": 1775282916104.5107,
+      "size": 1339
+    },
+    "frontend/app/homestead/onboarding/_layout.tsx": {
+      "mtime": 1764435892386.8286,
+      "size": 410
+    },
+    "frontend/app/homestead/onboarding/avatar.tsx": {
+      "mtime": 1764441207117.1572,
+      "size": 118
+    },
+    "frontend/app/homestead/onboarding/index.tsx": {
+      "mtime": 1770090172691.4673,
+      "size": 118
+    },
+    "frontend/app/homestead/onboarding/username.tsx": {
+      "mtime": 1764441207041.1565,
+      "size": 118
+    },
+    "frontend/app/index.tsx": {
+      "mtime": 1764435897826.8787,
+      "size": 94
+    },
+    "frontend/app/inventory.tsx": {
+      "mtime": 1763229514361.4387,
+      "size": 91
+    },
+    "backend/src/auth/google.js": {
+      "mtime": 1760810158000,
+      "size": 1408
+    },
+    "backend/src/config/featureLevels.js": {
+      "mtime": 1774576916826.1667,
+      "size": 631
+    },
+    "backend/src/config/personas.js": {
+      "mtime": 1777131261861.047,
+      "size": 971
+    },
+    "backend/src/database.js": {
+      "mtime": 1760810114000,
+      "size": 340
+    },
+    "backend/src/flows/admin.js": {
+      "mtime": 1772282679596.4004,
+      "size": 14377
+    },
+    "backend/src/flows/bazaar.js": {
+      "mtime": 1774578867760.9453,
+      "size": 30717
+    },
+    "backend/src/flows/features.js": {
+      "mtime": 1774576968915.1658,
+      "size": 2255
+    },
+    "backend/src/flows/history.js": {
+      "mtime": 1777195533634.3447,
+      "size": 3631
+    },
+    "backend/src/flows/hopeChest.js": {
+      "mtime": 1777131277577.266,
+      "size": 1782
+    },
+    "backend/src/flows/knapsack.js": {
+      "mtime": 1774578926396.1448,
+      "size": 9121
+    },
+    "backend/src/flows/moderation.js": {
+      "mtime": 1772287799219.9355,
+      "size": 18521
+    },
+    "backend/src/flows/mood.js": {
+      "mtime": 1777131273401.208,
+      "size": 2393
+    },
+    "backend/src/flows/notifications.js": {
+      "mtime": 1765068526967.8425,
+      "size": 10851
+    },
+    "backend/src/flows/persona.js": {
+      "mtime": 1777131284109.357,
+      "size": 2329
+    },
+    "backend/src/flows/pixelPals.js": {
+      "mtime": 1774770341643.649,
+      "size": 26499
+    },
+    "backend/src/flows/roomEditor.js": {
+      "mtime": 1777721126323.6377,
+      "size": 9921
+    },
+    "backend/src/flows/weepingWillow.js": {
+      "mtime": 1774578565261.5981,
+      "size": 8400
+    },
+    "backend/src/flows/weepingWillow.test.js": {
+      "mtime": 1765063092688.6243,
+      "size": 10915
+    },
+    "backend/src/flows/wishingWell.js": {
+      "mtime": 1774578548453.8894,
+      "size": 8446
+    },
+    "backend/src/flows/workbook.js": {
+      "mtime": 1779329187844.2705,
+      "size": 25388
+    },
+    "backend/src/middleware/permissions.js": {
+      "mtime": 1772250175368.8137,
+      "size": 2844
+    },
+    "backend/src/migrations/migrate-avatar-urls.js": {
+      "mtime": 1770461886711.874,
+      "size": 5221
+    },
+    "backend/src/migrations/migrate-user-objects.js": {
+      "mtime": 1765126265021.638,
+      "size": 9119
+    },
+    "backend/src/models/Account.js": {
+      "mtime": 1774576890693.663,
+      "size": 5818
+    },
+    "backend/src/models/Action.js": {
+      "mtime": 1760810060000,
+      "size": 1071
+    },
+    "backend/src/models/CopyrightChangeLog.js": {
+      "mtime": 1772277266566.3135,
+      "size": 522
+    },
+    "backend/src/models/DemoText.js": {
+      "mtime": 1777685275739.6357,
+      "size": 546
+    },
+    "backend/src/models/HistoryEntry.js": {
+      "mtime": 1777131257516.986,
+      "size": 1034
+    },
+    "backend/src/models/HopeChestEntry.js": {
+      "mtime": 1777131250524.888,
+      "size": 572
+    },
+    "backend/src/models/Layer.js": {
+      "mtime": 1764508655171.5703,
+      "size": 1337
+    },
+    "backend/src/models/ModerationAction.js": {
+      "mtime": 1772237080908.339,
+      "size": 1221
+    },
+    "backend/src/models/ModerationQueue.js": {
+      "mtime": 1772244675755.0747,
+      "size": 2194
+    },
+    "backend/src/models/MoodEntry.js": {
+      "mtime": 1777131247772.849,
+      "size": 558
+    },
+    "backend/src/models/Notification.js": {
+      "mtime": 1774581551221.9954,
+      "size": 2586
+    },
+    "backend/src/models/Persona.js": {
+      "mtime": 1777131252800.92,
+      "size": 472
+    },
+    "backend/src/models/PixelBoard.js": {
+      "mtime": 1774665916816.8916,
+      "size": 3274
+    },
+    "backend/src/models/PixelPalsPlayer.js": {
+      "mtime": 1774582384535.4966,
+      "size": 1754
+    },
+    "backend/src/models/PlayerLog.js": {
+      "mtime": 1763305004101.0017,
+      "size": 1506
+    },
+    "backend/src/models/ReportIssue.js": {
+      "mtime": 1765664467007.0952,
+      "size": 2194
+    },
+    "backend/src/models/Room.js": {
+      "mtime": 1760809876000,
+      "size": 840
+    },
+    "backend/src/models/RoomLayoutOverlay.js": {
+      "mtime": 1777721088871.2693,
+      "size": 1508
+    },
+    "backend/src/models/ShopItem.js": {
+      "mtime": 1774578791050.035,
+      "size": 4205
+    },
+    "backend/src/models/User.js": {
+      "mtime": 1764436310443.3762,
+      "size": 576
+    },
+    "backend/src/models/WeepingWillowPost.js": {
+      "mtime": 1765678391307.2578,
+      "size": 1416
+    },
+    "backend/src/models/WishingWellPost.js": {
+      "mtime": 1765678405995.4658,
+      "size": 1542
+    },
+    "backend/src/models/Workbook.js": {
+      "mtime": 1772012777668.2065,
+      "size": 598
+    },
+    "backend/src/models/WorkbookActivity.js": {
+      "mtime": 1779329148996.0703,
+      "size": 3512
+    },
+    "backend/src/models/WorkbookProgress.js": {
+      "mtime": 1777207444627.8816,
+      "size": 1363
+    },
+    "backend/src/routes/accounts.js": {
+      "mtime": 1777688579722.4475,
+      "size": 8469
+    },
+    "backend/src/routes/actions.js": {
+      "mtime": 1763305186178.7046,
+      "size": 1808
+    },
+    "backend/src/routes/auth-web.js": {
+      "mtime": 1764450756767.9763,
+      "size": 5353
+    },
+    "backend/src/routes/auth.js": {
+      "mtime": 1763305080609.7104,
+      "size": 2489
+    },
+    "backend/src/routes/avatar.js": {
+      "mtime": 1770461752061.066,
+      "size": 2870
+    },
+    "backend/src/routes/copyrightPreferences.js": {
+      "mtime": 1772281985480.159,
+      "size": 4574
+    },
+    "backend/src/routes/demoText.js": {
+      "mtime": 1777858310988.8381,
+      "size": 73356
+    },
+    "backend/src/routes/layers.js": {
+      "mtime": 1764509594361.288,
+      "size": 7471
+    },
+    "backend/src/routes/logs.js": {
+      "mtime": 1763305218291.0103,
+      "size": 5511
+    },
+    "backend/src/routes/map.js": {
+      "mtime": 1764513319506.969,
+      "size": 9494
+    },
+    "backend/src/routes/reportIssues.js": {
+      "mtime": 1765664534359.7458,
+      "size": 11439
+    },
+    "backend/src/routes/rooms.js": {
+      "mtime": 1763305159622.453,
+      "size": 3492
+    },
+    "backend/src/routes/soundSettings.js": {
+      "mtime": 1764511938424.1174,
+      "size": 6132
+    },
+    "backend/src/routes/themeSettings.js": {
+      "mtime": 1765130516276.777,
+      "size": 6721
+    },
+    "backend/src/routes/user-rest.js": {
+      "mtime": 1760925420000,
+      "size": 3915
+    },
+    "backend/src/routes/users.js": {
+      "mtime": 1765064791055.68,
+      "size": 2898
+    },
+    "backend/src/routes/wishingWell.js": {
+      "mtime": 1763298351440.1367,
+      "size": 4680
+    },
+    "backend/src/seeds/layers.js": {
+      "mtime": 1764508848445.5803,
+      "size": 1249
+    },
+    "backend/src/seeds/seedActivitiesV2.js": {
+      "mtime": 1779329164820.861,
+      "size": 3023
+    },
+    "backend/src/seeds/seedClinicalBookshelves.js": {
+      "mtime": 1777169756681.596,
+      "size": 3126
+    },
+    "backend/src/server.js": {
+      "mtime": 1777686457205.5818,
+      "size": 9708
+    },
+    "backend/src/services/PlayerLogger.js": {
+      "mtime": 1763304986868.8435,
+      "size": 4154
+    },
+    "backend/src/services/avatarService.js": {
+      "mtime": 1772250026632.1084,
+      "size": 7752
+    },
+    "backend/src/services/pixelImageService.js": {
+      "mtime": 1774578635172.429,
+      "size": 1838
+    },
+    "backend/src/services/shopContentService.js": {
+      "mtime": 1772249880163.538,
+      "size": 1931
+    },
+    "backend/src/tests/fixtures/accounts.js": {
+      "mtime": 1765062472671.38,
+      "size": 1142
+    },
+    "backend/src/tests/setup.js": {
+      "mtime": 1765061988369.7031,
+      "size": 529
+    },
+    "backend/src/tests/utils/context.js": {
+      "mtime": 1765062001477.86,
+      "size": 417
+    },
+    "backend/src/utils/FlowEngine.js": {
+      "mtime": 1763302755898.4866,
+      "size": 3371
+    },
+    "backend/src/utils/bazaarPricing.js": {
+      "mtime": 1772284137367.0884,
+      "size": 868
+    },
+    "backend/src/utils/featureAccess.js": {
+      "mtime": 1774576922618.278,
+      "size": 1353
+    },
+    "backend/src/utils/itemHelpers.js": {
+      "mtime": 1774576925254.3289,
+      "size": 433
+    },
+    "backend/src/utils/rateLimiter.js": {
+      "mtime": 1760815376000,
+      "size": 1109
+    },
+    "backend/src/utils/username.js": {
+      "mtime": 1760815362000,
+      "size": 1094
+    },
+    "backend/prompts/cyberpunk-digital.md": {
+      "mtime": 1760873674000,
+      "size": 562
+    },
+    "backend/prompts/kawaii-anime.md": {
+      "mtime": 1760873668000,
+      "size": 546
+    },
+    "backend/prompts/snes-pixel-art.md": {
+      "mtime": 1760873656000,
+      "size": 526
+    },
+    "backend/prompts/vaporwave-aesthetic.md": {
+      "mtime": 1760873662000,
+      "size": 584
+    },
+    "activities/v2/5-step-problem-solving.json": {
+      "mtime": 1777234536108.5425,
+      "size": 21049
+    },
+    "activities/v2/_SCHEMA.md": {
+      "mtime": 1777234590333.0352,
+      "size": 27362
+    },
+    "activities/v2/_migrate-r5-carryforward.js": {
+      "mtime": 1777227184141.2703,
+      "size": 4163
+    },
+    "activities/v2/_migrate-r6-r2.js": {
+      "mtime": 1777225667736.5999,
+      "size": 11381
+    },
+    "activities/v2/activity-categorization-sort.json": {
+      "mtime": 1779315139322.2305,
+      "size": 9696
+    },
+    "activities/v2/activity-idea-inventory.json": {
+      "mtime": 1779315179976.586,
+      "size": 9069
+    },
+    "activities/v2/activity-mood-monitoring.json": {
+      "mtime": 1779315222810.379,
+      "size": 10284
+    },
+    "activities/v2/activity-scheduling-calendar.json": {
+      "mtime": 1779455948859.2275,
+      "size": 22839
+    },
+    "activities/v2/apathy-lethargy-toolkit.json": {
+      "mtime": 1779455934779.5947,
+      "size": 21472
+    },
+    "activities/v2/assertive-communication-skills.json": {
+      "mtime": 1779315216275.2812,
+      "size": 8007
+    },
+    "activities/v2/attachment-style-identification.json": {
+      "mtime": 1779473770610.2612,
+      "size": 9292
+    },
+    "activities/v2/audits/CANONICAL_PROTOTYPE_DISCREPANCIES.md": {
+      "mtime": 1779453736673.7158,
+      "size": 52447
+    },
+    "activities/v2/audits/activity-categorization-sort.md": {
+      "mtime": 1779399431312.6934,
+      "size": 7953
+    },
+    "activities/v2/audits/activity-idea-inventory.md": {
+      "mtime": 1779399424960.1636,
+      "size": 5942
+    },
+    "activities/v2/audits/activity-mood-monitoring.md": {
+      "mtime": 1779399461633.2742,
+      "size": 6815
+    },
+    "activities/v2/audits/activity-scheduling-calendar.md": {
+      "mtime": 1779399453637.5305,
+      "size": 4978
+    },
+    "activities/v2/audits/apathy-lethargy-toolkit.md": {
+      "mtime": 1779399457716.219,
+      "size": 6279
+    },
+    "activities/v2/audits/assertive-communication-skills.md": {
+      "mtime": 1779399481248.089,
+      "size": 5487
+    },
+    "activities/v2/audits/attachment-style-identification.md": {
+      "mtime": 1779399524389.5671,
+      "size": 7236
+    },
+    "activities/v2/audits/barrier-identification-and-override.md": {
+      "mtime": 1779399491204.7224,
+      "size": 8018
+    },
+    "activities/v2/audits/behavioral-cycle-stage-intervention.md": {
+      "mtime": 1779399495726.125,
+      "size": 6376
+    },
+    "activities/v2/audits/binary-screener.md": {
+      "mtime": 1779399471907.9812,
+      "size": 4648
+    },
+    "activities/v2/audits/boundary-setting-and-saying-no.md": {
+      "mtime": 1779399608792.427,
+      "size": 6322
+    },
+    "activities/v2/audits/bulls-eye-and-compass-values.md": {
+      "mtime": 1779399556388.9019,
+      "size": 6990
+    },
+    "activities/v2/audits/categorized-positive-reflection-worksheet.md": {
+      "mtime": 1779399597743.2148,
+      "size": 10339
+    },
+    "activities/v2/audits/causes-and-contributing-factors.md": {
+      "mtime": 1779399592686.007,
+      "size": 7807
+    },
+    "activities/v2/audits/cbt-formulation-cycle-map.md": {
+      "mtime": 1779399608816.8628,
+      "size": 9798
+    },
+    "activities/v2/audits/comparison-distinction-explainer.md": {
+      "mtime": 1779399632610.2766,
+      "size": 7246
+    },
+    "activities/v2/audits/concept-explainer.md": {
+      "mtime": 1779399604344.0056,
+      "size": 6471
+    },
+    "activities/v2/audits/conflict-navigation-steps.md": {
+      "mtime": 1779399597743.2148,
+      "size": 8110
+    },
+    "activities/v2/audits/coping-response-diary.md": {
+      "mtime": 1779399580822.4946,
+      "size": 4382
+    },
+    "activities/v2/audits/coping-statements-affirmations.md": {
+      "mtime": 1779399611139.813,
+      "size": 8922
+    },
+    "activities/v2/audits/coping-strategy-tip-menu.md": {
+      "mtime": 1779399716089.6602,
+      "size": 7843
+    },
+    "activities/v2/audits/core-belief-work.md": {
+      "mtime": 1779399664632.6028,
+      "size": 5268
+    },
+    "activities/v2/audits/crisis-contact-directory.md": {
+      "mtime": 1779399695065.8337,
+      "size": 6948
+    },
+    "activities/v2/audits/decatastrophizing.md": {
+      "mtime": 1779399716089.6602,
+      "size": 7522
+    },
+    "activities/v2/audits/depression-disclosure-communication.md": {
+      "mtime": 1779399716089.6602,
+      "size": 6747
+    },
+    "activities/v2/audits/dual-list-contrast-worksheet.md": {
+      "mtime": 1779399709070.2532,
+      "size": 6433
+    },
+    "activities/v2/audits/emotion-body-mapping.md": {
+      "mtime": 1779399739529.8936,
+      "size": 11738
+    },
+    "activities/v2/audits/emotion-override-opposite-action.md": {
+      "mtime": 1779399750574.705,
+      "size": 9932
+    },
+    "activities/v2/audits/episode-log-with-categorical-sorting.md": {
+      "mtime": 1779399779866.152,
+      "size": 13206
+    },
+    "activities/v2/audits/event-based-coping-preparation.md": {
+      "mtime": 1779399769891.8801,
+      "size": 8723
+    },
+    "activities/v2/audits/exercise-engagement-and-planning.md": {
+      "mtime": 1779399818913.0396,
+      "size": 8436
+    },
+    "activities/v2/audits/experiential-avoidance-analysis.md": {
+      "mtime": 1779399787432.1646,
+      "size": 6026
+    },
+    "activities/v2/audits/experiential-thought-demonstration.md": {
+      "mtime": 1779399805823.796,
+      "size": 6998
+    },
+    "activities/v2/audits/food-diary.md": {
+      "mtime": 1779399788974.0732,
+      "size": 5392
+    },
+    "activities/v2/audits/goal-motivation-and-barriers.md": {
+      "mtime": 1779399816315.6423,
+      "size": 7041
+    },
+    "activities/v2/audits/goal-setting-and-commitment.md": {
+      "mtime": 1779399823649.5205,
+      "size": 9186
+    },
+    "activities/v2/audits/graded-hierarchy-ladder.md": {
+      "mtime": 1779399853126.6533,
+      "size": 10853
+    },
+    "activities/v2/audits/grief-loss-processing.md": {
+      "mtime": 1779399847107.974,
+      "size": 11800
+    },
+    "activities/v2/audits/grounding-rapid-response-skill-sequence.md": {
+      "mtime": 1779399834665.4316,
+      "size": 6031
+    },
+    "activities/v2/audits/guided-imagery-visualization.md": {
+      "mtime": 1779399830564.8127,
+      "size": 5575
+    },
+    "activities/v2/audits/guided-visualization-meditation.md": {
+      "mtime": 1779399901343.4912,
+      "size": 8033
+    },
+    "activities/v2/audits/healthy-vs-unhealthy-behavior-sort.md": {
+      "mtime": 1779399962076.8767,
+      "size": 10407
+    },
+    "activities/v2/audits/help-seeking-planning.md": {
+      "mtime": 1779399930157.3647,
+      "size": 7710
+    },
+    "activities/v2/audits/i-statement-framework-practice.md": {
+      "mtime": 1779399914644.6245,
+      "size": 7084
+    },
+    "activities/v2/audits/integrated-multi-component-treatment-plan.md": {
+      "mtime": 1779399937153.9072,
+      "size": 13066
+    },
+    "activities/v2/audits/interpersonal-dynamics-psychoed.md": {
+      "mtime": 1779399937834.0017,
+      "size": 9350
+    },
+    "activities/v2/audits/introspective-values-reflection.md": {
+      "mtime": 1779399972960.388,
+      "size": 13674
+    },
+    "activities/v2/audits/life-domain-exploration.md": {
+      "mtime": 1779399930177.931,
+      "size": 8772
+    },
+    "activities/v2/audits/light-therapy-exposure-tracking.md": {
+      "mtime": 1779399976464.2126,
+      "size": 9705
+    },
+    "activities/v2/audits/locus-of-control-sorting.md": {
+      "mtime": 1779399948697.3918,
+      "size": 10061
+    },
+    "activities/v2/audits/medication-tracking.md": {
+      "mtime": 1779400003885.8643,
+      "size": 9077
+    },
+    "activities/v2/audits/mindful-sensory-activity.md": {
+      "mtime": 1779399986488.0754,
+      "size": 7277
+    },
+    "activities/v2/audits/mindfulness-psychoeducation.md": {
+      "mtime": 1779399999277.983,
+      "size": 8899
+    },
+    "activities/v2/audits/mood-boosting-sensory-activity.md": {
+      "mtime": 1779400013534.4338,
+      "size": 7340
+    },
+    "activities/v2/audits/mood-tracking-log.md": {
+      "mtime": 1779421276487.673,
+      "size": 11613
+    },
+    "activities/v2/audits/motivation-barriers-analysis.md": {
+      "mtime": 1779400013534.4338,
+      "size": 9180
+    },
+    "activities/v2/audits/multi-dimensional-framework-self-assessment.md": {
+      "mtime": 1779400038593.7605,
+      "size": 10898
+    },
+    "activities/v2/audits/multi-domain-lifestyle-psychoeducation-menu.md": {
+      "mtime": 1779427199806.2234,
+      "size": 8563
+    },
+    "activities/v2/audits/multi-domain-wheel-radar-self-assessment.md": {
+      "mtime": 1779421270998.5269,
+      "size": 12714
+    },
+    "activities/v2/audits/multi-step-ba-program.md": {
+      "mtime": 1779421260106.6172,
+      "size": 9510
+    },
+    "activities/v2/audits/myth-busting-and-knowledge-quiz.md": {
+      "mtime": 1779421257946.1367,
+      "size": 7396
+    },
+    "activities/v2/audits/north-star-values-compass.md": {
+      "mtime": 1779421278350.8645,
+      "size": 5231
+    },
+    "activities/v2/audits/nutrition-and-eating-guidance.md": {
+      "mtime": 1779421249032.4072,
+      "size": 6274
+    },
+    "activities/v2/audits/paced-breathing-exercise.md": {
+      "mtime": 1779427231041.568,
+      "size": 8353
+    },
+    "activities/v2/audits/parable-or-teaching-narrative.md": {
+      "mtime": 1779427234184.9592,
+      "size": 10490
+    },
+    "activities/v2/audits/parenting-seasonal-planning.md": {
+      "mtime": 1779421267411.808,
+      "size": 7037
+    },
+    "activities/v2/audits/personal-treatment-expectations-statement.md": {
+      "mtime": 1779427300713.8723,
+      "size": 11999
+    },
+    "activities/v2/audits/practice-tracker-log.md": {
+      "mtime": 1779427315746.7954,
+      "size": 11694
+    },
+    "activities/v2/audits/problem-identification.md": {
+      "mtime": 1779427248330.6042,
+      "size": 11541
+    },
+    "activities/v2/audits/progressive-muscle-relaxation.md": {
+      "mtime": 1779427307457.3164,
+      "size": 8240
+    },
+    "activities/v2/audits/prosocial-acts-tracking.md": {
+      "mtime": 1779427242150.9124,
+      "size": 11185
+    },
+    "activities/v2/audits/readiness-to-change.md": {
+      "mtime": 1779427255639.4773,
+      "size": 11181
+    },
+    "activities/v2/audits/reflective-journaling-prompted-self-reflection.md": {
+      "mtime": 1779427327367.3682,
+      "size": 18077
+    },
+    "activities/v2/audits/relational-self-reflection.md": {
+      "mtime": 1779427272651.9043,
+      "size": 10889
+    },
+    "activities/v2/audits/relationship-quality-self-assessment.md": {
+      "mtime": 1779427404064.1023,
+      "size": 12238
+    },
+    "activities/v2/audits/relaxation-modality-psychoeducation.md": {
+      "mtime": 1779427306338.8384,
+      "size": 12840
+    },
+    "activities/v2/audits/rights-or-affirmations-daily-reading.md": {
+      "mtime": 1779427270245.4453,
+      "size": 8878
+    },
+    "activities/v2/audits/self-care-action-planning-and-commitment.md": {
+      "mtime": 1779427277967.67,
+      "size": 8877
+    },
+    "activities/v2/audits/self-compassion-reframe.md": {
+      "mtime": 1779427387121.72,
+      "size": 12451
+    },
+    "activities/v2/audits/self-identification-checklist.md": {
+      "mtime": 1779427283366.9055,
+      "size": 8823
+    },
+    "activities/v2/audits/sleep-diary.md": {
+      "mtime": 1779427299998.408,
+      "size": 8797
+    },
+    "activities/v2/audits/sleep-hygiene-education-and-routine.md": {
+      "mtime": 1779427298708.3076,
+      "size": 8724
+    },
+    "activities/v2/audits/social-reengagement-activity-planning.md": {
+      "mtime": 1779427314655.5745,
+      "size": 9664
+    },
+    "activities/v2/audits/stoic-virtue-practice.md": {
+      "mtime": 1779427316341.2317,
+      "size": 12341
+    },
+    "activities/v2/audits/strengths-positive-qualities-inventory.md": {
+      "mtime": 1779427342237.59,
+      "size": 12542
+    },
+    "activities/v2/audits/structured-routine-scheduling.md": {
+      "mtime": 1779427330270,
+      "size": 8933
+    },
+    "activities/v2/audits/substance-use-awareness-and-reduction.md": {
+      "mtime": 1779427354613.6616,
+      "size": 11016
+    },
+    "activities/v2/audits/supporter-caregiver-guide.md": {
+      "mtime": 1779427406567.9712,
+      "size": 15236
+    },
+    "activities/v2/audits/symptom-severity-tracker.md": {
+      "mtime": 1779427365413.3403,
+      "size": 12304
+    },
+    "activities/v2/audits/technique-rating-and-selection-planner.md": {
+      "mtime": 1779427421867.0623,
+      "size": 16514
+    },
+    "activities/v2/audits/thought-challenging-questions.md": {
+      "mtime": 1779427364939.9265,
+      "size": 11957
+    },
+    "activities/v2/audits/thought-reframing-replacement.md": {
+      "mtime": 1779427362767.932,
+      "size": 8885
+    },
+    "activities/v2/audits/treatment-options-overview.md": {
+      "mtime": 1779427468141.4019,
+      "size": 9504
+    },
+    "activities/v2/audits/trigger-identification-logging.md": {
+      "mtime": 1779427426139.3137,
+      "size": 12220
+    },
+    "activities/v2/audits/typology-reference-list.md": {
+      "mtime": 1779427411536.745,
+      "size": 8273
+    },
+    "activities/v2/audits/values-to-action-translation.md": {
+      "mtime": 1779427494160.821,
+      "size": 10793
+    },
+    "activities/v2/audits/wellbeing-log.md": {
+      "mtime": 1779427419444.8853,
+      "size": 13304
+    },
+    "activities/v2/barrier-identification-and-override.json": {
+      "mtime": 1779474720818.792,
+      "size": 14527
+    },
+    "activities/v2/behavioral-cycle-stage-intervention.json": {
+      "mtime": 1779474135632.2952,
+      "size": 10225
+    },
+    "activities/v2/behavioral-experiment.json": {
+      "mtime": 1777234536112.5425,
+      "size": 15948
+    },
+    "activities/v2/binary-screener.json": {
+      "mtime": 1779315165425.4824,
+      "size": 7722
+    },
+    "activities/v2/body-scan.json": {
+      "mtime": 1777298753426.286,
+      "size": 6295
+    },
+    "activities/v2/boundary-setting-and-saying-no.json": {
+      "mtime": 1779315293984.3916,
+      "size": 13093
+    },
+    "activities/v2/breath-meditation.json": {
+      "mtime": 1777298975144.3003,
+      "size": 5206
+    },
+    "activities/v2/bulls-eye-and-compass-values.json": {
+      "mtime": 1779472801608.8452,
+      "size": 34812
+    },
+    "activities/v2/categorized-positive-reflection-worksheet.json": {
+      "mtime": 1779455501314.8838,
+      "size": 19370
+    },
+    "activities/v2/causes-and-contributing-factors.json": {
+      "mtime": 1779455782845.0005,
+      "size": 18344
+    },
+    "activities/v2/cbt-formulation-cycle-map.json": {
+      "mtime": 1779474175212.1758,
+      "size": 11716
+    },
+    "activities/v2/comparison-distinction-explainer.json": {
+      "mtime": 1779455906689.286,
+      "size": 8126
+    },
+    "activities/v2/concept-explainer.json": {
+      "mtime": 1779315355759.7795,
+      "size": 8326
+    },
+    "activities/v2/conflict-navigation-steps.json": {
+      "mtime": 1779315339239.5098,
+      "size": 11482
+    },
+    "activities/v2/coping-response-diary.json": {
+      "mtime": 1779315293443.2163,
+      "size": 9924
+    },
+    "activities/v2/coping-statements-affirmations.json": {
+      "mtime": 1779455463391.8606,
+      "size": 13735
+    },
+    "activities/v2/coping-strategy-tip-menu.json": {
+      "mtime": 1779474354020.0244,
+      "size": 14357
+    },
+    "activities/v2/core-belief-work.json": {
+      "mtime": 1779315297365.7925,
+      "size": 10825
+    },
+    "activities/v2/crisis-contact-directory.json": {
+      "mtime": 1779455883981.689,
+      "size": 6497
+    },
+    "activities/v2/decatastrophizing.json": {
+      "mtime": 1779473641818.2483,
+      "size": 20067
+    },
+    "activities/v2/depression-disclosure-communication.json": {
+      "mtime": 1779473778199.3555,
+      "size": 12297
+    },
+    "activities/v2/dual-list-contrast-worksheet.json": {
+      "mtime": 1779315157112.34,
+      "size": 7400
+    },
+    "activities/v2/emotion-body-mapping.json": {
+      "mtime": 1779473900312.0398,
+      "size": 19753
+    },
+    "activities/v2/emotion-override-opposite-action.json": {
+      "mtime": 1779315215556.8538,
+      "size": 9539
+    },
+    "activities/v2/episode-log-with-categorical-sorting.json": {
+      "mtime": 1779474128831.0437,
+      "size": 11342
+    },
+    "activities/v2/event-based-coping-preparation.json": {
+      "mtime": 1779473882044.553,
+      "size": 13627
+    },
+    "activities/v2/exercise-engagement-and-planning.json": {
+      "mtime": 1779455738828.7039,
+      "size": 13822
+    },
+    "activities/v2/experiential-avoidance-analysis.json": {
+      "mtime": 1779315408101.1675,
+      "size": 12877
+    },
+    "activities/v2/experiential-thought-demonstration.json": {
+      "mtime": 1779472718427.525,
+      "size": 9515
+    },
+    "activities/v2/food-diary.json": {
+      "mtime": 1779455718456.9624,
+      "size": 10884
+    },
+    "activities/v2/gad7-assessment.json": {
+      "mtime": 1777296945637.8174,
+      "size": 40757
+    },
+    "activities/v2/goal-motivation-and-barriers.json": {
+      "mtime": 1779315326826.453,
+      "size": 10494
+    },
+    "activities/v2/goal-setting-and-commitment.json": {
+      "mtime": 1779315420378.7468,
+      "size": 15908
+    },
+    "activities/v2/graded-hierarchy-ladder.json": {
+      "mtime": 1779474295047.7485,
+      "size": 15789
+    },
+    "activities/v2/gratitude-log.json": {
+      "mtime": 1777234536112.5425,
+      "size": 5057
+    },
+    "activities/v2/grief-loss-processing.json": {
+      "mtime": 1779473898255.26,
+      "size": 15217
+    },
+    "activities/v2/grounding-rapid-response-skill-sequence.json": {
+      "mtime": 1779315202821.9854,
+      "size": 11037
+    },
+    "activities/v2/guided-imagery-visualization.json": {
+      "mtime": 1779315554536.3171,
+      "size": 13097
+    },
+    "activities/v2/guided-visualization-meditation.json": {
+      "mtime": 1779474261755.4387,
+      "size": 10162
+    },
+    "activities/v2/healthy-vs-unhealthy-behavior-sort.json": {
+      "mtime": 1779455444448.136,
+      "size": 12996
+    },
+    "activities/v2/help-seeking-planning.json": {
+      "mtime": 1779474747439.704,
+      "size": 21264
+    },
+    "activities/v2/i-statement-framework-practice.json": {
+      "mtime": 1779315531624.473,
+      "size": 9215
+    },
+    "activities/v2/integrated-multi-component-treatment-plan.json": {
+      "mtime": 1779473859380.0513,
+      "size": 11844
+    },
+    "activities/v2/interpersonal-dynamics-psychoed.json": {
+      "mtime": 1779474001797.4531,
+      "size": 13612
+    },
+    "activities/v2/introspective-values-reflection.json": {
+      "mtime": 1779455672604.709,
+      "size": 20427
+    },
+    "activities/v2/life-domain-exploration.json": {
+      "mtime": 1779455411519.4258,
+      "size": 22674
+    },
+    "activities/v2/light-therapy-exposure-tracking.json": {
+      "mtime": 1779455706790.342,
+      "size": 18901
+    },
+    "activities/v2/locus-of-control-sorting.json": {
+      "mtime": 1779315457903.3706,
+      "size": 12977
+    },
+    "activities/v2/medication-tracking.json": {
+      "mtime": 1779455435056.6345,
+      "size": 9395
+    },
+    "activities/v2/mindful-sensory-activity.json": {
+      "mtime": 1779473968261.8198,
+      "size": 17657
+    },
+    "activities/v2/mindfulness-psychoeducation.json": {
+      "mtime": 1779473386240.636,
+      "size": 16253
+    },
+    "activities/v2/mood-boosting-sensory-activity.json": {
+      "mtime": 1779315314214.8545,
+      "size": 12592
+    },
+    "activities/v2/mood-tracking-log.json": {
+      "mtime": 1779455496041.8325,
+      "size": 14561
+    },
+    "activities/v2/motivation-barriers-analysis.json": {
+      "mtime": 1779474716474.6938,
+      "size": 15022
+    },
+    "activities/v2/multi-dimensional-framework-self-assessment.json": {
+      "mtime": 1779473016813.6519,
+      "size": 17639
+    },
+    "activities/v2/multi-domain-lifestyle-psychoeducation-menu.json": {
+      "mtime": 1779474031824.688,
+      "size": 9236
+    },
+    "activities/v2/multi-domain-wheel-radar-self-assessment.json": {
+      "mtime": 1779455524088.924,
+      "size": 28130
+    },
+    "activities/v2/multi-step-ba-program.json": {
+      "mtime": 1779473451916.338,
+      "size": 35028
+    },
+    "activities/v2/myth-busting-and-knowledge-quiz.json": {
+      "mtime": 1779315405366.3271,
+      "size": 13897
+    },
+    "activities/v2/north-star-values-compass.json": {
+      "mtime": 1779455700556.0166,
+      "size": 10591
+    },
+    "activities/v2/nutrition-and-eating-guidance.json": {
+      "mtime": 1779315390948.275,
+      "size": 9258
+    },
+    "activities/v2/paced-breathing-exercise.json": {
+      "mtime": 1779473734828.2007,
+      "size": 8510
+    },
+    "activities/v2/parable-or-teaching-narrative.json": {
+      "mtime": 1779455474025.761,
+      "size": 10463
+    },
+    "activities/v2/parenting-seasonal-planning.json": {
+      "mtime": 1779455683728.9788,
+      "size": 13595
+    },
+    "activities/v2/personal-treatment-expectations-statement.json": {
+      "mtime": 1779473000742.065,
+      "size": 11191
+    },
+    "activities/v2/phq9-assessment.json": {
+      "mtime": 1777296945637.8174,
+      "size": 55973
+    },
+    "activities/v2/practice-tracker-log.json": {
+      "mtime": 1779455949627.8145,
+      "size": 12781
+    },
+    "activities/v2/problem-identification.json": {
+      "mtime": 1779473231705.8164,
+      "size": 12959
+    },
+    "activities/v2/progressive-muscle-relaxation.json": {
+      "mtime": 1779474023353.5215,
+      "size": 16657
+    },
+    "activities/v2/prosocial-acts-tracking.json": {
+      "mtime": 1779315426566.9214,
+      "size": 8650
+    },
+    "activities/v2/readiness-to-change.json": {
+      "mtime": 1779474138449.2505,
+      "size": 13346
+    },
+    "activities/v2/reflective-journaling-prompted-self-reflection.json": {
+      "mtime": 1779474247210.3706,
+      "size": 12858
+    },
+    "activities/v2/relapse-prevention-plan.json": {
+      "mtime": 1777234536112.5425,
+      "size": 8864
+    },
+    "activities/v2/relational-self-reflection.json": {
+      "mtime": 1779315594041.555,
+      "size": 8282
+    },
+    "activities/v2/relationship-quality-self-assessment.json": {
+      "mtime": 1779455692772.2764,
+      "size": 9545
+    },
+    "activities/v2/relaxation-modality-psychoeducation.json": {
+      "mtime": 1779473771962.3357,
+      "size": 15648
+    },
+    "activities/v2/rights-or-affirmations-daily-reading.json": {
+      "mtime": 1779473110974.009,
+      "size": 6296
+    },
+    "activities/v2/safety-plan.json": {
+      "mtime": 1777234536112.5425,
+      "size": 22164
+    },
+    "activities/v2/self-care-action-planning-and-commitment.json": {
+      "mtime": 1779315493318.4795,
+      "size": 12221
+    },
+    "activities/v2/self-compassion-reframe.json": {
+      "mtime": 1779473742146.2974,
+      "size": 8817
+    },
+    "activities/v2/self-identification-checklist.json": {
+      "mtime": 1779474446196.4949,
+      "size": 8770
+    },
+    "activities/v2/sleep-diary.json": {
+      "mtime": 1779455653830.2488,
+      "size": 10319
+    },
+    "activities/v2/sleep-hygiene-education-and-routine.json": {
+      "mtime": 1779474472781.1377,
+      "size": 12835
+    },
+    "activities/v2/social-reengagement-activity-planning.json": {
+      "mtime": 1779474599427.6726,
+      "size": 16998
+    },
+    "activities/v2/stoic-virtue-practice.json": {
+      "mtime": 1779315602202.8528,
+      "size": 14752
+    },
+    "activities/v2/strengths-positive-qualities-inventory.json": {
+      "mtime": 1779315319149.3545,
+      "size": 13922
+    },
+    "activities/v2/structured-routine-scheduling.json": {
+      "mtime": 1779455697894.4912,
+      "size": 19653
+    },
+    "activities/v2/substance-use-awareness-and-reduction.json": {
+      "mtime": 1779455495129.465,
+      "size": 14112
+    },
+    "activities/v2/support-network-map.json": {
+      "mtime": 1777234536116.5425,
+      "size": 5667
+    },
+    "activities/v2/supporter-caregiver-guide.json": {
+      "mtime": 1779472877009.2722,
+      "size": 16278
+    },
+    "activities/v2/symptom-severity-tracker.json": {
+      "mtime": 1779472894606.235,
+      "size": 8666
+    },
+    "activities/v2/technique-rating-and-selection-planner.json": {
+      "mtime": 1779474579658.8423,
+      "size": 12587
+    },
+    "activities/v2/thinking-traps.json": {
+      "mtime": 1777234536116.5425,
+      "size": 10570
+    },
+    "activities/v2/thought-challenging-questions.json": {
+      "mtime": 1779473245263.1765,
+      "size": 21270
+    },
+    "activities/v2/thought-record.json": {
+      "mtime": 1777234536116.5425,
+      "size": 21076
+    },
+    "activities/v2/thought-reframing-replacement.json": {
+      "mtime": 1779315597865.08,
+      "size": 11012
+    },
+    "activities/v2/treatment-options-overview.json": {
+      "mtime": 1779455937549.5344,
+      "size": 9254
+    },
+    "activities/v2/trigger-identification-logging.json": {
+      "mtime": 1779315530931.509,
+      "size": 10864
+    },
+    "activities/v2/typology-reference-list.json": {
+      "mtime": 1779473126941.1575,
+      "size": 9704
+    },
+    "activities/v2/values-inventory.json": {
+      "mtime": 1777234536116.5425,
+      "size": 6768
+    },
+    "activities/v2/values-to-action-translation.json": {
+      "mtime": 1779473784340.8672,
+      "size": 28658
+    },
+    "activities/v2/wellbeing-log.json": {
+      "mtime": 1779455945158.3364,
+      "size": 6686
+    },
+    "CLAUDE.md": {
+      "mtime": 1777189189483.655,
+      "size": 11856
+    },
+    "README.md": {
+      "mtime": 1772014132423.1877,
+      "size": 2268
+    }
+  }
+}

@@ -221,6 +221,16 @@ const OnboardingScreen = observer(() => {
     router.push('/homestead/onboarding');
   };
 
+  // Suppress the login UI flash when the app boots on a non-root web URL
+  // (e.g. /activities-demo). Expo Router can briefly mount the index route
+  // during initial hydration before reconciling to the URL-matched screen.
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const path = window.location.pathname;
+    if (path && path !== '/' && path !== '') {
+      return null;
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.content} accessibilityRole="main">

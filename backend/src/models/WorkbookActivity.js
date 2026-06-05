@@ -44,6 +44,17 @@ const workbookActivitySchema = new mongoose.Schema({
     experience_level: String,
     difficulty: String
   },
+  isBeta: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  reviewer: {
+    type: String,
+    enum: ['z', 'bonbon', 'fendi', null],
+    default: null,
+    index: true
+  },
   steps: [{
     stepId: {
       type: String,
@@ -55,6 +66,12 @@ const workbookActivitySchema = new mongoose.Schema({
     layout: { type: String, default: 'vertical' }, // 'vertical' | 'split-2' | 'grid-2x2' | 'overlay'
     components: { type: mongoose.Schema.Types.Mixed, default: null },
     collect: { type: String, default: 'merge' },   // 'merge' | 'first' | 'array'
+    // Explicit recap declaration — array of { stepId, bind, label?, ref?, props? }
+    // entries that the frontend's WorkbookActivity uses to populate the "Open
+    // to see what you've found so far" popup. Always present authoring intent;
+    // separate from `components` (which is the inline body). See
+    // activities/v2/_SCHEMA.md § "Carry-over rendering".
+    recap: { type: mongoose.Schema.Types.Mixed, default: null },
 
     // ── v1 legacy fields (kept for backwards compat with existing seeds) ──
     type: {

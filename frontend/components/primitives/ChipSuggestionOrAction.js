@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * chip-suggestion-or-action — pill that inserts payload or fires an action.
- * Spec: ../_meta-canonical/chip-suggestion-or-action.json
  */
 const ChipSuggestionOrAction = observer(({
   label,

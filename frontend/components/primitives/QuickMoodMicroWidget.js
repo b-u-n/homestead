@@ -11,7 +11,6 @@ const EMOJI_SCALE = ['😣','😟','😔','😐','🙂','😌','😊','😄','�
 
 /**
  * quick-mood-micro-widget — platform #8 mood capture.
- * Spec: ../_meta-canonical/quick-mood-micro-widget.json
  *
  * Writes to MoodStore on commit (which fires 'mood:write' over WebSocket).
  */

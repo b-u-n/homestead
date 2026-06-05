@@ -7,9 +7,9 @@ import StitchedBorder from '../StitchedBorder';
 
 /**
  * free-text-short-input — single-line text entry.
- * Spec: ../_meta-canonical/free-text-short-input.json
  */
 const FreeTextShortInput = observer(({
+  promptText,
   placeholder = '',
   value = '',
   maxLength,
@@ -21,6 +21,7 @@ const FreeTextShortInput = observer(({
   onEnterSpawnNew,
   onChipInserted,
   containerContext,
+  onBlur,
 }) => {
   const [local, setLocal] = useState(value);
 
@@ -75,6 +76,11 @@ const FreeTextShortInput = observer(({
 
   return (
     <View style={styles.wrapper}>
+      {promptText ? (
+        <Text style={[styles.prompt, { fontSize: FontSettingsStore.getScaledFontSize(14) }]}>
+          {promptText}
+        </Text>
+      ) : null}
       <StitchedBorder borderRadius={10} style={styles.borderWrap}>
         <View style={styles.inputRow}>
           {Platform.OS === 'web' ? (
@@ -85,7 +91,10 @@ const FreeTextShortInput = observer(({
               maxLength={maxLength}
               disabled={!interactable}
               onChange={(e) => handleChange(e.target.value)}
-              onBlur={() => submitMode !== 'autosave-debounced' && commit()}
+              onBlur={() => {
+                if (submitMode !== 'autosave-debounced') commit();
+                onBlur && onBlur(local);
+              }}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
               style={{
                 ...inputStyle,
@@ -103,7 +112,10 @@ const FreeTextShortInput = observer(({
               maxLength={maxLength}
               editable={interactable}
               onChangeText={handleChange}
-              onBlur={() => submitMode !== 'autosave-debounced' && commit()}
+              onBlur={() => {
+                if (submitMode !== 'autosave-debounced') commit();
+                onBlur && onBlur(local);
+              }}
               onSubmitEditing={handleSubmit}
               returnKeyType={submitMode === 'enter-spawns-new-row' ? 'next' : 'done'}
               style={[inputStyle, { flex: 1 }]}
@@ -135,6 +147,14 @@ const FreeTextShortInput = observer(({
 
 const styles = StyleSheet.create({
   wrapper: { gap: 8 },
+  prompt: {
+    fontFamily: 'Comfortaa',
+    fontWeight: '700',
+    color: '#2D2C2B',
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
   borderWrap: { backgroundColor: 'rgba(255, 255, 255, 0.55)' },
   inputRow: { flexDirection: 'row', alignItems: 'center' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },

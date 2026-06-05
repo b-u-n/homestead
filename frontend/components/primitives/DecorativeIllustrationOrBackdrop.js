@@ -4,7 +4,6 @@ import { observer } from 'mobx-react-lite';
 
 /**
  * decorative-illustration-or-backdrop — non-interactive visual asset.
- * Spec: ../_meta-canonical/decorative-illustration-or-backdrop.json
  *
  * Renders a single emoji-glyph or asset (caller can override via children) at varied scales
  * and animations. Distinct from charts/canvases — this is purely ambient/decorative.

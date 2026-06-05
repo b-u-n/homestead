@@ -7,7 +7,6 @@ import StitchedFillBar from '../StitchedFillBar';
 
 /**
  * progress-counter-or-bar — counter, streak, tally, progress bar, dots, rail.
- * Spec: ../_meta-canonical/progress-counter-or-bar.json
  */
 const ProgressCounterOrBar = observer(({
   kind = 'x-of-n-completion',

@@ -8,7 +8,6 @@ import FreeTextShortInput from './FreeTextShortInput';
 
 /**
  * option-select-dropdown — single/multi select picker.
- * Spec: ../_meta-canonical/option-select-dropdown.json
  */
 const OptionSelectDropdown = observer(({
   options = [],

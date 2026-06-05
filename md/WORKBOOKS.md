@@ -251,6 +251,32 @@ workbook:landing
 | `workbook:landing` | WorkbookLanding | Activity grid with progress indicators (3-column layout) |
 | `workbook:activity` | WorkbookActivity | Multi-step form with navigation, progress dots, and save |
 
+### Carry-over rendering — recap popup vs inline body
+
+**The state pool.** Every step's value lives in `stepResponses` in `WorkbookActivity` (React state), mirrored to `WorkbookProgress.stepData` on every change. It's a single per-instance pool keyed by `stepId`. Any step can pull any prior bind from it. The renderer already passes the whole pool to `ComponentStep` as `allStepResponses`.
+
+**Two surfaces** that read from that pool:
+
+1. **Recap popup** — the "Open to see what you've found so far" sticky button. Hidden by default; expanded on demand. Used to compact prior text so the user can focus on the current step's input.
+2. **Inline body** — the on-page content for the step (prose, inputs, specialized chip displays).
+
+**Authoring (preferred path).** Declare `step.recap: [{ stepId, bind, label?, ref?, props? }]` on each step. The renderer builds the popup from that declaration; the `components` array is purely inline body. Carry from any prior step (two back, five back — doesn't matter; it's just a pool read).
+
+```json
+{
+  "stepId": "force-field",
+  "recap": [
+    { "stepId": "goal",       "bind": "goal",       "label": "Your goal" },
+    { "stepId": "motivators", "bind": "motivators", "label": "Motivators" }
+  ],
+  "components": [ /* inline only */ ]
+}
+```
+
+**Legacy path.** Steps without `recap` fall through to `WorkbookActivity.splitRecap`, which walks the `components` prefix and pulls text-block carryFrom blocks into the popup while leaving specialized refs (`ChipListReadonly`, `NumericRatingSlider`, etc.) inline. Backward compatible — old activities keep working — but new activities should use `recap` instead.
+
+Full authoring contract: `activities/v2/_SCHEMA.md` § "Carry-over rendering — recap popup vs inline body".
+
 ---
 
 ## Step Types

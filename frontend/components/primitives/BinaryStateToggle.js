@@ -18,7 +18,6 @@ const PRESENTATION_GLYPHS = {
 
 /**
  * binary-state-toggle — per-item boolean flag.
- * Spec: ../_meta-canonical/binary-state-toggle.json
  */
 const BinaryStateToggle = observer(({
   currentState,

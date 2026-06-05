@@ -6,7 +6,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * collapsible-section — header + body that toggles visibility.
- * Spec: ../_meta-canonical/collapsible-section.json
  */
 const CollapsibleSection = observer(({
   headerTitle,
@@ -37,7 +36,19 @@ const CollapsibleSection = observer(({
     onStatePersisted && onStatePersisted(next);
   };
 
-  const body = bodySlotContent ?? children;
+  // bodySlotContent often comes through as a plain string from activity JSON
+  // (CollapsibleSection blocks usually carry a paragraph of prose, not nested
+  // components). React Native won't render a raw string inside a <View>, and
+  // when authors did get text out of it the font was wrong. Wrap strings in
+  // a Comfortaa <Text> so the body matches the rest of the activity copy.
+  let body = bodySlotContent ?? children;
+  if (typeof body === 'string') {
+    body = (
+      <Text style={[styles.bodyText, { fontSize: FontSettingsStore.getScaledFontSize(13) }]}>
+        {body}
+      </Text>
+    );
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -117,6 +128,15 @@ const styles = StyleSheet.create({
   body: {
     paddingVertical: 8,
     paddingHorizontal: 4,
+  },
+  bodyText: {
+    fontFamily: 'Comfortaa',
+    fontWeight: '500',
+    color: '#454342',
+    lineHeight: 20,
+    textShadowColor: 'rgba(255, 255, 255, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
 });
 

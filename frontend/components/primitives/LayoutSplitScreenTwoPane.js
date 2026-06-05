@@ -6,7 +6,6 @@ import StitchedBorder from '../StitchedBorder';
 
 /**
  * layout-split-screen-two-pane — two-pane layout with named slots.
- * Spec: ../_meta-canonical/layout-split-screen-two-pane.json
  */
 const LayoutSplitScreenTwoPane = observer(({
   splitOrientation = 'vertical-50-50',

@@ -6,14 +6,35 @@ import StitchedBorder from '../StitchedBorder';
 import WoolButton from '../WoolButton';
 
 /**
- * body-silhouette-with-zones — anatomical body canvas with tappable regions.
- * Spec: ../_meta-canonical/body-silhouette-with-zones.json
+ * BodySilhouetteWithZones — anatomical body canvas with tappable regions.
  *
- * Implemented with positioned View shapes (no SVG dep). Zones use percentage layout where
- * `top`/`left` are the top-left corner of the region (not the center).
+ * Implemented with positioned View shapes (no SVG dep). Zones use percentage
+ * layout where `top`/`left` are the top-left corner of the region (not the
+ * center). Every region carries a clear dashed outline + label so all are
+ * visible regardless of active/visited state — accessibility-first.
  *
- * Every region carries a clear dashed outline + label so all are visible regardless of
- * active/visited state — accessibility-first.
+ * Three modes, each with a different bind shape (see _SCHEMA.md "Primitive
+ * prop conventions" — multi-shape primitives MUST document mode→shape):
+ *
+ *   - Selection mode (default): bind value is `string[]` of selected region IDs.
+ *     Tap toggles inclusion.
+ *
+ *   - Notes mode (`notesEnabled: true`): bind value is `{ regionId: noteText }`.
+ *     Side panel lets the user write+submit a note per region.
+ *
+ *   - Paint mode (when `swatches` is provided): bind value is
+ *     `{ regionId: colorId }`. Tap paints the region with the current
+ *     `activeColor`; tap again with the same color clears it. Used by
+ *     emotion-body-mapping. Pair with a sibling `PaintLegend` bound to a
+ *     separate `active_color` bind, and pass `sourceStepId` / `sourceBind`
+ *     on this primitive so ComponentStep injects the active color via
+ *     `sourceValue` → `effectiveActiveColor`.
+ *
+ * Renderer-injected props consumed (paint mode only):
+ *   - `sourceValue`: the active color (string), pulled from a sibling bind.
+ *
+ * Downstream carryFrom shape varies by mode — be careful when carrying
+ * `painted_zones` forward into another step's prose.
  */
 const REGION_LAYOUT = {
   'head-to-toe-classic': [
@@ -52,6 +73,19 @@ const BodySilhouetteWithZones = observer(({
   // side panel lets the user write+submit a note about each tapped region.
   // notesEnabled=false (default): value is a string[] of selected region IDs.
   notesEnabled = false,
+  // Paint mode: when an `activeColor` is provided (resolved via
+  // sourceStepId/sourceBind from a sibling PaintLegend, typically),
+  // the silhouette stores its value as `{ regionId: colorId }` and tapping
+  // a region paints it with the current active color. Tapping a region
+  // already painted with that same color clears it. `swatches` is the
+  // palette (same array PaintLegend renders) — needed so we can look up
+  // each painted region's color for the visual fill.
+  activeColor,
+  // sourceValue is the same thing routed via ComponentStep's source resolver
+  // (sourceStepId/sourceBind → sourceValue). Accept either path so the
+  // authoring JSON only needs one set of props.
+  sourceValue,
+  swatches,
   value: valueProp,
   currentValue,
   interactable = true,
@@ -63,10 +97,25 @@ const BodySilhouetteWithZones = observer(({
   onEmotionBodyMapSaved,
   onValueChanged,
 }) => {
+  // Paint mode activates when swatches is provided. (activeColor can be
+  // undefined initially — the user hasn't picked yet — but we still need to
+  // read the object-shaped value so tapping does nothing until they pick.)
+  const paintMode = Array.isArray(swatches) && swatches.length > 0 && !notesEnabled;
+  // Effective active color: explicit prop wins, else fall through to the
+  // value injected by ComponentStep's source resolver.
+  const effectiveActiveColor = activeColor ?? (typeof sourceValue === 'string' ? sourceValue : undefined);
   const regions = REGION_LAYOUT[regionTaxonomy] || REGION_LAYOUT['head-to-toe-classic'];
-  // Notes-mode reads `value` as an object; default-mode reads `value` as an array.
+  // Notes-mode reads `value` as `{regionId: noteText}`. Paint-mode reads value
+  // as `{regionId: colorId}`. Default selection-mode reads value as a string[].
   const notesValueProp = notesEnabled ? valueProp : undefined;
-  const selectedValueProp = !notesEnabled
+  const paintValueProp = paintMode
+    ? ((valueProp && typeof valueProp === 'object' && !Array.isArray(valueProp))
+        ? valueProp
+        : ((currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue))
+            ? currentValue
+            : {}))
+    : undefined;
+  const selectedValueProp = (!notesEnabled && !paintMode)
     ? (Array.isArray(valueProp) ? valueProp : (Array.isArray(currentValue) ? currentValue : undefined))
     : undefined;
   // Seed internal state from the persisted value so resume restores selection.
@@ -79,12 +128,18 @@ const BodySilhouetteWithZones = observer(({
 
   const notes = notesEnabled ? (notesValueProp && typeof notesValueProp === 'object' ? notesValueProp : {}) : null;
   const noteRegionIds = notesEnabled ? Object.keys(notes).filter(id => (notes[id] || '').trim()) : [];
+  // Paint-mode object value, IDs of painted regions, and swatch lookup.
+  const painted = paintMode ? paintValueProp : null;
+  const paintedRegionIds = paintMode ? Object.keys(painted).filter(id => painted[id]) : [];
+  const swatchById = paintMode ? new Map(swatches.map(s => [s.id, s])) : null;
 
   const selectedIds = notesEnabled
     ? noteRegionIds
-    : (selectedProp !== undefined
-        ? selectedProp
-        : (selectedValueProp !== undefined ? selectedValueProp : internalSelected));
+    : paintMode
+      ? paintedRegionIds
+      : (selectedProp !== undefined
+          ? selectedProp
+          : (selectedValueProp !== undefined ? selectedValueProp : internalSelected));
   const isSelected = (id) => selectedIds.includes(id);
 
   const handleTap = (region) => {
@@ -97,6 +152,22 @@ const BodySilhouetteWithZones = observer(({
       // Submitted note for this region (if any) populates the textarea.
       setActiveRegionId(region.id);
       setDraft(notes[region.id] || '');
+      return;
+    }
+
+    if (paintMode) {
+      // Tap paints the region with the current activeColor. Tap again on a
+      // region already painted with that same color clears it. If no color
+      // is picked yet, do nothing (the user needs to pick a swatch first).
+      if (!effectiveActiveColor) return;
+      const next = { ...painted };
+      if (next[region.id] === effectiveActiveColor) {
+        delete next[region.id];
+      } else {
+        next[region.id] = effectiveActiveColor;
+      }
+      onRegionPainted && onRegionPainted({ id: region.id, color: next[region.id] || null, all: next });
+      onValueChanged && onValueChanged(next);
       return;
     }
 
@@ -159,7 +230,11 @@ const BodySilhouetteWithZones = observer(({
           const sel = isSelected(r.id);
           const isActive = notesEnabled && activeRegionId === r.id;
           const state = stateOf(r.id);
-          const fill = state?.color
+          // In paint mode the fill comes from the painted swatch's color.
+          // Otherwise fall back to the legacy active/selected/default scheme.
+          const paintedColor = paintMode && painted[r.id] && swatchById?.get(painted[r.id])?.color;
+          const fill = paintedColor
+            ?? state?.color
             ?? (isActive ? 'rgba(112, 68, 199, 0.55)' : sel ? 'rgba(135, 180, 210, 0.75)' : 'rgba(255, 255, 255, 0.55)');
           const isOval = r.shape === 'oval';
           return (
@@ -200,7 +275,9 @@ const BodySilhouetteWithZones = observer(({
         <View style={styles.readoutRow}>
           <Text style={[styles.activeReadout, { fontSize: FontSettingsStore.getScaledFontSize(12) }]}>
             {selectedLabels.length === 0
-              ? 'Tap any zone to select. Tap again to deselect.'
+              ? (paintMode
+                  ? (effectiveActiveColor ? 'Tap a zone to paint it with the picked color. Tap again to clear.' : 'Pick a color above first, then tap anywhere on the body.')
+                  : 'Tap any zone to select. Tap again to deselect.')
               : `Selected (${selectedLabels.length}): ${selectedLabels.join(', ')}`}
           </Text>
           {selectedLabels.length ? (

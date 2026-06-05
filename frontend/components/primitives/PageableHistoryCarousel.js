@@ -7,7 +7,6 @@ import HistorySavedEntryCard from './HistorySavedEntryCard';
 
 /**
  * pageable-history-carousel — swipeable/scrollable history surface.
- * Spec: ../_meta-canonical/pageable-history-carousel.json
  *
  * Renders cards via HistorySavedEntryCard by default; pass renderCard to override.
  */

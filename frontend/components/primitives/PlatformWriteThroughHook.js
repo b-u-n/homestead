@@ -7,7 +7,6 @@ import MinkyPanel from '../MinkyPanel';
 
 /**
  * platform-write-through-hook — silent platform-bridge or celebratory burst.
- * Spec: ../_meta-canonical/platform-write-through-hook.json
  *
  * Mostly non-visual. Three destinations:
  *  - hope-chest → HopeChestStore.write()

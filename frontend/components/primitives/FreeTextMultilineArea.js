@@ -14,7 +14,6 @@ const SIZE_ROWS = {
 
 /**
  * free-text-multiline-area — textarea + action-plan editor.
- * Spec: ../_meta-canonical/free-text-multiline-area.json
  */
 const FreeTextMultilineArea = observer(({
   promptText,
@@ -59,21 +58,26 @@ const FreeTextMultilineArea = observer(({
   }, [value, isActionPlan]);
 
   const rows = SIZE_ROWS[size] || 4;
-  const minHeight = rows * 24 + 36;
+  // Both minHeight and lineHeight need to track the rendered font size — the
+  // workbook bump (+30%) grows glyphs, so the line slot + minimum textarea
+  // height need to grow with them or the input feels cramped.
+  const scaledFontSize = FontSettingsStore.getScaledFontSize(16);
+  const scaledLineHeight = Math.round(scaledFontSize * 1.4);
+  const minHeight = rows * scaledLineHeight + 36;
 
   // Note: raw <textarea> / <input> on web doesn't accept RN's paddingVertical/Horizontal
   // shorthands — splitting into explicit top/bottom/left/right.
   const inputStyle = {
     fontFamily: 'Comfortaa',
     fontWeight: '500',
-    fontSize: FontSettingsStore.getScaledFontSize(16),
+    fontSize: scaledFontSize,
     color: FontSettingsStore.getFontColor('#2D2C2B'),
     paddingTop: 18,
     paddingBottom: 18,
     paddingLeft: 22,
     paddingRight: 22,
     minHeight,
-    lineHeight: 24,
+    lineHeight: scaledLineHeight,
     textAlign: 'left',
     textAlignVertical: 'top',
   };
@@ -142,7 +146,7 @@ const FreeTextMultilineArea = observer(({
           rows={rows}
           style={{
             ...inputStyle,
-            lineHeight: '24px',
+            lineHeight: `${scaledLineHeight}px`,
             width: '100%',
             background: 'transparent',
             border: 'none',
