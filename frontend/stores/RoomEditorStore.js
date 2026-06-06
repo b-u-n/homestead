@@ -26,6 +26,12 @@ class RoomEditorStore {
   hiddenEntityIdsByLocation = new Map();
   // Map<locationId, snapshots[]> — snapshots are { tiles, entityOverrides, hiddenEntityIds }.
   _undoStacks = new Map();
+  // Overlay readiness: locations whose DB overlay has been loaded this session,
+  // plus a flag set once the startup prefetch has run (locations with no DB doc
+  // are implicitly empty after that). MapCanvas gates its first draw on this so
+  // the hardcoded source layout never flashes before DB positions arrive.
+  overlayLoadedLocations = new Set();
+  overlayPrefetchDone = false;
   // Most-recently-placed platformAssetIds, newest first, capped at 8.
   recentAssetIds = [];
   // 'idle' | 'picking' | 'placing' | 'selected'
@@ -468,10 +474,38 @@ class RoomEditorStore {
 
   // --- Server interactions ---
 
+  isOverlayLoaded(locationId) {
+    return this.overlayPrefetchDone || this.overlayLoadedLocations.has(locationId);
+  }
+
+  // Startup prefetch: pull every location's overlay in one round trip while the
+  // rest of the app is still loading, so map pages render DB content on their
+  // very first paint. Fired (without await) from the websocket connect handler.
+  async prefetchAllOverlays() {
+    try {
+      const data = await WebSocketService.emit('room-editor:get-all-overlays', {});
+      runInAction(() => {
+        for (const o of (data?.overlays || [])) {
+          this.overlayLoadedLocations.add(o.locationId);
+          // Never clobber unsaved local edits (e.g. on reconnect mid-session).
+          if (this._dirtyLocations.has(o.locationId)) continue;
+          this.tilesByLocation.set(o.locationId, o.tiles || []);
+          this.entityOverridesByLocation.set(o.locationId, o.entityOverrides || []);
+          this.hiddenEntityIdsByLocation.set(o.locationId, o.hiddenEntityIds || []);
+        }
+        this.overlayPrefetchDone = true;
+      });
+    } catch (err) {
+      // Non-fatal: per-location fetchOverlay (RoomEditor mount) still gates each map.
+      console.error('Overlay prefetch failed:', err);
+    }
+  }
+
   async fetchOverlay(locationId) {
     try {
       const data = await WebSocketService.emit('room-editor:get-overlay', { locationId });
       runInAction(() => {
+        this.overlayLoadedLocations.add(locationId);
         // Never clobber unsaved local edits — local state is newer than the
         // server while dirty; the flush will reconcile, not the fetch.
         if (this._dirtyLocations.has(locationId)) return;

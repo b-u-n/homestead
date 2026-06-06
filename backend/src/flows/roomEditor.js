@@ -65,6 +65,34 @@ module.exports = {
       }
     },
 
+    // Bulk fetch for startup prefetch: every location's overlay in one round trip,
+    // so map pages can render DB-positioned content on first paint instead of
+    // flashing hardcoded layouts and re-fetching per location.
+    'room-editor:get-all-overlays': {
+      validate: () => ({ valid: true }),
+      handler: async () => {
+        const overlays = await RoomLayoutOverlay.find({}).lean();
+        return {
+          success: true,
+          data: {
+            overlays: overlays.map(o => ({
+              locationId: o.locationId,
+              tiles: (o.tiles || []).map(t => ({
+                _id: t._id.toString(),
+                platformAssetId: t.platformAssetId,
+                x: t.x, y: t.y, width: t.width, height: t.height,
+                zIndex: t.zIndex || 0
+              })),
+              entityOverrides: (o.entityOverrides || []).map(ov => ({
+                entityId: ov.entityId, x: ov.x, y: ov.y, width: ov.width, height: ov.height, zIndex: ov.zIndex || 0
+              })),
+              hiddenEntityIds: o.hiddenEntityIds || []
+            }))
+          }
+        };
+      }
+    },
+
     'room-editor:place-tile': {
       validate: (data) => {
         if (!data.locationId) return { valid: false, error: 'Missing locationId' };

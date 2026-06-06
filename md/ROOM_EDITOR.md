@@ -103,9 +103,10 @@ No file mutation — paste workflow.
 - Flow: `backend/src/flows/roomEditor.js` (registered in `backend/src/server.js` as `roomEditor`).
 - Handlers (all mutations re-check `isDeveloper`):
   - `room-editor:get-overlay` — returns `{ tiles, entityOverrides, hiddenEntityIds }`.
-  - `room-editor:place-tile`, `room-editor:move-tile`, `room-editor:delete-tile` — overlay tile CRUD.
-  - `room-editor:set-entity-override`, `room-editor:hide-entity`, `room-editor:unhide-entity` — entity-side edits.
-  - `room-editor:set-overlay` — wholesale replace of any of the three lanes; used by undo.
+  - `room-editor:get-all-overlays` — every location's overlay in one round trip; used by the startup prefetch.
+  - `room-editor:set-overlay` — wholesale replace of all three lanes. **This is the editor's only write path**: edits are local-first and a dirty location is flushed wholesale (~every 60s, on edit-mode off, and on page hide/unmount).
+  - `room-editor:place-tile`, `room-editor:move-tile`, `room-editor:delete-tile`, `room-editor:set-entity-override`, `room-editor:hide-entity`, `room-editor:unhide-entity` — legacy per-op handlers; no longer called by the editor.
+- Rendering gate: MapCanvas holds its first draw until the location's overlay is loaded (`RoomEditorStore.isOverlayLoaded`), so the hardcoded source layout never flashes at stale positions. Overlays are prefetched in the background on websocket connect (`prefetchAllOverlays`).
 
 ### Frontend
 

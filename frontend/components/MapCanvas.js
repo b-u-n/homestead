@@ -785,6 +785,11 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
   const editorMultiSelected = RoomEditorStore.multiSelected;
   // Fresh-copy flag: selection circle draws white right after a C copy.
   const editorFreshCopy = RoomEditorStore.selectionIsFreshCopy;
+  // Overlay readiness: hold the first draw until this location's DB overlay
+  // (tiles + entity overrides + hidden) is in, so the hardcoded source layout
+  // never flashes at stale positions. Normally already true by the time the map
+  // mounts (prefetched in the background at websocket connect).
+  const overlayReady = RoomEditorStore.isOverlayLoaded(location);
   // Tracking the override and hidden lists ensures the draw + image-load effects re-run
   // when an entity gets moved or hidden in dev mode.
   const editorOverrides = RoomEditorStore.entityOverridesByLocation.get(location);
@@ -793,6 +798,14 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
   // applyEntityEdits matches by entity.id regardless of which array the object came from.
   const [hoveredObject, setHoveredObject] = useState(null);
   const [loadedImages, setLoadedImages] = useState({});
+  // First-paint gate: true once every distinct overlay-tile asset image is
+  // decoded. Images are shared per platformAssetId, so this is a handful of
+  // entries even for hundreds of tiles. Prevents the patchy first render where
+  // tiles whose Image hadn't loaded yet were silently skipped.
+  const overlayImagesReady = React.useMemo(
+    () => overlayEntities.every(e => !e.image || loadedImages[`passet-${e.platformAssetId}`]),
+    [overlayEntities, loadedImages]
+  );
   const [isWishingWellOpen, setIsWishingWellOpen] = useState(false);
   const [isWeepingWillowOpen, setIsWeepingWillowOpen] = useState(false);
   const [weepingWillowStartAt, setWeepingWillowStartAt] = useState(null);
@@ -1286,7 +1299,9 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
         : null;
 
       if (overrideUrl) {
-        imageKey = entity.id;
+        // Customizations are per-platformAssetId, so the override image is shared
+        // by everything carrying that asset id (matches drawButton's key).
+        imageKey = entity.platformAssetId ? `passet-${entity.platformAssetId}` : entity.id;
         imageSrc = resolveAvatarUrl(overrideUrl);
       } else if (entity.image) {
         // Check if entity.image is a string key for imageMap
@@ -1296,8 +1311,9 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
             ? imageMap[entity.image]
             : imageMap[entity.image].default || imageMap[entity.image].uri || imageMap[entity.image];
         } else if (entity.image) {
-          // entity.image is already a require() result (number/module)
-          imageKey = entity.id; // Use entity id as key for loaded images
+          // entity.image is already a require() result (number/module). Share one
+          // Image per platformAssetId so e.g. hundreds of grass tiles decode once.
+          imageKey = entity.platformAssetId ? `passet-${entity.platformAssetId}` : entity.id;
           imageSrc = typeof entity.image === 'string'
             ? entity.image
             : entity.image.default || entity.image.uri || entity.image;
@@ -1318,7 +1334,8 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
           if (overrideUrl && entity.image) {
             const fallbackImg = new window.Image();
             const fallbackKey = typeof entity.image === 'string' && imageMap[entity.image]
-              ? entity.image : entity.id;
+              ? entity.image
+              : (entity.platformAssetId ? `passet-${entity.platformAssetId}` : entity.id);
             const fallbackSrc = typeof entity.image === 'string' && imageMap[entity.image]
               ? (typeof imageMap[entity.image] === 'string'
                 ? imageMap[entity.image]
@@ -1574,7 +1591,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     if (roomData && Platform.OS === 'web') {
       drawCanvas();
     }
-  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale, overlayEntities, editorMode, editorDraft, editorSelectedId, editorSelectedEntityId, editorActive, editorOverrides, editorHidden, editorUiHidden, editorOutlines, editorMultiSelected, editorFreshCopy]);
+  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale, overlayEntities, editorMode, editorDraft, editorSelectedId, editorSelectedEntityId, editorActive, editorOverrides, editorHidden, editorUiHidden, editorOutlines, editorMultiSelected, editorFreshCopy, overlayReady, overlayImagesReady]);
 
   // Keep the room editor's Tab-cycling list in sync with what's selectable on this map.
   // Same union (entities + doors, overrides applied, hidden filtered) that clicks hit-test.
@@ -1599,6 +1616,12 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     ctx.clearRect(0, 0, width, height);
 
     if (!roomData) return;
+    // Wait for the DB overlay before the first draw — entity positions come from
+    // overrides, so drawing earlier would flash the stale hardcoded layout.
+    if (!RoomEditorStore.isOverlayLoaded(location)) return;
+    // ...and for the overlay's asset images, so the first paint isn't missing
+    // tiles whose shared Image hadn't decoded yet.
+    if (!overlayImagesReady) return;
 
     // Calculate avatar/emote size multiplier for smaller screens
     // When renderScale is small (mobile), make avatars 50% larger
@@ -1618,9 +1641,13 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       // Scale back button 50% larger on mobile
       const mobileBackScale = (isBackButton && uxStore.shouldScaleUI) ? 1.5 : 1;
 
-      // Check if this entity has an image
-      // Image may be stored under obj.image (string key) or obj.id (for direct require() results)
-      const imageKey = typeof obj.image === 'string' ? obj.image : obj.id;
+      // Check if this entity has an image.
+      // Key resolution must match the loader effect: string images key into
+      // imageMap; require() images share one Image per platformAssetId (so 300
+      // grass tiles decode ONE image, not 300); otherwise fall back to the id.
+      const imageKey = typeof obj.image === 'string'
+        ? obj.image
+        : (obj.platformAssetId ? `passet-${obj.platformAssetId}` : obj.id);
       if (obj.image && loadedImages[imageKey]) {
         const img = loadedImages[imageKey];
 

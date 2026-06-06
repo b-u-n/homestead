@@ -12,6 +12,7 @@ import MoodStore from '../stores/MoodStore';
 import HopeChestStore from '../stores/HopeChestStore';
 import PersonaStore from '../stores/PersonaStore';
 import HistoryStore from '../stores/HistoryStore';
+import RoomEditorStore from '../stores/RoomEditorStore';
 import domain from '../utils/domain';
 
 class WebSocketService {
@@ -24,6 +25,10 @@ class WebSocketService {
 
     this.socket.on('connect', async () => {
       console.log('Connected to server');
+
+      // Prefetch all room layout overlays in the background (deliberately not
+      // awaited) so map pages can render DB-positioned content on first paint.
+      RoomEditorStore.prefetchAllOverlays();
 
       // Load user profile if we have a session ID
       if (SessionStore.sessionId) {
