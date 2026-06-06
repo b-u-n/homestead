@@ -8,7 +8,11 @@ const bgTile2 = require('../assets/images/bg-tile-2.png');
 const bgTile3 = require('../assets/images/bg-tile-3.png');
 const bgTile4 = require('../assets/images/bg-tile-4.png');
 
-const TiledBackground = ({ children, layers = [] }) => {
+// `disableLayers` skips the nine repeating background layers (heavy to composite)
+// while keeping the flat base color and content wrapper. Used by the root layout
+// on map pages, where the canvas covers the screen and the texture is wasted work.
+// Modal's own TiledBackground usage is unaffected — it never passes the prop.
+const TiledBackground = ({ children, layers = [], disableLayers = false }) => {
   // If no layers provided, use a default configuration
   const defaultLayers = [
     // Base layer - original full screen tile (full opacity)
@@ -29,7 +33,7 @@ const TiledBackground = ({ children, layers = [] }) => {
   return (
     <View style={styles.container}>
       {/* Render background layers - just divs with CSS backgrounds on web */}
-      {Platform.OS === 'web' && backgroundLayers.map((layer, index) => (
+      {Platform.OS === 'web' && !disableLayers && backgroundLayers.map((layer, index) => (
         <div
           key={index}
           style={{

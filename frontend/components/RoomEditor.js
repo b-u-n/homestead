@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Image, Platform, ScrollView } from '
 import { observer } from 'mobx-react-lite';
 import RoomEditorStore from '../stores/RoomEditorStore';
 import FontSettingsStore from '../stores/FontSettingsStore';
+import uxStore from '../stores/UXStore';
 import MinkyPanel from './MinkyPanel';
 import WoolButton from './WoolButton';
 import { PLATFORM_ASSETS, ASSET_CATEGORIES } from '../constants/platformAssets';
@@ -77,6 +78,22 @@ const RoomEditor = observer(({ location }) => {
     };
   }, []);
 
+  // Edits are batched locally and flushed wholesale (~every minute). Make a
+  // best-effort flush when the tab is hidden or closing so work isn't lost.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const flush = () => { RoomEditorStore.flushNow(); };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+      // Unmounting (location change) is also a flush point.
+      flush();
+    };
+  }, []);
+
   // Keyboard handler for editor shortcuts.
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -88,11 +105,62 @@ const RoomEditor = observer(({ location }) => {
         RoomEditorStore.undo(location);
         return;
       }
-      // Esc cancels in placing/picking, deselects in selected.
+      // H → toggle hiding all map UI chrome (editor UI, user status, menus, knapsack)
+      // for clean screenshots. Works whether or not edit mode is on; dev only since
+      // this listener is attached for everyone (the dev gate below only stops rendering).
+      if ((e.key === 'h' || e.key === 'H') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (!RoomEditorStore.isDeveloper()) return;
+        const tag = e.target?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        RoomEditorStore.toggleUiHidden();
+        return;
+      }
+      // O → toggle pink outlines around every sprite on the map (dev only,
+      // same listener caveat as H).
+      if ((e.key === 'o' || e.key === 'O') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (!RoomEditorStore.isDeveloper()) return;
+        const tag = e.target?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        RoomEditorStore.toggleOutlines();
+        return;
+      }
+      // R → place a copy of the most recently created tile under the pointer.
+      if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (!RoomEditorStore.editModeActive || m === 'picking') return;
+        const tag = e.target?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        RoomEditorStore.placeCopyOfLastTile(location);
+        return;
+      }
+      // A → arm align mode: the next click on a tile/entity moves the selection
+      // to the target's exact x/y. Press again (or Esc) to disarm.
+      if ((e.key === 'a' || e.key === 'A') && !e.ctrlKey && !e.metaKey && !e.altKey && m === 'selected') {
+        const tag = e.target?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        RoomEditorStore.toggleAlignArmed();
+        return;
+      }
+      // C → duplicate the selection in place and select the copy. Plain C only —
+      // Ctrl+C stays the browser's copy.
+      if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.metaKey && !e.altKey && m === 'selected') {
+        const tag = e.target?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        RoomEditorStore.copySelectedInPlace(location);
+        return;
+      }
+      // Esc cancels in placing/picking, disarms align, deselects in selected.
       if (e.key === 'Escape') {
         if (m === 'placing') RoomEditorStore.cancelPlacing();
         else if (m === 'picking') RoomEditorStore.closePicker();
-        else if (m === 'selected') RoomEditorStore.deselect();
+        else if (m === 'selected') {
+          if (RoomEditorStore.alignArmed) RoomEditorStore.toggleAlignArmed();
+          else RoomEditorStore.deselect();
+        }
         return;
       }
       // Enter also deselects.
@@ -100,11 +168,15 @@ const RoomEditor = observer(({ location }) => {
         RoomEditorStore.deselect();
         return;
       }
-      // Delete with confirmation.
+      // Tab / Shift+Tab → cycle selection forward/backward through tiles and entities.
+      if (e.key === 'Tab' && m === 'selected') {
+        e.preventDefault();
+        RoomEditorStore.selectNext(location, e.shiftKey ? -1 : 1);
+        return;
+      }
+      // Delete — no confirmation; every delete pushes an undo snapshot, so Ctrl+Z restores.
       if ((e.key === 'Delete' || e.key === 'Backspace') && m === 'selected') {
-        if (window.confirm('Delete this tile?')) {
-          RoomEditorStore.deleteSelected(location);
-        }
+        RoomEditorStore.deleteSelected(location);
         return;
       }
       // Arrow-key actions while a tile is selected.
@@ -145,6 +217,10 @@ const RoomEditor = observer(({ location }) => {
   const editModeActive = RoomEditorStore.editModeActive;
   const tiles = RoomEditorStore.getTiles(location);
   const selectedTile = tiles.find(t => t._id === RoomEditorStore.selectedTileId);
+  // H-key screenshot mode hides all editor chrome below — but NOT the coordinate
+  // readout, which is deliberately immune. The window keydown listener stays
+  // attached regardless (it's a hook above), so H always unhides.
+  const uiHidden = RoomEditorStore.uiHidden;
 
   // Click handling lives in MapCanvas.handleCanvasClick → RoomEditorStore.onCanvasClick.
   // That path reuses the existing canvas coord transform (which already handles
@@ -159,40 +235,85 @@ const RoomEditor = observer(({ location }) => {
       {/* Draft preview and selection highlight are drawn on the canvas itself
           (see MapCanvas drawCanvas → editor overlay block) so they stay pixel-aligned. */}
 
+      {/* Coordinate readout for the selected item — immune to H-key hide mode */}
+      <CoordReadout location={location} />
+
       {/* Toolbar shown while edit mode is on */}
-      {editModeActive && (
+      {!uiHidden && editModeActive && (
         <div data-room-editor-ui="1">
           <Toolbar mode={mode} selectedTile={selectedTile} location={location} />
         </div>
       )}
 
       {/* Asset picker modal */}
-      {editModeActive && mode === 'picking' && (
+      {!uiHidden && editModeActive && mode === 'picking' && (
         <div data-room-editor-ui="1">
           <PickerOverlay location={location} />
         </div>
       )}
 
       {/* Persistent edit-mode toggle — highest z-index so it's always reachable */}
-      <div data-room-editor-ui="1">
-        <Pressable
-          onPress={() => RoomEditorStore.toggleEditMode()}
-          style={[styles.toggleButton, editModeActive && styles.toggleButtonActive]}
-        >
-          <Text style={styles.toggleIcon}>🛠</Text>
-          <Text style={styles.toggleLabel}>{editModeActive ? 'Editing' : 'Edit'}</Text>
-        </Pressable>
-      </div>
+      {!uiHidden && (
+        <div data-room-editor-ui="1">
+          <Pressable
+            onPress={() => RoomEditorStore.toggleEditMode()}
+            style={[styles.toggleButton, editModeActive && styles.toggleButtonActive]}
+          >
+            <Text style={styles.toggleIcon}>🛠</Text>
+            <Text style={styles.toggleLabel}>{editModeActive ? 'Editing' : 'Edit'}</Text>
+          </Pressable>
+        </div>
+      )}
     </>
   );
 });
 
+// Big X,Y readout for the item being moved — bottom-right corner, baseline coords
+// (the same numbers that go into location source files and the DB). Deliberately
+// NOT hidden by H-key screenshot mode so positions stay readable while lining
+// things up against a clean map.
+const CoordReadout = observer(({ location }) => {
+  if (RoomEditorStore.mode !== 'selected') return null;
+  let sel = null;
+  if (RoomEditorStore.selectedKind === 'tile' && RoomEditorStore.selectedTileId) {
+    sel = RoomEditorStore.getTiles(location).find(t => t._id === RoomEditorStore.selectedTileId);
+  } else if (RoomEditorStore.selectedKind === 'entity' && RoomEditorStore.selectedEntityDims) {
+    sel = RoomEditorStore.selectedEntityDims;
+  }
+  if (!sel) return null;
+  return (
+    <div style={{
+      position: 'fixed',
+      right: 24,
+      bottom: 8,
+      zIndex: 9500,
+      pointerEvents: 'none',
+      fontFamily: 'Comfortaa',
+      fontWeight: 700,
+      // 96 in map (baseline) pixels — scaled by the canvas render scale so it
+      // stays proportional to the map instead of ballooning at small scales.
+      fontSize: Math.round(96 * uxStore.renderScale),
+      lineHeight: 1,
+      color: 'rgba(255, 255, 255, 0.92)',
+      textShadow: '0 2px 6px rgba(0, 0, 0, 0.65), 0 0 2px rgba(0, 0, 0, 0.8)',
+    }}>
+      {Math.round(sel.x)}, {Math.round(sel.y)}
+    </div>
+  );
+});
+
 const Toolbar = observer(({ mode, selectedTile, location }) => {
+  const multiCount = RoomEditorStore.multiSelected.length;
+  const unsaved = RoomEditorStore.dirty ? '   ● unsaved' : '';
   const status = mode === 'placing'
     ? 'Click to place — Esc to cancel'
     : mode === 'selected'
-      ? 'Click, arrows, or Ctrl±arrow — Del to delete — Esc to deselect'
-      : 'Click + to add a tile, click a tile to select — Ctrl+Z to undo';
+      ? (RoomEditorStore.alignArmed
+        ? 'Align: click a target to copy its x/y — Esc to cancel'
+        : multiCount > 1
+          ? `${multiCount} selected — Shift+click to add/remove — arrows, Ctrl±arrow, C, Del act on all — Esc to deselect`
+          : 'Arrows to move, Ctrl±arrow to layer — Tab to cycle — A to align — C to copy — Del to delete — Esc to deselect')
+      : 'Click + to add a tile, click a tile to select — R to repeat last tile — H to hide UI — Ctrl+Z to undo';
 
   const handleRecentClick = async (asset) => {
     const dims = await loadImageDims(asset);
@@ -237,9 +358,7 @@ const Toolbar = observer(({ mode, selectedTile, location }) => {
         >+ Add</button>
       {mode === 'selected' && (
         <button
-          onClick={() => {
-            if (window.confirm('Delete this tile?')) RoomEditorStore.deleteSelected(location);
-          }}
+          onClick={() => RoomEditorStore.deleteSelected(location)}
           style={{
             background: '#c0392b',
             color: '#fff',
@@ -253,7 +372,9 @@ const Toolbar = observer(({ mode, selectedTile, location }) => {
           }}
         >Delete</button>
       )}
-      <span style={{ fontSize: 12, opacity: 0.85, paddingLeft: 4 }}>{status}</span>
+      <span style={{ fontSize: 12, opacity: 0.85, paddingLeft: 4 }}>{status}{unsaved && (
+        <span style={{ color: '#FFD27F', fontWeight: 700 }}>{unsaved}</span>
+      )}</span>
       </div>
 
       {recents.length > 0 && (

@@ -177,7 +177,6 @@ module.exports = {
         if (!auth.ok) return { success: false, error: auth.error };
 
         const overlay = await getOrCreateOverlay(data.locationId);
-        const idx = overlay.entityOverrides.findIndex(o => o.entityId === data.entityId);
         const next = {
           entityId: data.entityId,
           x: data.x,
@@ -186,8 +185,12 @@ module.exports = {
           height: data.height,
           zIndex: typeof data.zIndex === 'number' ? data.zIndex : 0
         };
-        if (idx >= 0) overlay.entityOverrides[idx] = next;
-        else overlay.entityOverrides.push(next);
+        // Filter-all-then-push rather than replace-first: concurrent saves once
+        // raced duplicate entries into the array (render used the last, updates
+        // hit the first — the entity froze). Purging every match on each write
+        // makes the handler self-healing if a duplicate ever sneaks back in.
+        overlay.entityOverrides = overlay.entityOverrides.filter(o => o.entityId !== data.entityId);
+        overlay.entityOverrides.push(next);
         await overlay.save();
         return { success: true, data: { override: next } };
       }

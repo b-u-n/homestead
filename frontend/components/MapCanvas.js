@@ -764,6 +764,9 @@ const trailBrightnessMul = (hex) => {
 const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) => {
   const canvasRef = useRef(null);
   const router = useRouter();
+  // Map<imageKey, src> of images already loaded (or loading) — lets the entity
+  // image-loading effect no-op when it re-runs on editor tile/override changes.
+  const loadedImageSrcRef = useRef({});
   const [roomData, setRoomData] = useState(null);
   // Dev-placed overlay tiles; reactive to RoomEditorStore mutations because MapCanvas is wrapped in observer().
   const overlayTiles = RoomEditorStore.getTiles(location);
@@ -774,6 +777,14 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
   const editorSelectedId = RoomEditorStore.selectedTileId;
   const editorSelectedEntityId = RoomEditorStore.selectedEntityId;
   const editorActive = RoomEditorStore.editModeActive;
+  // H-key screenshot mode: hides all UI chrome (and the editor's canvas overlays).
+  const editorUiHidden = RoomEditorStore.uiHidden;
+  // O-key sprite outlines: pink bounds around every drawable.
+  const editorOutlines = RoomEditorStore.outlinesVisible;
+  // Shift+click multi-selection set (array identity changes on every toggle).
+  const editorMultiSelected = RoomEditorStore.multiSelected;
+  // Fresh-copy flag: selection circle draws white right after a C copy.
+  const editorFreshCopy = RoomEditorStore.selectionIsFreshCopy;
   // Tracking the override and hidden lists ensures the draw + image-load effects re-run
   // when an entity gets moved or hidden in dev mode.
   const editorOverrides = RoomEditorStore.entityOverridesByLocation.get(location);
@@ -1266,7 +1277,6 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       // Grass tiles and weeping willow trees are handled by dedicated variant-baking effects.
       if (entity.id && (entity.id.startsWith('grass-') || entity.id.startsWith('weeping-willow-'))) return;
 
-      const img = new window.Image();
       let imageSrc;
       let imageKey;
 
@@ -1295,6 +1305,14 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       }
 
       if (imageSrc) {
+        // Skip anything already loaded (or loading) from this exact src. This
+        // effect re-runs on every overlay tile / entity-override change — i.e.
+        // every arrow nudge — and recreating hundreds of Images plus their
+        // onload setState storms made repositioning visibly slow.
+        if (loadedImageSrcRef.current[imageKey] === imageSrc) return;
+        loadedImageSrcRef.current[imageKey] = imageSrc;
+
+        const img = new window.Image();
         img.onerror = () => {
           // Fallback: reload with default image on error
           if (overrideUrl && entity.image) {
@@ -1309,6 +1327,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
                 ? entity.image
                 : entity.image.default || entity.image.uri || entity.image);
             if (fallbackSrc) {
+              loadedImageSrcRef.current[fallbackKey] = fallbackSrc;
               fallbackImg.onload = () => {
                 setLoadedImages(prev => ({ ...prev, [fallbackKey]: fallbackImg }));
               };
@@ -1555,7 +1574,16 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     if (roomData && Platform.OS === 'web') {
       drawCanvas();
     }
-  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale, overlayEntities, editorMode, editorDraft, editorSelectedId, editorSelectedEntityId, editorActive, editorOverrides, editorHidden]);
+  }, [roomData, hoveredObject, loadedImages, characterPosition, isEmoteMenuOpen, characterStore.activeEmote, characterStore.emoteOpacity, playersRefresh, avatarImages, isMobile, uxStore.renderScale, overlayEntities, editorMode, editorDraft, editorSelectedId, editorSelectedEntityId, editorActive, editorOverrides, editorHidden, editorUiHidden, editorOutlines, editorMultiSelected, editorFreshCopy]);
+
+  // Keep the room editor's Tab-cycling list in sync with what's selectable on this map.
+  // Same union (entities + doors, overrides applied, hidden filtered) that clicks hit-test.
+  useEffect(() => {
+    if (!roomData || Platform.OS !== 'web') return;
+    const visibleEntities = RoomEditorStore.applyEntityEdits(location, roomData.entities || []);
+    const visibleDoors = RoomEditorStore.applyEntityEdits(location, roomData.doors || []);
+    RoomEditorStore.setSelectableEntities(location, [...visibleEntities, ...visibleDoors]);
+  }, [roomData, location, editorOverrides, editorHidden]);
 
   const drawCanvas = () => {
     drawCanvasRef.current = drawCanvas;
@@ -1575,7 +1603,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     // Calculate avatar/emote size multiplier for smaller screens
     // When renderScale is small (mobile), make avatars 50% larger
     const avatarSizeMultiplier = uxStore.avatarSizeMultiplier;
-    const baseAvatarSize = 32;
+    const baseAvatarSize = 32 * 1.36 * 0.88; // +36%, then −12% (net ≈ +19.7%)
     const avatarSize = baseAvatarSize * avatarSizeMultiplier;
 
     // Collect debug labels to draw on top of everything
@@ -1684,6 +1712,21 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
     // Draw all items in z-order
     allDrawables.forEach(drawButton);
+
+    // O-key dev aid: pink outline around every sprite's bounds, drawn on top so
+    // they're visible regardless of overlap. Grass tiles are excluded (mass-generated
+    // background — hundreds of outlines would just be noise), matching the editor's
+    // hit-test convention.
+    if (RoomEditorStore.outlinesVisible) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(222, 134, 223, 0.9)';
+      ctx.lineWidth = 2;
+      for (const obj of allDrawables) {
+        if (obj.id && obj.id.startsWith('grass-')) continue;
+        ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+      }
+      ctx.restore();
+    }
 
     // Draw debug labels on top of everything (centered on object)
     if (debugLabels.length > 0) {
@@ -1861,19 +1904,8 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
             ctx.restore();
           }
 
-          // Draw username below character
-          ctx.save();
-          const otherUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
-          ctx.font = `${otherUsernameFontSize}px Arial`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          ctx.shadowColor = 'rgba(92, 90, 88, 0.55)';
-          ctx.shadowBlur = 0.5;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.7)');
-          ctx.fillText(player.username || 'Player', pos.x, pos.y + avatarSize / 2 + FontSettingsStore.getScaledSpacing(9) * avatarSizeMultiplier);
-          ctx.restore();
+          // Username nameplates intentionally not drawn under movable avatars
+          // (own or other players') — hidden by default for everyone.
         };
 
         // Animate move if active, otherwise draw normally
@@ -2064,19 +2096,8 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
             ctx.restore();
           }
 
-          // Username
-          ctx.save();
-          const currentUsernameFontSize = FontSettingsStore.getScaledFontSize(12);
-          ctx.font = `bold ${currentUsernameFontSize}px Arial`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          ctx.shadowColor = 'rgba(179, 230, 255, 0.8)';
-          ctx.shadowBlur = 0.5;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.fillStyle = FontSettingsStore.getFontColor('rgba(0, 0, 0, 0.9)');
-          ctx.fillText(profileStore.username || 'You', pos.x, pos.y + size / 2 + FontSettingsStore.getScaledSpacing(9));
-          ctx.restore();
+          // Username nameplate intentionally not drawn for the player's own avatar —
+          // you know who you are. Other players' nameplates still render above.
         }
 
         ctx.restore(); // end transform
@@ -2168,7 +2189,10 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
     // Room editor: draw the draft (placing) ghost and the selection highlight directly
     // into the canvas so they're pixel-aligned with placed tiles regardless of CSS scaling.
+    // In H-key screenshot mode the grid and draft ghost are suppressed (UI chrome), but
+    // the selection dot stays visible so the dev can still see/cycle what's selected.
     if (RoomEditorStore.editModeActive) {
+      if (!RoomEditorStore.uiHidden) {
       // Faint cottagecore tile grid so the dev can see the snap target.
       ctx.save();
       ctx.strokeStyle = 'rgba(112, 68, 199, 0.10)';
@@ -2184,9 +2208,10 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       }
       ctx.stroke();
       ctx.restore();
+      }
 
       const draft = RoomEditorStore.draftTile;
-      if (RoomEditorStore.mode === 'placing' && draft) {
+      if (RoomEditorStore.mode === 'placing' && draft && !RoomEditorStore.uiHidden) {
         ctx.save();
         ctx.strokeStyle = 'rgba(112, 68, 199, 0.95)';
         ctx.lineWidth = 4;
@@ -2196,14 +2221,27 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
         ctx.restore();
       }
       if (RoomEditorStore.mode === 'selected') {
-        let sel = null;
-        if (RoomEditorStore.selectedKind === 'tile' && RoomEditorStore.selectedTileId) {
-          sel = (RoomEditorStore.tilesByLocation.get(location) || [])
+        // One marker per selected item — the multi-selection set when 2+ are
+        // selected, otherwise the single selection.
+        const sels = [];
+        if (RoomEditorStore.multiSelected.length > 1) {
+          const locTiles = RoomEditorStore.tilesByLocation.get(location) || [];
+          for (const entry of RoomEditorStore.multiSelected) {
+            if (entry.kind === 'tile') {
+              const t = locTiles.find(lt => lt._id === entry.tileId);
+              if (t) sels.push(t);
+            } else if (entry.dims) {
+              sels.push(entry.dims);
+            }
+          }
+        } else if (RoomEditorStore.selectedKind === 'tile' && RoomEditorStore.selectedTileId) {
+          const t = (RoomEditorStore.tilesByLocation.get(location) || [])
             .find(t => t._id === RoomEditorStore.selectedTileId);
+          if (t) sels.push(t);
         } else if (RoomEditorStore.selectedKind === 'entity' && RoomEditorStore.selectedEntityDims) {
-          sel = RoomEditorStore.selectedEntityDims;
+          sels.push(RoomEditorStore.selectedEntityDims);
         }
-        if (sel) {
+        for (const sel of sels) {
           const cx = sel.x + sel.width / 2;
           const cy = sel.y + sel.height / 2;
           ctx.save();
@@ -2213,10 +2251,13 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
           ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
           ctx.shadowBlur = 4;
           ctx.shadowOffsetY = 2;
-          // Soft blue fill.
+          // Soft blue fill — or white while the selection is a fresh C-copy,
+          // so the dev can tell the copy landed (it sits exactly on the original).
           ctx.beginPath();
           ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(135, 180, 210, 0.85)';
+          ctx.fillStyle = RoomEditorStore.selectionIsFreshCopy
+            ? 'rgba(255, 255, 255, 0.95)'
+            : 'rgba(135, 180, 210, 0.85)';
           ctx.fill();
           ctx.shadowColor = 'transparent';
           // Stitched dashed border.
@@ -2281,7 +2322,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       // Pass the union so the editor can select and reposition them too.
       const visibleEntities = RoomEditorStore.applyEntityEdits(location, roomData.entities || []);
       const visibleDoors = RoomEditorStore.applyEntityEdits(location, roomData.doors || []);
-      RoomEditorStore.onCanvasClick(location, x, y, [...visibleEntities, ...visibleDoors]);
+      RoomEditorStore.onCanvasClick(location, x, y, [...visibleEntities, ...visibleDoors], { shift: event.shiftKey });
       return;
     }
 
@@ -2428,7 +2469,6 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
   const handleCanvasMouseMove = (event) => {
     if (!roomData || Platform.OS !== 'web') return;
-    if (RoomEditorStore.editModeActive) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -2447,6 +2487,14 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       const scaleY = BASELINE_HEIGHT / rect.height;
       x = (event.clientX - rect.left) * scaleX;
       y = (event.clientY - rect.top) * scaleY;
+    }
+
+    // In edit mode the editor owns the canvas: record the pointer (in baseline
+    // coords, reusing the transform above) for keyboard shortcuts like R
+    // (place copy of last tile under pointer), and skip hover handling.
+    if (RoomEditorStore.editModeActive) {
+      RoomEditorStore.setPointer(x, y);
+      return;
     }
 
     let foundHover = null;
@@ -2722,13 +2770,13 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
             ]}>{roomData.name.toUpperCase()}</Text>
           </View>
         )}
-        {!hasSidePanel && <UserStatus />}
+        {!editorUiHidden && !hasSidePanel && <UserStatus />}
         {/* Library navigation overlay */}
-        {(location === 'library' || location?.startsWith('library-')) && (
+        {!editorUiHidden && (location === 'library' || location?.startsWith('library-')) && (
           <LibraryNav currentRoom={location} />
         )}
         {/* Menu container - only show on canvas when no side panel */}
-        {!hasSidePanel && (
+        {!editorUiHidden && !hasSidePanel && (
           <View style={[styles.menuContainer, uxStore.shouldScaleUI && { transform: 'scale(0.8)', transformOrigin: 'top right' }]}>
             <NotificationHeart style={{ marginRight: 10 }} onNotificationClick={handleNotificationClick} />
             <HamburgerMenu
@@ -2744,7 +2792,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
             />
           </View>
         )}
-        {inventoryStore.isOpen && (
+        {!editorUiHidden && inventoryStore.isOpen && (
           <View style={styles.inventoryPanel}>
             <View style={styles.inventoryHeader}>
               <Text style={styles.inventoryTitle}>Knapsack</Text>
@@ -2770,7 +2818,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
           </View>
         )}
         {/* Knapsack - only show on canvas when no side panel */}
-        {!hasSidePanel && (
+        {!editorUiHidden && !hasSidePanel && (
           <View style={[styles.knapsackContainer, uxStore.shouldScaleUI && { transform: 'scale(0.7)', transformOrigin: 'bottom right' }]}>
             <button onClick={handleKnapsackClick} style={styles.knapsackButton}>
               <img
@@ -2915,7 +2963,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
             }
           `}</style>
           {/* Sidebar toggle button */}
-          {uxStore.letterboxWidth > 60 && !uxStore.isMobile && (
+          {!editorUiHidden && uxStore.letterboxWidth > 60 && !uxStore.isMobile && (
             <Pressable
               onPress={() => uxStore.toggleSidebar()}
               style={{
@@ -2966,8 +3014,9 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
               {/* Side panel */}
               <View style={sidePanelStyle}>
                 <View style={uxStore.isMobile ? { transform: 'scale(0.75)', transformOrigin: 'center center', flex: 1, alignItems: 'center', justifyContent: 'center' } : { flex: 1, alignItems: 'center' }}>
-                <UserStatus compact />
+                {!editorUiHidden && <UserStatus compact />}
                 {/* Menu buttons in side panel */}
+                {!editorUiHidden && (
                 <View style={{ flexDirection: uxStore.isMobile ? 'column' : 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
                   <NotificationHeart
                     onNotificationClick={handleNotificationClick}
@@ -2984,10 +3033,13 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
                     onButtonPress={() => setMobileOverlay(mobileOverlay === 'menu' ? null : 'menu')}
                   />
                 </View>
+                )}
                 {/* Knapsack in side panel */}
+                {!editorUiHidden && (
                 <View style={{ marginTop: 'auto', paddingTop: 12 }}>
                   {knapsackButton}
                 </View>
+                )}
                 </View>
               </View>
             </>

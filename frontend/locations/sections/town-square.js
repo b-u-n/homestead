@@ -5,42 +5,6 @@ const pathCornerLowerLeft = require('../../assets/images/path_corner_lower_left.
 const pathCornerLowerRight = require('../../assets/images/path_corner_lower_right.png'); // connects LEFT + TOP
 const pathCornerUpperLeft = require('../../assets/images/path_corner_upper_left.png');   // connects RIGHT + BOTTOM
 const pathCornerUpperRight = require('../../assets/images/path_corner_upper_right.png'); // connects LEFT + BOTTOM
-const grassImage = require('../../assets/images/grass.png');
-
-// Tile the canvas with 40x40 grass cells. Each row is physically positioned 20 source pixels
-// below the previous (50% vertical overlap), creating a half-overlap isometric pattern.
-// At 4x render scale: 160x160 tile, rows 80 rendered px apart.
-function buildGrassTiles(canvasWidth, canvasHeight) {
-  const cellSrc = 40;          // source-pixel cell size
-  const renderScale = 4;
-  const tile = cellSrc * renderScale;        // 160 rendered
-  const rowStep = 20 * renderScale - 44;     // 36 rendered (44px closer vertically)
-  const colStep = tile - 32;                  // 128 rendered (tiles 32px closer horizontally)
-  const halfCol = colStep / 2;                // 64 rendered (half-tile offset on alt rows)
-
-  const tiles = [];
-  const numRows = Math.ceil(canvasHeight / rowStep) + 1;
-  const numCols = Math.ceil(canvasWidth / colStep) + 1;
-
-  for (let r = 0; r < numRows; r++) {
-    const y = r * rowStep - tile / 2;
-    const offset = (r % 2) * halfCol;
-    for (let c = -1; c < numCols; c++) {
-      const x = c * colStep + offset;
-      tiles.push({
-        id: `grass-${r}-${c}`,
-        type: 'decoration',
-        x, y,
-        width: tile, height: tile,
-        zIndex: -200,
-        image: grassImage,
-        showTitle: false,
-      });
-    }
-  }
-  return tiles;
-}
-
 // Build a horizontal path with optional bump-up sections.
 // The bump-up pattern uses the full corner set so the path rises one tile
 // for a stretch and then drops back down.
@@ -162,8 +126,8 @@ export default (width, height) => ({
 
   // Outdoor entities (decorations, interactables)
   entities: [
-    // Grass field tiled across the canvas with isometric half-overlap rows
-    ...buildGrassTiles(width, height),
+    // (Generated grass field removed — ground cover is now placed by hand with
+    // the dev RoomEditor as overlay tiles, like the paths.)
 
     // (Static path tiles removed — paths are now placed via the dev RoomEditor and
     // persist as RoomLayoutOverlay tiles. Run backend/scripts/exportLayoutOverlay.js
@@ -252,56 +216,8 @@ export default (width, height) => ({
       flow: 'mailbox',
       zIndex: 2100
     },
-    // Generate weeping willow grove - 280 trees in a denser pattern
-    // Each tree drifts right and down as the index increases (cumulative offset)
-    ...Array.from({ length: 280 }, (_, i) => {
-      // Seeded random based on index for consistent positions
-      const seed = (i * 7919) % 1000 / 1000; // Prime number for good distribution
-      const seed2 = (i * 6271) % 1000 / 1000;
-      const seed3 = (i * 8923) % 1000 / 1000;
-
-      // Pack into 14 rows of 20. Smaller column step (40px) and row step (50px)
-      // for tighter packing matching the smaller (80x105) tree sprite.
-      const colsPerRow = 20;
-      const col = i % colsPerRow;
-      const row = Math.floor(i / colsPerRow);
-
-      // Base anchor: same upper-right grove area, but each tree also drifts
-      // a few pixels to the right and down with each successive index so the
-      // overall placement order flows right-and-down.
-      const driftX = i * 0.6;
-      const driftY = i * 0.4;
-
-      // Spread leftward like before (col 0 = farthest right, col N = farther left).
-      const baseX = width * 0.6 + 200 - col * 40 + driftX;
-      const baseY = height * 0.2 + 60 - row * 50 + driftY;
-
-      // Randomize position +/- 28.5px
-      const x = baseX + (seed - 0.5) * 57;
-      const y = baseY + (seed2 - 0.5) * 57;
-
-      // Randomize size +/- 14.2%
-      const sizeVariance = 0.142;
-      const sizeMultiplier = 1 + (seed3 - 0.5) * 2 * sizeVariance;
-      // 32x42 source (top-trimmed) @ 2.5x = 80x105
-      const baseWidth = 80;
-      const baseHeight = 105;
-
-      return {
-        id: `weeping-willow-${i}`,
-        type: 'interactable', // All trees are clickable
-        x,
-        y,
-        width: baseWidth * sizeMultiplier,
-        height: baseHeight * sizeMultiplier,
-        // Trees further back (higher row, smaller y) render behind closer ones.
-        // Stay above path (zIndex -100) and below interactable doors (~2100).
-        zIndex: 1900 - row * 5 - col,
-        image: require('../../assets/images/Tree.png'),
-        description: 'A serene grove of weeping willows, perfect for quiet contemplation.',
-        navigateTo: '/homestead/explore/map/weeping-willow',
-        showTitle: false
-      };
-    })
+    // Weeping willow grove (280 generated trees) removed — trees are now placed
+    // by hand with the room editor as overlay tiles. Note: the grove trees were
+    // the map's entrance to the weeping-willow room (navigateTo).
   ]
 });

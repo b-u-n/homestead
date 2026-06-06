@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { useEffect, useState, createContext } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -51,6 +51,11 @@ export default function RootLayout() {
   const initial = getInitialDimensions();
   const [screenWidth, setScreenWidth] = useState(initial.width);
   const [screenHeight, setScreenHeight] = useState(initial.height);
+  // Map pages skip the app-wide tiled backdrop — nine full-screen repeating
+  // layers are pure compositing cost there since the map canvas covers the
+  // viewport. Modals keep their own TiledBackground regardless.
+  const pathname = usePathname();
+  const isMapPage = !!pathname && pathname.startsWith('/homestead/explore/map');
 
   // Check if device is in portrait mode (mobile held upright)
   const isPortrait = screenHeight > screenWidth;
@@ -113,7 +118,7 @@ export default function RootLayout() {
 return (
     <ThemeProvider value={transparentTheme}>
       <ScaleContext.Provider value={{ scale, designWidth: DESIGN_WIDTH }}>
-        <TiledBackground>
+        <TiledBackground disableLayers={isMapPage}>
           <View style={styles.rootContainer}>
             <View style={[
               styles.scaledContent,
