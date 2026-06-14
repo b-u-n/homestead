@@ -5,6 +5,11 @@ import WebSocketService from '../services/websocket';
 
 const FONT_SETTINGS_KEY = '@homestead:fontSettings';
 
+// Multiplier applied to workbook-surface text + spacing on desktop web so
+// therapeutic copy reads as long-form prose. Dialed down from 2.0 → 1.6
+// (−20%) per design — spacing follows text so layout proportions hold.
+const WORKBOOK_FONT_BUMP = 1.6;
+
 // Placeholder values - to be dialed in later
 const ACCESSIBILITY_DEFAULTS = {
   fontSizeMultiplier: 1.25,
@@ -34,16 +39,16 @@ class FontSettingsStore {
   /**
    * Get scaled font size.
    *
-   * On desktop web, when a workbook surface is mounted, return baseSize × 2
-   * (doubled). Workbook copy needs to read as long-form therapeutic prose;
-   * the rest of the app keeps its native size. Mobile keeps its native size
-   * (already big enough relative to viewport).
+   * On desktop web, when a workbook surface is mounted, return
+   * baseSize × WORKBOOK_FONT_BUMP. Workbook copy needs to read as long-form
+   * therapeutic prose; the rest of the app keeps its native size. Mobile
+   * keeps its native size (already big enough relative to viewport).
    */
   getScaledFontSize(baseSize) {
     const onDesktop = Platform.OS === 'web';
     const inWorkbook = this.workbookActive;
-    const doubleIt = onDesktop && inWorkbook;
-    const multiplier = doubleIt ? 2 : 1;
+    const bumped = onDesktop && inWorkbook;
+    const multiplier = bumped ? WORKBOOK_FONT_BUMP : 1;
     return Math.round(baseSize * this.fontSizeMultiplier * multiplier);
   }
 
@@ -70,7 +75,7 @@ class FontSettingsStore {
   getScaledSpacing(baseValue) {
     const onDesktop = Platform.OS === 'web';
     const inWorkbook = this.workbookActive;
-    const multiplier = (onDesktop && inWorkbook) ? 2 : 1;
+    const multiplier = (onDesktop && inWorkbook) ? WORKBOOK_FONT_BUMP : 1;
     return Math.round(baseValue * this.fontSizeMultiplier * multiplier);
   }
 

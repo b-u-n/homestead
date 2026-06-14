@@ -11,7 +11,7 @@ import FontSettingsStore from '../stores/FontSettingsStore';
 const menuBackImage = require('../assets/images/menu-back.png');
 const menuCloseImage = require('../assets/images/menu-close.png');
 
-const Modal = observer(({ visible, onClose, onBack, canGoBack, title, titleSize = 24, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack, scrollResetKey, scrollContent = true }) => {
+const Modal = observer(({ visible, onClose, onBack, canGoBack, title, titleSize = 24, headerContent, children, modalSize, playSound = true, additionalOpenSound, showClose = true, zIndex = 2000, size, backLabel, onCustomBack, scrollResetKey, scrollContent = true }) => {
   // Show back button if canGoBack OR if a custom back action is provided
   const showBack = canGoBack || onCustomBack;
   const hasPlayedOpenSound = useRef(false);
@@ -127,8 +127,14 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, titleSize 
                   <View style={styles.navButtonSpacer} />
                 )}
 
-                {/* Title in center */}
-                {title && (
+                {/* Center slot — a drop can inject content here (e.g. the
+                    workbook progress bar) which takes precedence over the
+                    title. Falls back to the title for every other flow. */}
+                {headerContent ? (
+                  <View style={styles.headerContentCenter} pointerEvents="box-none">
+                    {headerContent}
+                  </View>
+                ) : title ? (
                   <Text style={[
                     styles.titleInNav,
                     {
@@ -136,7 +142,7 @@ const Modal = observer(({ visible, onClose, onBack, canGoBack, title, titleSize 
                       color: FontSettingsStore.getFontColor('rgba(64, 63, 62, 0.82)'),
                     }
                   ]}>{title}</Text>
-                )}
+                ) : null}
 
                 {/* Close button */}
                 {showClose ? (
@@ -333,6 +339,16 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
+  },
+  headerContentCenter: {
+    // Pinned to the top of the navbar so the bar sits a bit higher than the
+    // vertically-centered title slot. Clears the 50×50 back/close buttons that
+    // overlay each end of the navbar.
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 60,
   },
   titleInNav: {
     fontSize: 24,

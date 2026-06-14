@@ -40,6 +40,13 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
   // Shared context
   const [context, setContext] = useState(initialContext);
 
+  // Per-depth header content a drop can inject into the modal chrome — it
+  // renders between the back and close buttons and replaces the title.
+  // Mirrors the registerBackHandler pattern, but this is STATE (not a ref)
+  // because it drives what the Modal renders. WorkbookActivity uses this to
+  // hoist its step progress bar up into the navbar.
+  const [headerContentByDepth, setHeaderContentByDepth] = useState({});
+
   // Per-depth drop-registered back handlers. When a drop registers one, the
   // modal-chrome back button delegates to it instead of popping flow history.
   // This lets drops with their own internal multi-step navigation (e.g.
@@ -69,8 +76,23 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
       });
       // Clear any drop-registered back handlers from a prior session.
       dropBackHandlersRef.current = {};
+      // Clear any drop-injected header content from a prior session.
+      setHeaderContentByDepth({});
     }
   }, [visible, flowDefinition.startAt, startAt, flowDefinition.name]);
+
+  /**
+   * Drops can register a node to render in the modal chrome's center slot
+   * (between back and close), taking precedence over the title. Pass `null`
+   * to clear. Keyed by depth so stacked modals don't clobber each other.
+   */
+  const registerHeaderContent = (depth, node) => {
+    const nextNode = node ?? null;
+    setHeaderContentByDepth(prev => {
+      if (prev[depth] === nextNode) return prev;
+      return { ...prev, [depth]: nextNode };
+    });
+  };
 
   /**
    * Drops can register a back handler that takes precedence over the default
@@ -318,6 +340,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
             canGoBack={drop.showBack !== false && (history.length > 1 || depth > 0)}
             showClose={drop.showClose !== false}
             title={typeof drop.title === 'function' ? drop.title(accumulatedData) : (drop.title || flowDefinition.title)}
+            headerContent={headerContentByDepth[depth]}
             size={drop.size || flowDefinition.size}
             additionalOpenSound={depth === 0 ? flowDefinition.additionalOpenSound : undefined}
             backLabel={drop.backLabel}
@@ -337,6 +360,7 @@ const FlowEngine = ({ flowDefinition, visible, onClose, initialContext = {}, sta
                   onBack={() => goBackAtDepth(depth)}
                   canGoBack={drop.showBack !== false && (history.length > 1 || depth > 0)}
                   registerBackHandler={(handler) => registerBackHandler(depth, handler)}
+                  registerHeaderContent={(node) => registerHeaderContent(depth, node)}
                   flowName={flowDefinition.name}
                   dropId={dropId}
                 />

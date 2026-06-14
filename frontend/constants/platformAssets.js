@@ -10,7 +10,11 @@ export const PLATFORM_ASSETS = [
   { id: 'entity-wishing-well', category: 'Sprites', name: 'Wishing Well', image: require('../assets/images/wishing-well.png') },
   { id: 'entity-help-wanted', category: 'Sprites', name: 'Help Wanted Board', image: require('../assets/images/help-sign.png') },
   { id: 'entity-journal', category: 'Sprites', name: 'Journal', image: require('../assets/images/journal.png') },
-  { id: 'entity-weeping-willow', category: 'Sprites', name: 'Weeping Willow Tree', image: require('../assets/images/weeping-willow.png') },
+  // Sprite swapped from weeping-willow.png to Tree.png (the old grove sprite) —
+  // same catalog id, so existing placed tiles pick up the new image automatically.
+  // Base size = natural 32x42 ×4, reduced 24% (128x168 → 97x128). sizeJitter
+  // gives each created tree a permanent independent ±8% on width and height.
+  { id: 'entity-weeping-willow', category: 'Sprites', name: 'Weeping Willow Tree', image: require('../assets/images/Tree.png'), editorWidth: 97, editorHeight: 128, sizeJitter: 0.08 },
   { id: 'entity-sugarbee-cafe', category: 'Sprites', name: 'Sugarbee Cafe Door', image: require('../assets/images/cat_cafe.png') },
   { id: 'entity-bazaar', category: 'Sprites', name: 'Bazaar Door', image: require('../assets/images/Market.png') },
   { id: 'entity-cafe-couch', category: 'Sprites', name: 'Cafe Couch', image: require('../assets/images/sugarbee-cafe-couch.png') },

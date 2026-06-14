@@ -11,7 +11,7 @@ const slotBgImage = require('../../assets/images/slot-bg-2.jpeg');
  * Textured container with a row of stitched step segments inside.
  * Filled segments get a color overlay; unfilled are transparent.
  */
-const StitchedProgressBar = observer(({ progress = 0, steps = 1, fillColor = 'rgba(135, 180, 210, 0.5)' }) => {
+const StitchedProgressBar = observer(({ progress = 0, steps = 1, fillColor = 'rgba(135, 180, 210, 0.5)', segmentHeight = 18 }) => {
   const overlayColor = useMinkyColor('primary', 'rgba(112, 68, 199, 0.15)');
   const isMobile = uxStore.isMobile || uxStore.isPortrait;
   const filledSteps = Math.round(Math.min(Math.max(progress, 0), 1) * steps);
@@ -62,7 +62,7 @@ const StitchedProgressBar = observer(({ progress = 0, steps = 1, fillColor = 'rg
               ? { borderTopRightRadius: 4, borderBottomRightRadius: 4 }
               : null;
           return (
-            <View key={i} style={[styles.segment, endRadius]}>
+            <View key={i} style={[styles.segment, { height: segmentHeight }, endRadius]}>
               {isFilled && (
                 <View style={[styles.segmentFill, { backgroundColor: fillColor }]} />
               )}

@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import WebSocketService from '../services/websocket';
 import SessionStore from './SessionStore';
+import { PLATFORM_ASSETS } from '../constants/platformAssets';
 
 // Editor grid: every placement and every default-arrow nudge snaps to this many
 // baseline pixels. Shift+arrow bypasses the snap for sub-tile fine-tuning.
@@ -317,6 +318,18 @@ class RoomEditorStore {
     this.recentAssetIds = [assetId, ...without].slice(0, 8);
   }
 
+  // Assets that declare `sizeJitter` (e.g. trees) get independent per-axis size
+  // multipliers in [1-j, 1+j] at creation time. The result is stored in the
+  // tile's width/height, so each tree's size is permanent. Returns base dims
+  // unchanged for assets without jitter.
+  _jitterDims(asset, baseW, baseH) {
+    const j = asset && typeof asset.sizeJitter === 'number' ? asset.sizeJitter : 0;
+    if (!j) return { width: baseW, height: baseH };
+    const rw = 1 + (Math.random() * 2 - 1) * j;
+    const rh = 1 + (Math.random() * 2 - 1) * j;
+    return { width: Math.round(baseW * rw), height: Math.round(baseH * rh) };
+  }
+
   // Called when an asset is picked. Initializes a draft tile centered on canvas.
   // Uses a 4x scale on natural pixels to match the project's typical render scale —
   // a 32-px sprite would be invisible at native size in 1080-baseline coords.
@@ -330,13 +343,21 @@ class RoomEditorStore {
     const SCALE = typeof asset.editorScale === 'number' ? asset.editorScale : 4;
     const w = hasExplicit ? asset.editorWidth : (naturalWidth || 64) * SCALE;
     const h = hasExplicit ? asset.editorHeight : (naturalHeight || 64) * SCALE;
+    // Per-asset size jitter (e.g. trees ±15% per axis), permanent for this tile.
+    const dims = this._jitterDims(asset, w, h);
+    // New placements go ON TOP of everything at this location — a fixed default
+    // (the old zIndex 50) buried new tiles invisibly under the z-2100+ ground
+    // tiles, and clicks couldn't reach them (highest z wins the hit-test).
+    const tiles = this.tilesByLocation.get(this.currentLocation) || [];
+    const overrides = this.entityOverridesByLocation.get(this.currentLocation) || [];
+    const maxZ = Math.max(0, ...tiles.map(t => t.zIndex || 0), ...overrides.map(o => o.zIndex || 0));
     this.draftTile = {
       platformAssetId: asset.id,
-      x: BASELINE_WIDTH / 2 - w / 2,
-      y: BASELINE_HEIGHT / 2 - h / 2,
-      width: w,
-      height: h,
-      zIndex: 50
+      x: BASELINE_WIDTH / 2 - dims.width / 2,
+      y: BASELINE_HEIGHT / 2 - dims.height / 2,
+      width: dims.width,
+      height: dims.height,
+      zIndex: maxZ + 1
     };
     this.mode = 'placing';
     this.selectedTileId = null;
@@ -535,7 +556,8 @@ class RoomEditorStore {
     const existing = this.tilesByLocation.get(locationId) || [];
     this.tilesByLocation.set(locationId, [...existing, placed]);
     this.draftTile = null;
-    this.mode = 'idle';
+    // Select the freshly placed tile so it can be nudged/re-layered immediately.
+    this.selectTile(placed._id);
     this._markDirty(locationId);
   }
 
@@ -550,13 +572,20 @@ class RoomEditorStore {
     if (tiles.length === 0) return;
     const src = tiles[tiles.length - 1];
     this._pushSnapshot(locationId);
+    // Jittered assets re-roll a fresh size per stamp, anchored to the asset's
+    // BASE dims (not the source tile's) so chained stamps don't drift. Other
+    // assets copy the source's size exactly.
+    const asset = PLATFORM_ASSETS.find(a => a.id === src.platformAssetId);
+    const dims = asset && typeof asset.sizeJitter === 'number'
+      ? this._jitterDims(asset, asset.editorWidth ?? src.width, asset.editorHeight ?? src.height)
+      : { width: src.width, height: src.height };
     const placed = {
       _id: this._nextLocalId(),
       platformAssetId: src.platformAssetId,
-      x: snap(pointer.x - src.width / 2),
-      y: snap(pointer.y - src.height / 2),
-      width: src.width,
-      height: src.height,
+      x: snap(pointer.x - dims.width / 2),
+      y: snap(pointer.y - dims.height / 2),
+      width: dims.width,
+      height: dims.height,
       zIndex: src.zIndex || 0
     };
     this.tilesByLocation.set(locationId, [...tiles, placed]);
@@ -649,8 +678,10 @@ class RoomEditorStore {
     }
 
     if (this.mode === 'placing') {
-      if (tileHit) { this.selectTile(tileHit._id); return; }
-      if (entityHit) { this.selectEntity(entityHit); return; }
+      // A click while placing ALWAYS commits the placement. (This used to select
+      // any tile under the cursor instead — fine on an empty map, but once the
+      // ground is fully tiled every click hit grass, silently discarding the
+      // draft. Esc is the way to cancel a placement.)
       this.commitPlacement(locationId, x, y);
       return;
     }

@@ -97,7 +97,7 @@ function hashGrassId(id) {
   return h >>> 0;
 }
 
-function buildGrassVariant(srcImage, seed) {
+function buildGrassVariant(srcImage, seed, opts = {}) {
   const w = srcImage.naturalWidth || srcImage.width;
   const h = srcImage.naturalHeight || srcImage.height;
   const work = document.createElement('canvas');
@@ -114,6 +114,15 @@ function buildGrassVariant(srcImage, seed) {
 
   const isOpaque = (x, y) => x >= 0 && x < w && y >= 0 && y < h && src[(y * w + x) * 4 + 3] > 0;
 
+  // Optional inner-region restriction: mutations may only originate from AND land
+  // within the central `innerFraction` of the sprite (e.g. 0.8 leaves the outer
+  // 10% border on every side pixel-identical to the source), so hand-placed tiles'
+  // overlapping edges stay seamless. Default 1 = original algorithm, untouched.
+  const innerFraction = opts.innerFraction || 1;
+  const marginX = Math.floor(w * (1 - innerFraction) / 2);
+  const marginY = Math.floor(h * (1 - innerFraction) / 2);
+  const inInner = (x, y) => x >= marginX && x < w - marginX && y >= marginY && y < h - marginY;
+
   // Per-column bottom of opaque region (for "second from bottom" check).
   const colBot = new Int32Array(w).fill(-1);
   for (let x = 0; x < w; x++) {
@@ -122,7 +131,9 @@ function buildGrassVariant(srcImage, seed) {
     }
   }
 
-  const MAX_UP_SHIFT = 5;
+  // Cap on the per-column blade up-shift. Overridable so overlay variants can
+  // run gentler variation; default 5 = original behavior.
+  const MAX_UP_SHIFT = opts.maxUpShift ?? 5;
   for (let x = 0; x < w; x++) {
     let flipped = false;
     let downCount = 0; // count of opaque pixels seen in this column so far
@@ -149,14 +160,14 @@ function buildGrassVariant(srcImage, seed) {
 
       // Stacking up-shift: each eligible pixel can independently roll to add 1 to the
       // column's accumulated up-shift offset, capped at MAX_UP_SHIFT.
-      if (downCount >= 3 && eligible && upShiftAmount < MAX_UP_SHIFT && rng() < 0.12) {
+      if (downCount >= 3 && eligible && inInner(x, y) && upShiftAmount < MAX_UP_SHIFT && rng() < 0.12) {
         upShiftAmount++;
       }
 
       // Bright source pixels are usually highlights — mutating or shifting them
       // produces stray white dots. Lock them in place.
       const isBright = src[idx] > 210 || src[idx + 1] > 210 || src[idx + 2] > 210;
-      const mutable = eligible && !isBright;
+      const mutable = eligible && !isBright && inInner(x, y);
       const doColor = mutable && rng() < 0.04;
       const doShift = mutable && rng() < 0.015;
       // Up-shift requires: column has accumulated some shift, this pixel is eligible,
@@ -180,6 +191,9 @@ function buildGrassVariant(srcImage, seed) {
       const tx = doShift ? x - 1 : x;
       const ty = doUp ? y - upShiftAmount : y;
       if (ty < 0) continue;
+      // Destination must also stay inside the inner region — a shifted pixel
+      // landing in the border would still break edge seamlessness.
+      if (!inInner(tx, ty)) continue;
 
       const dIdx = (ty * w + tx) * 4;
       dst[dIdx] = nr;
@@ -192,6 +206,23 @@ function buildGrassVariant(srcImage, seed) {
         dst[idx + 1] = 0;
         dst[idx + 2] = 0;
         dst[idx + 3] = 0;
+      }
+    }
+  }
+
+  // Optional opacity guarantee: never leave a pixel more transparent than the
+  // source. The up-shift normally MOVES pixels (clearing their origin), punching
+  // small transparent gaps into columns — invisible on the old 50%-overlapped
+  // generated field (another tile sat behind every gap), but see-through on
+  // hand-placed tiles with nothing behind them. Restoring cleared source pixels
+  // turns the shift into an upward smear instead. Default off = original output.
+  if (opts.preserveOpacity) {
+    for (let i = 0; i < src.length; i += 4) {
+      if (src[i + 3] > 0 && dst[i + 3] === 0) {
+        dst[i] = src[i];
+        dst[i + 1] = src[i + 1];
+        dst[i + 2] = src[i + 2];
+        dst[i + 3] = src[i + 3];
       }
     }
   }
@@ -225,6 +256,25 @@ function getGrassDirtVariants(srcImage) {
     variants.push(buildGrassVariant(srcImage, i + 501));
   }
   _grassDirtVariantsCache = variants;
+  return variants;
+}
+
+// Variants for hand-placed overlay grass tiles: same algorithm, restricted to the
+// inner 80% of the sprite so tiles' overlapping edges stay pixel-identical and the
+// interlock reads seamless. Cached per loaded image element (WeakMap), so a
+// customization override swapping the asset image re-bakes automatically.
+const OVERLAY_GRASS_VARIANT_ASSETS = new Set(['tile-grass-dirt']);
+const _overlayGrassVariantsCache = new WeakMap();
+function getOverlayGrassVariants(img) {
+  let variants = _overlayGrassVariantsCache.get(img);
+  if (!variants) {
+    variants = [];
+    for (let i = 0; i < NUM_GRASS_VARIANTS; i++) {
+      // Seed range distinct from both legacy grass (1..) and grass-dirt (501..).
+      variants.push(buildGrassVariant(img, i + 1001, { innerFraction: 0.8, preserveOpacity: true }));
+    }
+    _overlayGrassVariantsCache.set(img, variants);
+  }
   return variants;
 }
 
@@ -1286,6 +1336,19 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       ...overlayEntities,
     ];
 
+    // Ensure the active placement draft's asset image is loaded too, so the
+    // draft preview can render the actual sprite inside its dashed box.
+    if (RoomEditorStore.draftTile) {
+      const draftAsset = PLATFORM_ASSETS.find(a => a.id === RoomEditorStore.draftTile.platformAssetId);
+      if (draftAsset && draftAsset.image) {
+        allEntities.push({
+          id: `editor-draft-${draftAsset.id}`,
+          platformAssetId: draftAsset.id,
+          image: draftAsset.image
+        });
+      }
+    }
+
     allEntities.forEach(entity => {
       // Grass tiles and weeping willow trees are handled by dedicated variant-baking effects.
       if (entity.id && (entity.id.startsWith('grass-') || entity.id.startsWith('weeping-willow-'))) return;
@@ -1361,7 +1424,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
         img.src = imageSrc;
       }
     });
-  }, [roomData, CustomizationStore.version, overlayEntities, editorOverrides, editorHidden]);
+  }, [roomData, CustomizationStore.version, overlayEntities, editorOverrides, editorHidden, editorDraft]);
 
   // Bake grass variants once and assign each grass tile a deterministic variant.
   useEffect(() => {
@@ -1626,7 +1689,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
     // Calculate avatar/emote size multiplier for smaller screens
     // When renderScale is small (mobile), make avatars 50% larger
     const avatarSizeMultiplier = uxStore.avatarSizeMultiplier;
-    const baseAvatarSize = 32 * 1.36 * 0.88; // +36%, then −12% (net ≈ +19.7%)
+    const baseAvatarSize = 48; // base avatar size in baseline px
     const avatarSize = baseAvatarSize * avatarSizeMultiplier;
 
     // Collect debug labels to draw on top of everything
@@ -1649,7 +1712,17 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
         ? obj.image
         : (obj.platformAssetId ? `passet-${obj.platformAssetId}` : obj.id);
       if (obj.image && loadedImages[imageKey]) {
-        const img = loadedImages[imageKey];
+        let img = loadedImages[imageKey];
+
+        // Hand-placed grass tiles draw one of the pre-baked variants (mutations
+        // restricted to the inner 80%, edges untouched). Hash on position, not
+        // _id — local ids get reissued as real ids on reload; position keeps
+        // each tile's look stable forever.
+        // DISABLED for now — uncomment to re-enable overlay grass variation:
+        // if (obj._overlay && OVERLAY_GRASS_VARIANT_ASSETS.has(obj.platformAssetId)) {
+        //   const variants = getOverlayGrassVariants(img);
+        //   img = variants[hashGrassId(`${obj.x},${obj.y}`) % variants.length];
+        // }
 
         // Calculate scale based on hover (skip for decorations) and mobile back button scale
         const hoverScale = (isHovered && obj.type !== 'decoration') ? 1.06 : 1;
@@ -1820,16 +1893,17 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
           const dx = pos.x - size / 2;
           const dy = pos.y - size / 2;
 
-          // Draw outer background (white)
+          // Draw outer background (white). Padding reduced from 2px to 0 — the
+          // border box now hugs the avatar instead of sitting 2px outside it.
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-          drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
+          drawRoundedRect(dx, dy, size, size, borderRadius);
           ctx.fill();
 
           // Draw outer dashed border (using player's color)
           ctx.strokeStyle = borderColor;
           ctx.lineWidth = 2;
           ctx.setLineDash([5, 5]);
-          drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
+          drawRoundedRect(dx, dy, size, size, borderRadius);
           ctx.stroke();
           ctx.setLineDash([]);
 
@@ -2019,7 +2093,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
 
         // Outer background
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
+        drawRoundedRect(dx, dy, size, size, borderRadius);
         ctx.fill();
         ctx.shadowBlur = 0;
 
@@ -2027,7 +2101,7 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
         ctx.strokeStyle = myBorderColor;
         ctx.lineWidth = 3;
         ctx.setLineDash([5, 5]);
-        drawRoundedRect(dx - 2, dy - 2, size + 4, size + 4, borderRadius + 2);
+        drawRoundedRect(dx, dy, size, size, borderRadius);
         ctx.stroke();
         ctx.setLineDash([]);
 
@@ -2240,6 +2314,14 @@ const MapCanvas = ({ location, initialFlow, initialDropId, initialFlowParams }) 
       const draft = RoomEditorStore.draftTile;
       if (RoomEditorStore.mode === 'placing' && draft && !RoomEditorStore.uiHidden) {
         ctx.save();
+        // Ghost of the actual sprite inside the dashed box (its image loads via
+        // the entity image effect, which includes the active draft's asset).
+        const draftImg = loadedImages[`passet-${draft.platformAssetId}`];
+        if (draftImg) {
+          ctx.globalAlpha = 0.85;
+          ctx.drawImage(draftImg, draft.x, draft.y, draft.width, draft.height);
+          ctx.globalAlpha = 1;
+        }
         ctx.strokeStyle = 'rgba(112, 68, 199, 0.95)';
         ctx.lineWidth = 4;
         ctx.setLineDash([14, 10]);

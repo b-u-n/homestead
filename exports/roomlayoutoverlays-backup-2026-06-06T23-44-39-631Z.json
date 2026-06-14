@@ -1,0 +1,5184 @@
+[
+  {
+    "_id": "69f5cfb1f7efda5a1998765c",
+    "locationId": "town-square",
+    "tiles": [
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 704,
+        "y": 416,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806b1"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 1152,
+        "y": 320,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2109,
+        "_id": "6a24ad4276ec7f9fb9d806b2"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 768,
+        "y": 448,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806b3"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 832,
+        "y": 480,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806b4"
+      },
+      {
+        "platformAssetId": "path-midpoint",
+        "x": 890,
+        "y": 502,
+        "width": 256,
+        "height": 160,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d806b5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 50,
+        "_id": "6a24ad4276ec7f9fb9d806b6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 50,
+        "_id": "6a24ad4276ec7f9fb9d806b7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 50,
+        "_id": "6a24ad4276ec7f9fb9d806b8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 51,
+        "_id": "6a24ad4276ec7f9fb9d806b9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 50,
+        "_id": "6a24ad4276ec7f9fb9d806ba"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 45,
+        "_id": "6a24ad4276ec7f9fb9d806bb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 45,
+        "_id": "6a24ad4276ec7f9fb9d806bc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 51,
+        "_id": "6a24ad4276ec7f9fb9d806bd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": -2,
+        "_id": "6a24ad4276ec7f9fb9d806be"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 49,
+        "_id": "6a24ad4276ec7f9fb9d806bf"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 44,
+        "_id": "6a24ad4276ec7f9fb9d806c0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 44,
+        "_id": "6a24ad4276ec7f9fb9d806c1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 44,
+        "_id": "6a24ad4276ec7f9fb9d806c2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 43,
+        "_id": "6a24ad4276ec7f9fb9d806c3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d806c4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806c5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806c6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806c7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d806c8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806c9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806ca"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806cb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806cc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806cd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806ce"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806cf"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d806d1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806d9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806da"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2109,
+        "_id": "6a24ad4276ec7f9fb9d806db"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d806dc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d806dd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2106,
+        "_id": "6a24ad4276ec7f9fb9d806de"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d806df"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806e0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d806e1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d806e2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d806e3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d806e4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d806e5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d806e6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d806e7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d806e8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d806e9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d806ea"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d806eb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2109,
+        "_id": "6a24ad4276ec7f9fb9d806ec"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2109,
+        "_id": "6a24ad4276ec7f9fb9d806ed"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2109,
+        "_id": "6a24ad4276ec7f9fb9d806ee"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d806ef"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2106,
+        "_id": "6a24ad4276ec7f9fb9d806f0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d806f1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d806f2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d806f3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d806f4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d806f5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806f6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806f7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806f8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -66,
+        "y": 417,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d806f9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d806fa"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d806fb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d806fc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d806fd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d806fe"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d806ff"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80700"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80701"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d80702"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80703"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80704"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d80705"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80706"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80707"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80708"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80709"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d8070a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d8070b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d8070c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d8070d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d8070e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d8070f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d80710"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d80711"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80712"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d80713"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d80714"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80715"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80716"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d80717"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80718"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80719"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8071a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8071b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8071c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8071d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": -32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8071e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 0,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8071f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80720"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80721"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80722"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80723"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d80724"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80725"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80726"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80727"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80728"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80729"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d8072a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d8072b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d8072c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d8072d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d8072e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d8072f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d80730"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80731"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80732"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d80733"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80734"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80735"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2130,
+        "_id": "6a24ad4276ec7f9fb9d80736"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2130,
+        "_id": "6a24ad4276ec7f9fb9d80737"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2130,
+        "_id": "6a24ad4276ec7f9fb9d80738"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d80739"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d8073a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d8073b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d8073c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d8073d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d8073e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d8073f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80740"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d80741"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80742"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80743"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80744"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80745"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2118,
+        "_id": "6a24ad4276ec7f9fb9d80746"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2121,
+        "_id": "6a24ad4276ec7f9fb9d80747"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2133,
+        "_id": "6a24ad4276ec7f9fb9d80748"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2133,
+        "_id": "6a24ad4276ec7f9fb9d80749"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2133,
+        "_id": "6a24ad4276ec7f9fb9d8074a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2133,
+        "_id": "6a24ad4276ec7f9fb9d8074b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8074c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d8074d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d8074e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d8074f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d80750"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d80751"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d80752"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d80753"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80754"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80755"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d80756"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80757"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d80758"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80759"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d8075a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2118,
+        "_id": "6a24ad4276ec7f9fb9d8075b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2121,
+        "_id": "6a24ad4276ec7f9fb9d8075c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d8075d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d8075e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d8075f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d80760"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d80761"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80762"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80763"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d80764"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d80765"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d80766"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d80767"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d80768"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d80769"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d8076a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d8076b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d8076c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d8076d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d8076e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d8076f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80770"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80771"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2118,
+        "_id": "6a24ad4276ec7f9fb9d80772"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2121,
+        "_id": "6a24ad4276ec7f9fb9d80773"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2135,
+        "_id": "6a24ad4276ec7f9fb9d80774"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2135,
+        "_id": "6a24ad4276ec7f9fb9d80775"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2135,
+        "_id": "6a24ad4276ec7f9fb9d80776"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2118,
+        "_id": "6a24ad4276ec7f9fb9d80777"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d80778"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d80779"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d8077a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d8077b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8077c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d8077d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d8077e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d8077f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d80780"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d80781"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d80782"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d80783"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d80784"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80785"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80786"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80787"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80788"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80789"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d8078a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2118,
+        "_id": "6a24ad4276ec7f9fb9d8078b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2121,
+        "_id": "6a24ad4276ec7f9fb9d8078c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d8078d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d8078e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d8078f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d80790"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d80791"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d80792"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d80793"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d80794"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d80795"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2118,
+        "_id": "6a24ad4276ec7f9fb9d80796"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2118,
+        "_id": "6a24ad4276ec7f9fb9d80797"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2121,
+        "_id": "6a24ad4276ec7f9fb9d80798"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2138,
+        "_id": "6a24ad4276ec7f9fb9d80799"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8079a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8079b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8079c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8079d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8079e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8079f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d807a0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807a1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807a2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807a3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807a4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d807a5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807a6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d807a7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d807a8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d807a9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2112,
+        "_id": "6a24ad4276ec7f9fb9d807aa"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 32,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807ab"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 64,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807ac"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807ad"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807ae"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807af"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807b0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807b1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807b2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d807b3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807b4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d807b5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d807b6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 96,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807b7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 128,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807b8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807b9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807ba"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807bb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807bc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807bd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 160,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807be"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807bf"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 192,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807c0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807c1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807c2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807c3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807c4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807c5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807c6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807c7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807c8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d807c9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d807ca"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d807cb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d807cc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d807cd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 224,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2102,
+        "_id": "6a24ad4276ec7f9fb9d807ce"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 256,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807cf"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807d0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807d1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807d2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807d3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807d4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807d5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807d6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807d7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d807d8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d807d9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 288,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807da"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 320,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807db"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807dc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807dd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807de"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807df"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807e0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807e1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807e2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d807e3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d807e4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 352,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2103,
+        "_id": "6a24ad4276ec7f9fb9d807e5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 384,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807e6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807e7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807e8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807e9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807ea"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807eb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807ec"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d807ed"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d807ee"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 416,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2104,
+        "_id": "6a24ad4276ec7f9fb9d807ef"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 448,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807f0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807f1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d807f2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807f3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d807f4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d807f5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d807f6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d807f7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d807f8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 480,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2105,
+        "_id": "6a24ad4276ec7f9fb9d807f9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 512,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d807fa"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d807fb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d807fc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d807fd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d807fe"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d807ff"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80800"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80801"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 544,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d80802"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 576,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d80803"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80804"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80805"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80806"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d80807"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d80808"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80809"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 608,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d8080a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d8080b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d8080c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d8080d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d8080e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d8080f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d80810"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d80811"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80812"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d80813"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80814"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80815"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80816"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80817"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80818"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80819"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d8081a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d8081b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8081c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8081d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8081e"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 1216,
+        "y": 416,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2110,
+        "_id": "6a24ad4276ec7f9fb9d8081f"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 1152,
+        "y": 448,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2111,
+        "_id": "6a24ad4276ec7f9fb9d80820"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 1088,
+        "y": 480,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80821"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 1024,
+        "y": 512,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d80822"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 896,
+        "y": 512,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d80823"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 896,
+        "y": 576,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d80824"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 1024,
+        "y": 576,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d80825"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 640,
+        "y": 384,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d80826"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 1216,
+        "y": 352,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2109,
+        "_id": "6a24ad4276ec7f9fb9d80827"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 1280,
+        "y": 384,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2109,
+        "_id": "6a24ad4276ec7f9fb9d80828"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 1344,
+        "y": 352,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2108,
+        "_id": "6a24ad4276ec7f9fb9d80829"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 1408,
+        "y": 320,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2107,
+        "_id": "6a24ad4276ec7f9fb9d8082a"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 832,
+        "y": 608,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8082b"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 768,
+        "y": 640,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8082c"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 704,
+        "y": 672,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8082d"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 640,
+        "y": 704,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8082e"
+      },
+      {
+        "platformAssetId": "path-corner-lower-left",
+        "x": 576,
+        "y": 736,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2138,
+        "_id": "6a24ad4276ec7f9fb9d8082f"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 512,
+        "y": 704,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2137,
+        "_id": "6a24ad4276ec7f9fb9d80830"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 448,
+        "y": 672,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2136,
+        "_id": "6a24ad4276ec7f9fb9d80831"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 384,
+        "y": 640,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2135,
+        "_id": "6a24ad4276ec7f9fb9d80832"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 320,
+        "y": 608,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d80833"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 256,
+        "y": 576,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2133,
+        "_id": "6a24ad4276ec7f9fb9d80834"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 192,
+        "y": 544,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2132,
+        "_id": "6a24ad4276ec7f9fb9d80835"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 128,
+        "y": 512,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80836"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 192,
+        "y": 480,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2120,
+        "_id": "6a24ad4276ec7f9fb9d80837"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 256,
+        "y": 448,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80838"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 320,
+        "y": 416,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80839"
+      },
+      {
+        "platformAssetId": "path-corner-lower-right",
+        "x": 384,
+        "y": 384,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2115,
+        "_id": "6a24ad4276ec7f9fb9d8083a"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 320,
+        "y": 352,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2114,
+        "_id": "6a24ad4276ec7f9fb9d8083b"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 192,
+        "y": 288,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d8083c"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 256,
+        "y": 320,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2113,
+        "_id": "6a24ad4276ec7f9fb9d8083d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8083e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8083f"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 1088,
+        "y": 608,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d80840"
+      },
+      {
+        "platformAssetId": "path-straight-left",
+        "x": 1152,
+        "y": 640,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d80841"
+      },
+      {
+        "platformAssetId": "path-corner-lower-left",
+        "x": 1216,
+        "y": 672,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2123,
+        "_id": "6a24ad4276ec7f9fb9d80842"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 256,
+        "y": 640,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d80843"
+      },
+      {
+        "platformAssetId": "path-straight-right",
+        "x": 192,
+        "y": 672,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d80844"
+      },
+      {
+        "platformAssetId": "path-corner-upper-left",
+        "x": 128,
+        "y": 704,
+        "width": 128,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d80845"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2116,
+        "_id": "6a24ad4276ec7f9fb9d80846"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80847"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2117,
+        "_id": "6a24ad4276ec7f9fb9d80848"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d80849"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8084a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8084b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d8084c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d8084d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d8084e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8084f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d80850"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2119,
+        "_id": "6a24ad4276ec7f9fb9d80851"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80852"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d80853"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d80854"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2124,
+        "_id": "6a24ad4276ec7f9fb9d80855"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d80856"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d80857"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1664,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d80858"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1856,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d80859"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1792,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8085a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1728,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2134,
+        "_id": "6a24ad4276ec7f9fb9d8085b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1824,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8085c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2127,
+        "_id": "6a24ad4276ec7f9fb9d8085d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 640,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8085e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d8085f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d80860"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2128,
+        "_id": "6a24ad4276ec7f9fb9d80861"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2127,
+        "_id": "6a24ad4276ec7f9fb9d80862"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2128,
+        "_id": "6a24ad4276ec7f9fb9d80863"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80864"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80865"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80866"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80867"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80868"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 672,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2125,
+        "_id": "6a24ad4276ec7f9fb9d80869"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8086a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8086b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2127,
+        "_id": "6a24ad4276ec7f9fb9d8086c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2126,
+        "_id": "6a24ad4276ec7f9fb9d8086d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2128,
+        "_id": "6a24ad4276ec7f9fb9d8086e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d8086f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2128,
+        "_id": "6a24ad4276ec7f9fb9d80870"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80871"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80872"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2129,
+        "_id": "6a24ad4276ec7f9fb9d80873"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2130,
+        "_id": "6a24ad4276ec7f9fb9d80874"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1536,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2130,
+        "_id": "6a24ad4276ec7f9fb9d80875"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1600,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2142,
+        "_id": "6a24ad4276ec7f9fb9d80876"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2137,
+        "_id": "6a24ad4276ec7f9fb9d80877"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d80878"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80879"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8087a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8087b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d8087c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d8087d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8087e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8087f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80880"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2138,
+        "_id": "6a24ad4276ec7f9fb9d80881"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 704,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2137,
+        "_id": "6a24ad4276ec7f9fb9d80882"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d80883"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 736,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80884"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80885"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80886"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d80887"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d80888"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 768,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80889"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8088a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8088b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d8088c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d8088d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d8088e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 800,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8088f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80890"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80891"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80892"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80893"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80894"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80895"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1408,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80896"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1472,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80897"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80898"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d80899"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8089a"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8089b"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8089c"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8089d"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1280,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8089e"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1344,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d8089f"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808a0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808a1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808a2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808a3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808a4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1152,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808a5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1216,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808a6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808a7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808a8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808a9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808aa"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1024,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808ab"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 1088,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808ac"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808ad"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808ae"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808af"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 896,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808b0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 960,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808b1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808b2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808b3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 768,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808b4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 832,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808b5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 832,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808b6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808b7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808b8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808b9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808ba"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808bb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 640,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808bc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 704,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808bd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 864,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808be"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808bf"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808c0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808c1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808c2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 512,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808c3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 576,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808c4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 896,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808c5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808c6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808c7"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808c8"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 384,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808c9"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 448,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808ca"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 928,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808cb"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808cc"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808cd"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 256,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808ce"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 320,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808cf"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 960,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808d0"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808d1"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 128,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808d2"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 192,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2141,
+        "_id": "6a24ad4276ec7f9fb9d808d3"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 992,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808d4"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 0,
+        "y": 1024,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808d5"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": 64,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2140,
+        "_id": "6a24ad4276ec7f9fb9d808d6"
+      },
+      {
+        "platformAssetId": "tile-grass-dirt",
+        "x": -64,
+        "y": 1056,
+        "width": 132,
+        "height": 80,
+        "zIndex": 2139,
+        "_id": "6a24ad4276ec7f9fb9d808d7"
+      }
+    ],
+    "createdAt": "2026-05-02T10:19:29.769Z",
+    "updatedAt": "2026-06-06T23:29:06.813Z",
+    "__v": 974,
+    "entityOverrides": [
+      {
+        "entityId": "weeping-willow-198",
+        "x": 736,
+        "y": -64,
+        "width": 85.77088,
+        "height": 112.57428,
+        "zIndex": 1837
+      },
+      {
+        "entityId": "help-wanted",
+        "x": 864,
+        "y": 416,
+        "width": 96,
+        "height": 84,
+        "zIndex": 2125
+      },
+      {
+        "entityId": "mailbox",
+        "x": 1120,
+        "y": 512,
+        "width": 64,
+        "height": 68,
+        "zIndex": 2127
+      },
+      {
+        "entityId": "sugarbee-cafe-door",
+        "x": 672,
+        "y": 256,
+        "width": 192,
+        "height": 192,
+        "zIndex": 2114
+      },
+      {
+        "entityId": "bazaar-door",
+        "x": 1158,
+        "y": 70,
+        "width": 384,
+        "height": 384,
+        "zIndex": 2129
+      },
+      {
+        "entityId": "games-parlor-door",
+        "x": 1248,
+        "y": 544,
+        "width": 192,
+        "height": 192,
+        "zIndex": 2131
+      },
+      {
+        "entityId": "wishing-well",
+        "x": 150,
+        "y": 617,
+        "width": 108,
+        "height": 151,
+        "zIndex": 2140
+      },
+      {
+        "entityId": "campfire",
+        "x": 608,
+        "y": 512,
+        "width": 100,
+        "height": 100,
+        "zIndex": 2132
+      }
+    ],
+    "hiddenEntityIds": [
+      "weeping-willow-56",
+      "weeping-willow-55",
+      "weeping-willow-95",
+      "weeping-willow-94",
+      "weeping-willow-76",
+      "weeping-willow-75",
+      "weeping-willow-73",
+      "weeping-willow-93",
+      "weeping-willow-74",
+      "weeping-willow-179",
+      "weeping-willow-159",
+      "weeping-willow-199",
+      "weeping-willow-158",
+      "weeping-willow-139",
+      "weeping-willow-157",
+      "weeping-willow-138",
+      "weeping-willow-119",
+      "weeping-willow-118",
+      "weeping-willow-117",
+      "weeping-willow-198",
+      "weeping-willow-197",
+      "weeping-willow-177",
+      "weeping-willow-156",
+      "weeping-willow-137",
+      "weeping-willow-178",
+      "weeping-willow-195",
+      "weeping-willow-154",
+      "weeping-willow-134",
+      "weeping-willow-173",
+      "weeping-willow-172",
+      "weeping-willow-151",
+      "weeping-willow-62",
+      "weeping-willow-106",
+      "weeping-willow-114",
+      "weeping-willow-132",
+      "weeping-willow-131",
+      "weeping-willow-112",
+      "weeping-willow-110",
+      "weeping-willow-107",
+      "weeping-willow-88",
+      "weeping-willow-105",
+      "weeping-willow-87",
+      "weeping-willow-85",
+      "weeping-willow-128",
+      "weeping-willow-108",
+      "weeping-willow-86",
+      "weeping-willow-104",
+      "weeping-willow-143",
+      "weeping-willow-125",
+      "weeping-willow-144",
+      "weeping-willow-124",
+      "weeping-willow-142",
+      "weeping-willow-123",
+      "weeping-willow-166",
+      "weeping-willow-147",
+      "weeping-willow-150",
+      "weeping-willow-129"
+    ]
+  },
+  {
+    "_id": "6a2360dc76ec7f9fb9afe1e0",
+    "locationId": "bazaar",
+    "tiles": [],
+    "hiddenEntityIds": [],
+    "entityOverrides": [
+      {
+        "entityId": "sugarbee-cafe-door",
+        "x": 1472,
+        "y": 160,
+        "width": 192,
+        "height": 192,
+        "zIndex": 2114
+      },
+      {
+        "entityId": "wishing-well",
+        "x": 736,
+        "y": 480,
+        "width": 108,
+        "height": 151,
+        "zIndex": 5
+      },
+      {
+        "entityId": "wishing-well",
+        "x": 736,
+        "y": 604,
+        "width": 108,
+        "height": 151,
+        "zIndex": 0
+      },
+      {
+        "entityId": "wishing-well",
+        "x": 736,
+        "y": 601,
+        "width": 108,
+        "height": 151,
+        "zIndex": 0
+      },
+      {
+        "entityId": "bazaar-door",
+        "x": 1152,
+        "y": -64,
+        "width": 384,
+        "height": 384,
+        "zIndex": 2129
+      }
+    ],
+    "createdAt": "2026-06-05T23:50:52.044Z",
+    "updatedAt": "2026-06-06T06:37:22.200Z",
+    "__v": 5
+  },
+  {
+    "_id": "6a23c01576ec7f9fb9c7f25b",
+    "locationId": "sugarbee-cafe",
+    "tiles": [],
+    "hiddenEntityIds": [],
+    "entityOverrides": [
+      {
+        "entityId": "bazaar-door",
+        "x": 1152,
+        "y": 0,
+        "width": 384,
+        "height": 384,
+        "zIndex": 2129
+      }
+    ],
+    "createdAt": "2026-06-06T06:37:09.947Z",
+    "updatedAt": "2026-06-06T06:37:10.176Z",
+    "__v": 1
+  },
+  {
+    "_id": "6a23c02b76ec7f9fb9c7f5ae",
+    "locationId": "games-parlor",
+    "tiles": [],
+    "hiddenEntityIds": [],
+    "entityOverrides": [
+      {
+        "entityId": "bazaar-door",
+        "x": 1152,
+        "y": -128,
+        "width": 384,
+        "height": 384,
+        "zIndex": 2129
+      }
+    ],
+    "createdAt": "2026-06-06T06:37:31.193Z",
+    "updatedAt": "2026-06-06T06:37:31.412Z",
+    "__v": 1
+  }
+]

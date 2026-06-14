@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import WebSocketService from '../../services/websocket';
 import SessionStore from '../../stores/SessionStore';
 import FontSettingsStore from '../../stores/FontSettingsStore';
+import uxStore from '../../stores/UXStore';
 import MinkyPanel from '../MinkyPanel';
 import WoolButton from '../WoolButton';
 import Scroll from '../Scroll';
@@ -257,7 +258,8 @@ const WorkbookActivity = observer(({
   onBack,
   canGoBack,
   accumulatedData,
-  registerBackHandler
+  registerBackHandler,
+  registerHeaderContent
 }) => {
   const [activity, setActivity] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -558,7 +560,12 @@ const WorkbookActivity = observer(({
 
   const handlePrevious = () => {
     if (isFirstStep) {
-      onComplete({ action: 'back' });
+      // At step 0, behave exactly like the modal-chrome Back button: hand off
+      // to FlowEngine's `onBack` (goBackAtDepth), which pops the flow's history
+      // at this depth — returning the user to whatever delivered them into the
+      // activity (the activities history / diary landing, the resume-picker,
+      // the bookshelf landing, etc.) rather than routing via action:'back'.
+      onBack();
     } else {
       setCurrentStepIndex(prev => prev - 1);
       scrollToTopAfterRender();
@@ -584,9 +591,9 @@ const WorkbookActivity = observer(({
   // can't be unregistered mid-flow by parent re-renders that recreate the
   // wrapper prop. Without this, FlowEngine re-renders churn the registration
   // every time, and any back-press landing in the cleanup→re-setup window
-  // would silently fall back to popping flow history. The in-flow "Previous"
-  // button (handlePrevious) still calls `onComplete({ action: 'back' })`
-  // at step 0; that path is the per-flow route choice and is left alone.
+  // would silently fall back to popping flow history. The in-flow "Back"
+  // button (handlePrevious) mirrors this exactly — at step 0 it calls
+  // `onBack()` (the same goBackAtDepth this handler hands off to).
   const registerBackHandlerRef = useRef(registerBackHandler);
   registerBackHandlerRef.current = registerBackHandler;
   useEffect(() => {
@@ -607,6 +614,39 @@ const WorkbookActivity = observer(({
       if (typeof r === 'function') r(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Hoist the step progress bar up into the modal chrome (between the back and
+  // close buttons), replacing the title. Desktop only — on mobile the modal
+  // renders no navbar (see Modal.js), so there the bar stays in-body (rendered
+  // below). The registration node is rebuilt on every step/size change; a
+  // separate unmount-only effect clears it so it doesn't outlive the activity.
+  const registerHeaderContentRef = useRef(registerHeaderContent);
+  registerHeaderContentRef.current = registerHeaderContent;
+  const onMobileChrome = uxStore.isMobile;
+  const activityTitle = activity?.title;
+  useEffect(() => {
+    const reg = registerHeaderContentRef.current;
+    if (typeof reg !== 'function') return;
+    if (onMobileChrome || !totalSteps) { reg(null); return; }
+    reg(
+      <View style={styles.headerChrome}>
+        {activityTitle ? (
+          <Text style={styles.headerTitle} numberOfLines={1}>{activityTitle}</Text>
+        ) : null}
+        <View style={styles.headerBarWrap}>
+          <StitchedProgressBar
+            progress={(currentStepIndex + 1) / totalSteps}
+            steps={totalSteps}
+            segmentHeight={13}
+          />
+        </View>
+      </View>
+    );
+  }, [currentStepIndex, totalSteps, onMobileChrome, activityTitle]);
+  useEffect(() => () => {
+    const reg = registerHeaderContentRef.current;
+    if (typeof reg === 'function') reg(null);
   }, []);
 
   // R5: pre_mood / post_mood mood widgets (bind === 'pre_mood' | 'post_mood')
@@ -859,11 +899,17 @@ const WorkbookActivity = observer(({
 
   return (
     <View style={[styles.container, { gap: gapMd }]}>
-      {/* Progress indicator */}
-      <StitchedProgressBar progress={(currentStepIndex + 1) / totalSteps} steps={totalSteps} />
-      <Text style={styles.stepCounter}>
-        Step {currentStepIndex + 1} of {totalSteps}
-      </Text>
+      {/* Progress indicator — on desktop this is hoisted into the modal chrome
+          (see the registerHeaderContent effect). On mobile the modal has no
+          navbar, so it stays in-body here. */}
+      {onMobileChrome ? (
+        <>
+          <StitchedProgressBar progress={(currentStepIndex + 1) / totalSteps} steps={totalSteps} />
+          <Text style={styles.stepCounter}>
+            Step {currentStepIndex + 1} of {totalSteps}
+          </Text>
+        </>
+      ) : null}
 
       {/* Sticky recap trigger — sits above the scroll so it doesn't move
           with the content. Shown only on steps that carry prior answers. */}
@@ -923,6 +969,31 @@ const WorkbookActivity = observer(({
             {renderLiftedComponent(postMoodEntry)}
           </View>
         ) : null}
+
+        {/* Inline nav — sits at the end of the step content: Back bottom-left,
+            Next bottom-right, so the user reaches them after reading the step.
+            (The modal chrome back button still works too.) Suppressed on
+            terminal steps and on steps that render their own inline nav. */}
+        {!hasInlineNav && !isTerminalStep ? (
+          <View style={[styles.inlineNavRow, { paddingTop: gapMd }]}>
+            <WoolButton
+              onPress={handlePrevious}
+              variant="purple"
+              size="small"
+              overlayColor="rgba(100, 130, 195, 0.25)"
+            >
+              {isFirstStep ? 'Back' : 'Previous'}
+            </WoolButton>
+            <WoolButton
+              onPress={handleNext}
+              variant="purple"
+              size="small"
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : isLastStep ? 'Complete' : 'Next'}
+            </WoolButton>
+          </View>
+        ) : null}
       </Scroll>
 
       {recapStep ? (
@@ -951,29 +1022,6 @@ const WorkbookActivity = observer(({
             />
           </MinkyPanel>
         </Modal>
-      ) : null}
-
-      {/* Navigation buttons (suppressed when the step renders inline nav itself) */}
-      {!hasInlineNav && !isTerminalStep ? (
-        <View style={[styles.navigation, { gap: gapMd, paddingTop: gapSm }]}>
-          <WoolButton
-            onPress={handlePrevious}
-            variant="purple"
-            size="small"
-            overlayColor="rgba(100, 130, 195, 0.25)"
-          >
-            {isFirstStep ? 'Back' : 'Previous'}
-          </WoolButton>
-
-          <WoolButton
-            onPress={handleNext}
-            variant="purple"
-            size="small"
-            disabled={saving}
-          >
-            {saving ? 'Saving...' : isLastStep ? 'Complete' : 'Next'}
-          </WoolButton>
-        </View>
       ) : null}
     </View>
   );
@@ -1046,11 +1094,29 @@ const styles = StyleSheet.create({
   sliderButtonWrapper: {
     minWidth: 48,
   },
-  navigation: {
+  inlineNavRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
-    paddingTop: 8,
+  },
+  // Modal-chrome header block: activity title above a shorter, narrower
+  // progress bar. Title and bar are both centered.
+  headerChrome: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  // Bar runs ~28% shorter than the available header width.
+  headerBarWrap: {
+    width: '72%',
+  },
+  headerTitle: {
+    marginBottom: 4,
+    fontFamily: 'SuperStitch',
+    fontSize: 28,
+    color: 'rgba(64, 63, 62, 0.82)',
+    textAlign: 'center',
+    textShadowColor: 'rgba(255, 255, 255, 1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   moodBlock: {
     marginVertical: 8,
